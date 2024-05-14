@@ -9,7 +9,7 @@ class ExitCodes(enum.IntEnum):
     """enumeration for exit codes"""
 
     ALREADY_RUNNING = enum.auto()
-    CREDENTIAL_FILE_DOES_NOT_EXISTS = enum.auto()
+    CREDENTIAL_FILE_DOES_NOT_EXIST = enum.auto()
     EMPTY_MASTER_KEY = enum.auto()
     WRONG_MASTER_KEY = enum.auto()
 

@@ -77,7 +77,7 @@ class SecurityBypass:
                 self._exit(ExitCodes.EMPTY_MASTER_KEY)
             except FileNotFoundError:
                 self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
-                self._exit(ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS)
+                self._exit(ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST)
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:

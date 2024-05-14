@@ -11,6 +11,7 @@ try:
     import win32api
 
     from common.exit_codes import ExitCodes
+    from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
     from config.config import Config, ConfigManager
     from config.config_key_manager import check_config_file
     from settings import DFT_ENCODING
@@ -39,23 +40,23 @@ REQUIREMENT_FILE = "requirements.txt"
 TASK_SCHEDULER_XML = "Security Bypass.xml"
 TASK_TEMP_SCHEDULER_XML = "temp.xml"
 
-DESCRIPTION = f"""Security Bypass
+DESCRIPTION = """Security Bypass
 
 You can easily enter your passwords without touching the keyboard.
 It is one click a way.
 
 Error Codes and reasons:
-{ExitCodes.ALREADY_RUNNING.value} -> Another instance of the application is already running. Stop it and run the task again.
-{ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS.value} -> The credential file does not found. Use the 'password_manager.py' to create it.
-{ExitCodes.EMPTY_MASTER_KEY.value} -> The master key that is entered is empty. An empty master key is not allowed.
-{ExitCodes.WRONG_MASTER_KEY.value} -> The master key that is entered is wrong. Please enter the correct one.
+{already_running} -> Another instance of the application is already running. Stop it and run the task again.
+{credential_file_not_exists} -> The credential file does not found. Use the 'password_manager.py' to create it.
+{empty_key} -> The master key that is entered is empty. An empty master key is not allowed.
+{wrong_key} -> The master key that is entered is wrong. Please enter the correct one.
 """
 
 
 def main() -> None:
     """starts from here"""
 
-    check_virtual_environment()
+    # check_virtual_environment()
 
     install_requirements()
 
@@ -117,7 +118,12 @@ def adjust_task_scheduler_xml() -> None:
     xml_content = xml_content.format(
         username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
         pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
-        description=DESCRIPTION,
+        description=DESCRIPTION.format(
+            already_running=ExitCodes.ALREADY_RUNNING.value,
+            credential_file_not_exists=ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST,
+            empty_key=ExitCodes.EMPTY_MASTER_KEY.value,
+            wrong_key=ExitCodes.WRONG_MASTER_KEY.value,
+        ),
         script_dir=SCRIPT_DIR,
     )
 
@@ -201,7 +207,10 @@ class InputOutputHelper:
 def _get_password() -> str:
     while True:
         try:
-            return InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys")
+            password = InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys")
+            if PASSWORD_SCHEMA.validate(password):
+                return password
+            InputOutputHelper.warning(get_schema_rules(PASSWORD_SCHEMA))
         except ContinueLoopError:
             continue
 
@@ -227,8 +236,19 @@ def initial_setup() -> None:
     #     pass
 
 
+def rollback() -> None:
+    """rollback the changes"""
+
+    os.system('schtasks /delete /tn "Security Bypass" /F')
+
+
 if __name__ == "__main__":
+    DO_ROLLBACK = True
     try:
         main()
+        DO_ROLLBACK = False
     except KeyboardInterrupt:
         sys.exit("\nOperation cancelled by user")
+    finally:
+        if DO_ROLLBACK:
+            rollback()
