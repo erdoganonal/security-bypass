@@ -81,7 +81,7 @@ class _PyQtGUISelectWindowInfoHelper:
         except PyGetWindowException:
             self._app.quit()
 
-        self._main_window.move(left, top)
+        get_window_by_hwnd(int(self._main_window.winId())).moveTo(left, top)
 
     def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
         """Let user to pick the password from the list"""
