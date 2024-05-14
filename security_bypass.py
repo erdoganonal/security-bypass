@@ -1,7 +1,6 @@
 """Allows you to save passwords and let you to bypass the windows security windows
  by entering the passwords automatically"""
 
-import sys
 import threading
 import time
 from typing import Generator, List, TypedDict
@@ -11,6 +10,7 @@ import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from tendo import singleton
 
+from common.exit_codes import ExitCodes
 from common.tools import InplaceInt, is_windows_locked
 from config import ConfigManager
 from config.config import WindowConfig
@@ -69,14 +69,14 @@ class SecurityBypass:
                 if which.get() == FROM_ENV:
                     # if the passkey is coming from the environment variable, and it was wrong;
                     # do not try to get it. It goes endless loop, otherwise.
-                    sys.exit(1)
+                    ExitCodes.WRONG_MASTER_KEY.exit()
                 continue
             except KeyError as err:
                 self._notification_handler.error(err.args[0])
-                sys.exit(1)
+                ExitCodes.EMPTY_MASTER_KEY.exit()
             except FileNotFoundError:
                 self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
-                sys.exit(1)
+                ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS.exit()
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:
@@ -185,6 +185,6 @@ if __name__ == "__main__":
     try:
         me = singleton.SingleInstance()  # type: ignore[no-untyped-call]
     except singleton.SingleInstanceException:
-        sys.exit(2)
+        ExitCodes.ALREADY_RUNNING.exit()
 
     main()
