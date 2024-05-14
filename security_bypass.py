@@ -120,8 +120,12 @@ class SecurityBypass:
 
         send_enter = keys.endswith("\n")
 
+        current_clipboard = pyperclip.paste()
+
         pyperclip.copy(keys[:-1] if send_enter else keys)
         pyautogui.hotkey("ctrl", "v")
+
+        pyperclip.copy(current_clipboard)
 
         if send_enter:
             pyautogui.write("\n")
