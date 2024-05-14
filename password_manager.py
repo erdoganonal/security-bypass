@@ -60,7 +60,7 @@ class Hooks:
         target_index = self._manager.ui.tree.indexAt(QtCore.QPoint(int(event.position().x()), int(event.position().y())))
         target_item = self._manager.model.itemFromIndex(target_index)
 
-        if isinstance(current_item, QStandardPasskeyItem) and isinstance(target_item, QStandardPasskeyItem):
+        if isinstance(current_item, QStandardPasskeyItem) and (isinstance(target_item, QStandardPasskeyItem) or target_item is None):
             self._manager.move_item(current_item, target_item)
 
     def hook(self) -> None:
@@ -162,7 +162,7 @@ class PasswordManagerUI:
             self._config.windows.append(window)
             self._config_mgr.save_config(self._config)
 
-    def move_item(self, current_item: QStandardPasskeyItem, target_item: QStandardPasskeyItem, __save: bool = True) -> None:
+    def move_item(self, current_item: QStandardPasskeyItem, target_item: QStandardPasskeyItem | None, __save: bool = True) -> None:
         """move the item to another location"""
 
         cloned_item = QStandardPasskeyItem.clone_from(current_item)
