@@ -176,12 +176,27 @@ class PasswordManagerUI:
         if __save:
             self._config_mgr.save_config(self._config)
 
-    def remove_item(self, item: QStandardPasskeyItem, __save: bool = True) -> None:
+    def _delete_item_dialog(self, item: QStandardPasskeyItem) -> bool:
+        """show a popup to the user and get the response. returns True if user wants to delete the item."""
+        title = "Delete Item"
+        if item.window is None:
+            message = f"Are you sure you want to delete '{self.ui.tree.currentIndex().data()}' and all of its content?"
+        else:
+            message = f"Are you sure you want to delete '{item.window.name}'?"
+
+        answer = QtWidgets.QMessageBox.question(self.ui.tree, title, message + "\n\nThis operation is irreversible.")
+
+        return answer == QtWidgets.QMessageBox.StandardButton.Yes
+
+    def remove_item(self, item: QStandardPasskeyItem, __save: bool = True, *, show_dialog: bool = True) -> None:
         """remove the item from the config"""
 
         current_index = self.ui.tree.currentIndex()
         if current_index is None:
             raise ValueError("No item is selected")
+
+        if show_dialog and not self._delete_item_dialog(item):
+            return
 
         if item.window is None:
             # delete parent
