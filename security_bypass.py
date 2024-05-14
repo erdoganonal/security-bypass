@@ -3,7 +3,7 @@
 
 import threading
 import time
-from typing import Generator, List, TypedDict
+from typing import Generator, List
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
@@ -22,14 +22,7 @@ from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PASSWORD_REQUIRED_FILE_PATH
-
-
-class FileModifiedData(TypedDict):
-    """hold the file modified data"""
-
-    credentials: float
-    password_required: float
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
 
 
 def main() -> None:
@@ -53,9 +46,9 @@ class SecurityBypass:
         self.__key: bytes | None = None
 
         self._windows = self.__get_windows()
-        self._file_modified_data: FileModifiedData = {"credentials": 0.0, "password_required": 0.0}
+        self._credential_file_modified_time = 0.0
 
-    def __get_windows(self) -> List[WindowConfig]:
+    def __get_windows(self, show_error: bool = True) -> List[WindowConfig]:
         which = InplaceInt()
 
         while True:
@@ -65,11 +58,14 @@ class SecurityBypass:
                 check_config_file()
                 return ConfigManager(key=self.__key).get_config().windows
             except ValueError:
-                self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
+                self.__key = None
+                if show_error:
+                    self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
                 if which.get() == FROM_ENV:
                     # if the passkey is coming from the environment variable, and it was wrong;
                     # do not try to get it. It goes endless loop, otherwise.
                     ExitCodes.WRONG_MASTER_KEY.exit()
+                show_error = True
                 continue
             except KeyError as err:
                 self._notification_handler.error(err.args[0])
@@ -105,19 +101,10 @@ class SecurityBypass:
             time.sleep(1)
 
     def _reload_if_required(self) -> None:
-        try:
-            password_required_file_modified_time = PASSWORD_REQUIRED_FILE_PATH.stat().st_mtime
-            if password_required_file_modified_time != self._file_modified_data["password_required"]:
-                PASSWORD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
-                self.__key = None
-                self._file_modified_data["password_required"] = password_required_file_modified_time
-        except FileNotFoundError:
-            pass
-
         credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
-        if credential_file_modified_time != self._file_modified_data["credentials"]:
-            self._windows = self.__get_windows()
-            self._file_modified_data["credentials"] = credential_file_modified_time
+        if credential_file_modified_time != self._credential_file_modified_time:
+            self._windows = self.__get_windows(show_error=False)
+            self._credential_file_modified_time = credential_file_modified_time
 
     def _start(self) -> None:
         self._loop = True

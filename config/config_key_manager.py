@@ -83,7 +83,6 @@ def get_mk_ui(prompt: str | None = None, which: InplaceInt | None = None) -> byt
     mk_entry = ttk.Entry(main_frame, show="*")
     mk_entry.grid_configure(row=0, column=0, sticky=tk.NSEW, padx=5, pady=5, columnspan=2)
     mk_entry.bind("<Return>", lambda e: _close(False))
-    mk_entry.focus_set()
 
     mk_preview_button = ttk.Button(main_frame, text="Show Password")
     mk_preview_button.grid_configure(row=1, column=0, sticky=tk.NSEW, padx=5, pady=5)
@@ -111,7 +110,9 @@ def get_mk_ui(prompt: str | None = None, which: InplaceInt | None = None) -> byt
 
     root.wm_title(prompt or "Please enter the Master Key")
     root.wm_geometry("350x75")
+    root.resizable(False, False)
     root.wm_protocol("WM_DELETE_WINDOW", _close)
+    mk_entry.focus_force()
     update_and_center(root)
     root.mainloop()
 
