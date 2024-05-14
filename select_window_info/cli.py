@@ -1,28 +1,29 @@
 """Select the window by using cli"""
 
 import sys
-from typing import Iterable
+from typing import Sequence
 
-from pygetwindow import Win32Window  # type: ignore[import-untyped]
-
-from select_window_info.base import SelectWindowInfoBase, WindowInfo
+from config.config import WindowData
+from select_window_info.base import SelectWindowInfoBase
 
 
 class CLISelectWindowInfo(SelectWindowInfoBase):
     """Select the window by using cli"""
 
-    def select(self, windows_info: Iterable[WindowInfo]) -> Win32Window | None:
+    @property
+    def supports_thread(self) -> bool:
+        return False
+
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
         """Let user to pick the password from the list"""
-        window_pin_rel = {}
+        window_pin_rel: dict[str, str] = {}
 
-        idx = 1
-        for window_info in windows_info:
-            print(f"[{idx}] {window_info.window_data.title} - {window_info.window_data.name}")
-            window_pin_rel[str(idx)] = window_info
-            idx += 1
-
-        if idx == 1:
+        if not windows_data:
             return None
+
+        for idx, window_data in enumerate(windows_data, start=1):
+            print(f"[{idx}] {window_data.title} - {window_data.name}")
+            window_pin_rel[str(idx)] = window_data.passkey
 
         try:
             return window_pin_rel[input("Select the password/pin from the list: ")]

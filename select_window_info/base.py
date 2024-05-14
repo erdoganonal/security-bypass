@@ -2,7 +2,7 @@
 
 import abc
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Sequence
 
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
@@ -21,9 +21,10 @@ class SelectWindowInfoBase(abc.ABC):
     """Base class for SelectWindowInfo"""
 
     @abc.abstractmethod
-    def select(self, windows_info: Iterable[WindowInfo]) -> WindowInfo | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
         """Let user to pick the password from the list"""
 
-    @classmethod
-    def reserved(cls) -> None:
-        """reserved"""
+    @property
+    @abc.abstractmethod
+    def supports_thread(self) -> bool:
+        """return the information that the class supports running in the thread"""

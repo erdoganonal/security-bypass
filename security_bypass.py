@@ -3,14 +3,14 @@
 
 import threading
 import time
-from typing import Generator, List, NoReturn, Set
+from typing import List, NoReturn, Set
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from common.exit_codes import ExitCodes
-from common.tools import InplaceInt, check_single_instance, is_windows_locked
+from common.tools import InplaceInt, check_single_instance, get_window_hwnd, is_windows_locked
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
@@ -18,7 +18,7 @@ from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
 from notification_handler.gui import GUINotificationHandler
 from password_manager import __name__ as pwd_manager_name
-from select_window_info.base import SelectWindowInfoBase, WindowInfo
+from select_window_info.base import SelectWindowInfoBase
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
 from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
@@ -41,7 +41,7 @@ class SecurityBypass:
 
     def __init__(self, select_window: SelectWindowInfoBase, notification_handler: NotificationHandlerBase) -> None:
         self._loop = False
-        self._select_window_info_func = select_window.select
+        self._window_selector = select_window
         self._notification_handler = notification_handler
         self.__key: bytes | None = None
 
@@ -112,19 +112,19 @@ class SecurityBypass:
             self._credential_file_modified_time = credential_file_modified_time
 
     def _select(self) -> None:
-        windows = list(self.filter_windows())
-        if not windows:
+        window, windows = self.filter_windows()
+        if window is None or not windows:
             return  # no matching window found
 
-        window_hwnd = windows[0].window._hWnd  # pylint: disable=protected-access
+        window_hwnd = get_window_hwnd(window)
         if window_hwnd in self.__window_hwnd_s:
             return  # already processing
 
         self.__window_hwnd_s.add(window_hwnd)
-        window_info = self._select_window_info_func(windows)
+        passkey = self._window_selector.select(window_hwnd, windows)
 
-        if window_info is not None:
-            self.send_keys(window_info.window, window_info.window_data.passkey, window_info.window_data.send_enter)
+        if passkey is not None:
+            self.send_keys(window, passkey)
             # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
             if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
                 self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
@@ -141,7 +141,10 @@ class SecurityBypass:
             if ASK_PASSWORD_ON_LOCK:
                 self._handle_windows_lock()
 
-            threading.Thread(target=self._select, daemon=True).start()
+            if self._window_selector.supports_thread:
+                threading.Thread(target=self._select, daemon=True).start()
+            else:
+                self._select()
 
             self._sleep()
 
@@ -161,11 +164,16 @@ class SecurityBypass:
         window.maximize()
 
     @classmethod
-    def send_keys(cls, window: Win32Window, keys: str, send_enter: bool) -> None:
+    def send_keys(cls, window: Win32Window, keys: str) -> None:
         """Send given keys to the given window"""
         cls.focus_window(window)
 
         current_clipboard = pyperclip.paste()
+
+        send_enter = False
+        if keys.endswith("\n"):
+            send_enter = True
+            keys = keys[:-1]
 
         pyperclip.copy(keys)
         pyautogui.hotkey("ctrl", "v")
@@ -175,18 +183,19 @@ class SecurityBypass:
         if send_enter:
             pyautogui.write("\n")
 
-    def filter_windows(self) -> Generator[WindowInfo, None, None]:
+    def filter_windows(self) -> tuple[Win32Window | None, list[WindowData]]:
         """Filter the windows by title"""
 
-        break_loop = False
         for window in pyautogui.getAllWindows():  # type: ignore[attr-defined]
-            for window_data in self._windows:
-                if (window_data.pattern is not None and window_data.pattern.match(window.title)) or window_data.title == window.title:
-                    break_loop = True
-                    yield WindowInfo(window, window_data)
+            windows = [
+                window_data
+                for window_data in self._windows
+                if (window_data.pattern is not None and window_data.pattern.match(window.title)) or window_data.title == window.title
+            ]
+            if windows:
+                return window, windows
 
-            if break_loop:
-                break
+        return None, []
 
 
 if __name__ == "__main__":

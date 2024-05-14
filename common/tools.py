@@ -1,5 +1,7 @@
 """Common function/methods"""
 import psutil
+import pyautogui
+from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from tendo import singleton
 
 from common.exit_codes import ExitCodes
@@ -86,3 +88,19 @@ def check_single_instance() -> None:
         _GLOBAL["singleton"] = singleton.SingleInstance()  # type: ignore[no-untyped-call]
     except singleton.SingleInstanceException:
         ExitCodes.ALREADY_RUNNING.exit()
+
+
+def get_window_by_hwnd(hwnd: int) -> Win32Window | None:
+    """return the window by given ID"""
+
+    try:
+        return next(window for window in pyautogui.getAllWindows() if get_window_hwnd(window) == hwnd)  # type: ignore[attr-defined]
+    except StopAsyncIteration:
+        return None
+
+
+def get_window_hwnd(window: Win32Window) -> int:
+    """return the ID of the window"""
+
+    # pylint: disable=protected-access
+    return window._hWnd  # type: ignore[no-any-return]
