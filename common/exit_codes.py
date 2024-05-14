@@ -12,6 +12,7 @@ class ExitCodes(enum.IntEnum):
     CREDENTIAL_FILE_DOES_NOT_EXIST = enum.auto()
     EMPTY_MASTER_KEY = enum.auto()
     WRONG_MASTER_KEY = enum.auto()
+    UNKNOWN = enum.auto()
 
     def exit(self) -> NoReturn:
         """same as sys.exit but gives the exit code"""

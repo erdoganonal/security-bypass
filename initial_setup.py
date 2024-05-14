@@ -50,6 +50,7 @@ Error Codes and reasons:
 {credential_file_not_exists} -> The credential file does not found. Use the 'password_manager.py' to create it.
 {empty_key} -> The master key that is entered is empty. An empty master key is not allowed.
 {wrong_key} -> The master key that is entered is wrong. Please enter the correct one.
+{unknown} -> The application faced an unknown issue. Most probably a bug.
 """
 
 
@@ -123,6 +124,7 @@ def adjust_task_scheduler_xml() -> None:
             credential_file_not_exists=ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST,
             empty_key=ExitCodes.EMPTY_MASTER_KEY.value,
             wrong_key=ExitCodes.WRONG_MASTER_KEY.value,
+            unknown=ExitCodes.UNKNOWN.value,
         ),
         script_dir=SCRIPT_DIR,
     )

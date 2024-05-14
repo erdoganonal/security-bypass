@@ -3,6 +3,7 @@
 
 import threading
 import time
+import traceback
 from typing import List, NoReturn, Set
 
 import pyautogui
@@ -22,7 +23,7 @@ from select_window_info.base import SelectWindowInfoBase
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
 from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
 
 SLEEP_SECS = 1
 
@@ -138,7 +139,7 @@ class SecurityBypass:
     def _start(self) -> None:
         self._loop = True
 
-        self._notification_handler.debug("Application is started.")
+        self._notification_handler.debug("The application has been started.")
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
 
         while self._loop:
@@ -158,8 +159,13 @@ class SecurityBypass:
             self._start()
         except KeyboardInterrupt:
             self._notification_handler.warning("An interrupt detected. Terminating the app..")
+        except Exception:  # pylint: disable=broad-exception-caught
+            if DEBUG:
+                self._notification_handler.error(f"Unknown exception:: {traceback.format_exc()}", title="Unknown exception occurred.")
+                raise
+            self._exit(ExitCodes.UNKNOWN)
 
-        self._notification_handler.info("App is terminated!")
+        self._notification_handler.info("The application has been terminated!")
 
     @classmethod
     def focus_window(cls, window: Win32Window) -> None:
