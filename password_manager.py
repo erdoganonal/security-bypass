@@ -378,6 +378,7 @@ class SignalHandler:
 
     def __init__(self, manager: PasswordManagerUI) -> None:
         self._manager = manager
+        self._old_item: QStandardPasskeyItem | None = None
 
     def get_current_item(self, index: QtCore.QModelIndex | None = None) -> QStandardPasskeyItem:
         """return the window config for given index"""
@@ -411,10 +412,35 @@ class SignalHandler:
 
         self._manager.ui.button_delete_item.setEnabled(bool(parent or current))
 
+    def _check_is_saved(self) -> bool:
+        if self._old_item is None or self._old_item.window is None:
+            return True
+
+        item_compare_map = (
+            ("title", self._old_item.window.title, self._manager.ui.entry_title.text()),
+            ("name", self._old_item.window.name, self._manager.ui.entry_name.text()),
+            ("password", self._old_item.window.passkey[:-1], self._manager.ui.entry_password.text()),
+        )
+
+        for name, old_value, new_value in item_compare_map:
+            if new_value != old_value:
+                question = QtWidgets.QMessageBox.question(
+                    self._manager.ui.tree, "Are you sure?", f"The {name} has been changed and not saved. Are you sure to discard?"
+                )
+                if question == QtWidgets.QMessageBox.StandardButton.Yes:
+                    return True
+                self._manager.ui.tree.setCurrentIndex(self._manager.model.indexFromItem(self._old_item))
+                return False
+        return True
+
     def load_window_config(self, index: QtCore.QModelIndex) -> None:
         """load the config widget based on selected item"""
 
-        window = self.get_current_item(index).window
+        if not self._check_is_saved():
+            return
+
+        self._old_item = self.get_current_item(index)
+        window = self._old_item.window
 
         items = (
             (self._manager.ui.entry_title, True),
