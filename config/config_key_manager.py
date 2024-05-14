@@ -6,6 +6,8 @@ import tkinter as tk
 from getpass import getpass
 from tkinter import ttk
 
+from tkhelper.widgets import update_and_center
+
 from settings import DFT_ENCODING, MK_ENV_NAME, MK_REQUEST_PARAM
 
 
@@ -20,7 +22,7 @@ def validate_and_get_mk() -> bytes:
     if mk:
         return mk
 
-    raise ValueError(
+    raise KeyError(
         f"Master Key must be specified. Use {MK_REQUEST_PARAM} for cli or"
         f" {MK_ENV_NAME} environment variable or GUI to enter the Master Key."
     )
@@ -60,6 +62,8 @@ def get_mk_ui() -> bytes | None:
 
     mk_entry = ttk.Entry(main_frame, show="*")
     mk_entry.grid_configure(row=0, column=0, sticky=tk.NSEW, padx=5, pady=5, columnspan=2)
+    mk_entry.bind("<Return>", lambda e: _close(False))
+    mk_entry.focus_set()
 
     mk_preview_button = ttk.Button(main_frame, text="Preview")
     mk_preview_button.grid_configure(row=1, column=0, sticky=tk.NSEW, padx=5, pady=5)
@@ -86,6 +90,7 @@ def get_mk_ui() -> bytes | None:
     root.wm_title("Please enter the Master Key")
     root.wm_geometry("350x75")
     root.wm_protocol("WM_DELETE_WINDOW", _close)
+    update_and_center(root)
     root.mainloop()
 
     if mk:

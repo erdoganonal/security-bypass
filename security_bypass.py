@@ -15,11 +15,16 @@ from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
+from select_window_info.gui import GUISelectWindowInfo
+from settings import GUI
 
 
 def main() -> None:
     """starts from here"""
-    security_bypass = SecurityBypass(CLISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
+    if GUI:
+        security_bypass = SecurityBypass(GUISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
+    else:
+        security_bypass = SecurityBypass(CLISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
     security_bypass.start()
 
 
@@ -30,14 +35,17 @@ class SecurityBypass:
     def __init__(self, select_window: SelectWindowInfoBase, notification_handler: NotificationHandlerBase) -> None:
         self._loop = False
         self._select_window_info_func = select_window.select
-        self.sleep_secs = 10
+        self.sleep_secs = 1
         self._notification_handler = notification_handler
 
         try:
             self._windows = ConfigManager(key=validate_and_get_mk()).get_config().windows
         except ValueError:
             self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
-            sys.exit()
+            sys.exit(1)
+        except KeyError as err:
+            self._notification_handler.error(err.args[0])
+            sys.exit(1)
 
     def _sleep(self) -> None:
         sleep_secs = 0

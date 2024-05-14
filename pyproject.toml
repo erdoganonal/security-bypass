@@ -48,6 +48,7 @@ deps =
     pyautogui
     types-PyAutoGUI
     pycryptodome
+    tkhelper
 
 commands =
     isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
