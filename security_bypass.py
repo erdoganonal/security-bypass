@@ -14,7 +14,14 @@ from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from common.auto_key_trigger_manager import AutoKeyTriggerManager
 from common.exit_codes import ExitCodes
 from common.ignored_window_handler import IgnoredWindowsHandler
-from common.tools import InplaceInt, check_single_instance, extract_text_from_window, get_window_hwnd, is_windows_locked
+from common.tools import (
+    InplaceInt,
+    check_single_instance,
+    extract_text_from_window,
+    get_password_length,
+    get_window_hwnd,
+    is_windows_locked,
+)
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
@@ -26,7 +33,7 @@ from select_window_info.base import SelectWindowInfoBase
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
 from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
 
 SLEEP_SECS = 1
 
@@ -232,10 +239,30 @@ class SecurityBypass:
         window.maximize()
 
     @classmethod
+    def clear_keys(cls, password_len: int) -> None:
+        """Clear the keys from the password field"""
+        for _ in range(password_len):
+            pyautogui.press("backspace")
+
+    @classmethod
+    def _send_keys(cls, keys: str) -> None:
+        pyperclip.copy(keys)
+        pyautogui.hotkey("ctrl", "v")
+        time.sleep(0.1)
+
+    @classmethod
+    def _check_sent(cls, window: Win32Window, keys: str) -> bool:
+        password_len = get_password_length(window)
+        if password_len == len(keys):
+            return True
+        cls.clear_keys(password_len)
+        return False
+
+    @classmethod
     def send_keys(cls, window: Win32Window, keys: str) -> None:
         """Send given keys to the given window"""
-        cls.focus_window(window)
 
+        # backup the current clipboard content
         current_clipboard = pyperclip.paste()
 
         send_enter = False
@@ -243,13 +270,21 @@ class SecurityBypass:
             send_enter = True
             keys = keys[:-1]
 
-        pyperclip.copy(keys)
-        pyautogui.hotkey("ctrl", "v")
+        for _ in range(MAX_KEY_SENT_ATTEMPTS):
+            cls.focus_window(window)
+            cls._send_keys(keys)
 
+            if cls._check_sent(window, keys):
+                # break the loop if the keys are sent successfully
+                break
+        else:
+            return
+
+        # restore the clipboard content
         pyperclip.copy(current_clipboard)
 
         if send_enter:
-            pyautogui.write("\n")
+            pyautogui.press("enter")
 
     def filter_windows(self) -> tuple[Win32Window | None, list[WindowData]]:
         """Filter the windows by title"""

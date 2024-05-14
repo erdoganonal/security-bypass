@@ -1,5 +1,7 @@
 """Common function/methods"""
 
+from typing import Type
+
 import psutil
 import pyautogui
 import pywinauto  # type: ignore[import-untyped]
@@ -133,24 +135,8 @@ def get_position(window: Win32Window) -> tuple[int, int]:
     return window.left + window.width, window.top
 
 
-def _extract_text_from_window(window: pywinauto.application.WindowSpecification) -> str:
-    text = ""
-    try:
-        # Get the text of the current window
-        if isinstance(window, pywinauto.controls.uia_controls.StaticWrapper):
-            text += window.window_text() + "\n"
-    except Exception:  # pylint: disable=broad-except
-        pass
-
-    # Recursively search for child windows
-    for child in window.children():
-        text += _extract_text_from_window(child)
-
-    return text
-
-
-def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
-    """recursively search for child windows and extract text"""
+def get_window(window_or_id: Win32Window | int | str) -> pywinauto.application.WindowSpecification:
+    """return the window based on given ID or window object"""
 
     desktop = pywinauto.Desktop(backend="uia")
     if isinstance(window_or_id, Win32Window):
@@ -159,4 +145,40 @@ def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
         window_id = int(window_or_id)
 
     window = desktop.window(handle=window_id)
-    return _extract_text_from_window(window)
+
+    return window
+
+
+def _extract_text_from_window(
+    window: pywinauto.application.WindowSpecification,
+    kind: Type[pywinauto.controls.uiawrapper.UIAWrapper] = pywinauto.controls.uiawrapper.UIAWrapper,
+) -> str:
+    text = ""
+    try:
+        # Get the text of the current window
+        if isinstance(window, kind):
+            text += window.window_text() + "\n"
+    except Exception:  # pylint: disable=broad-except
+        pass
+
+    # Recursively search for child windows
+    for child in window.children():
+        text += _extract_text_from_window(child, kind=kind)
+
+    return text
+
+
+def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
+    """recursively search for child windows and extract text"""
+
+    window = get_window(window_or_id)
+    return _extract_text_from_window(window, kind=pywinauto.controls.uia_controls.StaticWrapper)
+
+
+def get_password_length(window_or_id: Win32Window) -> int:
+    """return the password length based on given window"""
+
+    window = get_window(window_or_id)
+
+    chars = _extract_text_from_window(window, kind=pywinauto.controls.uia_controls.EditWrapper)
+    return len(chars.strip())
