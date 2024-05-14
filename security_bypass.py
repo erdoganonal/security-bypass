@@ -3,7 +3,7 @@
 
 import threading
 import time
-from typing import Generator, List
+from typing import Generator, List, NoReturn
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
@@ -48,6 +48,10 @@ class SecurityBypass:
         self._windows = self.__get_windows()
         self._credential_file_modified_time = 0.0
 
+    def _exit(self, exit_code: ExitCodes) -> NoReturn:
+        self._loop = False
+        exit_code.exit()
+
     def __get_windows(self, show_error: bool = True) -> List[WindowConfig]:
         which = InplaceInt()
 
@@ -64,15 +68,15 @@ class SecurityBypass:
                 if which.get() == FROM_ENV:
                     # if the passkey is coming from the environment variable, and it was wrong;
                     # do not try to get it. It goes endless loop, otherwise.
-                    ExitCodes.WRONG_MASTER_KEY.exit()
+                    self._exit(ExitCodes.WRONG_MASTER_KEY)
                 show_error = True
                 continue
             except KeyError as err:
                 self._notification_handler.error(err.args[0])
-                ExitCodes.EMPTY_MASTER_KEY.exit()
+                self._exit(ExitCodes.EMPTY_MASTER_KEY)
             except FileNotFoundError:
                 self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
-                ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS.exit()
+                self._exit(ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS)
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:
