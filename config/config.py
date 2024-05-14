@@ -72,6 +72,17 @@ class Config:
         """Convert JSON str/bytes to Config object"""
         return cls.from_dict(json.loads(data))
 
+    def to_user_str(self) -> str:
+        """Print the config as human readable form"""
+        res = ""
+
+        for window in self.windows:
+            res += f"Title: {window.window_title}\n"
+            for name, key in window.passkey_data.items():
+                res += f" - {name}: {key.strip()}\n"
+
+        return res.strip()
+
 
 class ConfigManager:
     """Helps to load/save the configuration in a secure way."""
@@ -127,3 +138,9 @@ class ConfigManager:
             raise ValueError("Invalid padding...")
 
         return data[:-padding]  # remove the padding
+
+    def change_master_key(self, new_key: bytes, filename: str | Path = CREDENTIALS_FILE) -> None:
+        """Changes the master key with given key"""
+        file_content = self.decrypt_file(filename)
+        self.__key = new_key
+        self.encrypt_file(filename, file_content)

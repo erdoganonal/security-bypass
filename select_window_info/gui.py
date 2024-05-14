@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Dict, Iterable, Tuple
 
-from pygetwindow import Win32Window  # type: ignore[import]
+from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from tkhelper.widgets import MultiColumnListbox
 
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
@@ -30,6 +30,7 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         self._root.grid_rowconfigure(0, weight=1)
         self._root.grid_columnconfigure(0, weight=1)
         self._listbox = MultiColumnListbox(self._root, ["name"], title="Please select the value")
+        next(widget for widget in self._listbox.tree.master.winfo_children() if isinstance(widget, ttk.Scrollbar)).grid_forget()
 
         ttk.Button(self._root, text="OK", command=self._on_ok).grid(sticky=tk.NSEW)
 

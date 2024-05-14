@@ -6,8 +6,8 @@ import time
 from typing import Generator
 
 import pyautogui
-import pyperclip  # type: ignore[import]
-from pygetwindow import Win32Window  # type: ignore[import]
+import pyperclip  # type: ignore[import-untyped]
+from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from config import ConfigManager
 from config.config_key_manager import validate_and_get_mk

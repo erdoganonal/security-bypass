@@ -3,7 +3,7 @@
 import sys
 from typing import Iterable, Tuple
 
-from pygetwindow import Win32Window  # type: ignore[import]
+from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 

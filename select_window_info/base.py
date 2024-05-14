@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from typing import Dict, Iterable, Tuple
 
-from pygetwindow import Win32Window  # type: ignore[import]
+from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 
 @dataclass
