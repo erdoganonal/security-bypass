@@ -13,7 +13,7 @@ from tendo import singleton
 from common.exit_codes import ExitCodes
 from common.tools import InplaceInt, is_windows_locked
 from config import ConfigManager
-from config.config import WindowConfig
+from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
@@ -54,7 +54,7 @@ class SecurityBypass:
         self._loop = False
         exit_code.exit()
 
-    def __get_windows(self, show_error: bool = True) -> List[WindowConfig]:
+    def __get_windows(self, show_error: bool = True) -> List[WindowData]:
         which = InplaceInt()
 
         while True:
@@ -125,7 +125,7 @@ class SecurityBypass:
         window_info = self._select_window_info_func(windows)
 
         if window_info is not None:
-            self.send_keys(*window_info)
+            self.send_keys(window_info.window, window_info.window_data.passkey, window_info.window_data.send_enter)
             # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
             if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
                 self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
@@ -162,15 +162,13 @@ class SecurityBypass:
         window.maximize()
 
     @classmethod
-    def send_keys(cls, window: Win32Window, keys: str) -> None:
+    def send_keys(cls, window: Win32Window, keys: str, send_enter: bool) -> None:
         """Send given keys to the given window"""
         cls.focus_window(window)
 
-        send_enter = keys.endswith("\n")
-
         current_clipboard = pyperclip.paste()
 
-        pyperclip.copy(keys[:-1] if send_enter else keys)
+        pyperclip.copy(keys)
         pyautogui.hotkey("ctrl", "v")
 
         pyperclip.copy(current_clipboard)
@@ -183,10 +181,10 @@ class SecurityBypass:
 
         break_loop = False
         for window in pyautogui.getAllWindows():  # type: ignore[attr-defined]
-            for window_info in self._windows:
-                if (window_info.pattern is not None and window_info.pattern.match(window.title)) or window_info.title == window.title:
+            for window_data in self._windows:
+                if (window_data.pattern is not None and window_data.pattern.match(window.title)) or window_data.title == window.title:
                     break_loop = True
-                    yield WindowInfo(window.title, window_info.name, window_info.passkey, window_info.group, window)
+                    yield WindowInfo(window, window_data)
 
             if break_loop:
                 break

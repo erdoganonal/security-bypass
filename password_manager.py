@@ -11,7 +11,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from common.exit_codes import ExitCodes
 from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
 from common.tools import split_long_string
-from config.config import Config, ConfigManager, WindowConfig
+from config.config import Config, ConfigManager, WindowData
 from config.config_key_manager import check_config_file, validate_and_get_mk
 from generated.ui_generated_add_item_dialog import Ui_AddItemWidget  # type: ignore[attr-defined]
 from generated.ui_generated_get_password_dialog import Ui_GetPasswordDialog  # type: ignore[attr-defined]
@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 class QStandardPasskeyItem(QtGui.QStandardItem):
     """customized q-item for window config"""
 
-    def __init__(self, text: str, window: WindowConfig | None) -> None:
+    def __init__(self, text: str, window: WindowData | None) -> None:
         super().__init__(text)
         self.window = window
 
@@ -145,7 +145,7 @@ class PasswordManagerUI:
 
         self._config_mgr.change_master_key(new.encode())
 
-    def add_item(self, window: WindowConfig, __save: bool = True) -> None:
+    def add_item(self, window: WindowData, __save: bool = True) -> None:
         """add a new item in the tree"""
 
         item: QtGui.QStandardItemModel | QtGui.QStandardItem
@@ -237,12 +237,12 @@ class PasswordManagerUI:
 
         self._refresh()
 
-    def update_window(self, window: WindowConfig, title: str, name: str, passkey: str) -> None:
+    def update_window(self, window: WindowData, title: str, name: str, passkey: str) -> None:
         """update the window data and save the config"""
 
         window.title = title
         window.name = name
-        window.passkey = passkey + "\n"
+        window.passkey = passkey
 
         self._config_mgr.save_config(self._config)
         self._refresh()
@@ -309,6 +309,7 @@ class AddItemDialog:
         group: str | None
         name: str
         title: str
+        send_enter: bool
 
     def __init__(self, groups: List[str]) -> None:
         self._groups = groups
@@ -382,7 +383,7 @@ class AddItemDialog:
                 Notification.show_error(self._wrapper_widget, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
                 return
 
-        self._data = AddItemDialog.Data(group=group, name=name, title=title)
+        self._data = AddItemDialog.Data(group=group, name=name, title=title, send_enter=True)
 
         self._wrapper_widget.destroyed.emit()
 
@@ -514,7 +515,7 @@ class SignalHandler:
         item_compare_map = (
             ("title", self._old_item.window.title, self._manager.ui.entry_title.text()),
             ("name", self._old_item.window.name, self._manager.ui.entry_name.text()),
-            ("password", self._old_item.window.passkey[:-1], self._manager.ui.entry_password.text()),
+            ("password", self._old_item.window.passkey, self._manager.ui.entry_password.text()),
         )
 
         for name, old_value, new_value in item_compare_map:
@@ -558,7 +559,7 @@ class SignalHandler:
 
         self._manager.ui.entry_title.setText(window.title)
         self._manager.ui.entry_name.setText(window.name)
-        self._manager.ui.entry_password.setText(window.passkey[:-1])
+        self._manager.ui.entry_password.setText(window.passkey)
 
     def add_item_dialog(self) -> None:
         """open a dialog window and get the necessary data for a new item"""
@@ -585,7 +586,7 @@ class SignalHandler:
 
         data = AddItemDialog(groups).get_data(selected_group)
         if data is not None:
-            self._manager.add_item(WindowConfig(**data, passkey=""))
+            self._manager.add_item(WindowData(**data, passkey=""))
 
     def delete_item(self) -> None:
         """delete the selected item from the tree"""

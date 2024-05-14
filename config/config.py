@@ -23,16 +23,18 @@ class ConfigDict(TypedDict):
     title: str
     name: str
     passkey: str
+    send_enter: bool
     group: str | None
 
 
 @dataclass
-class WindowConfig:
+class WindowData:
     """Window title/passkey data pairs"""
 
     title: str
     name: str
     passkey: str
+    send_enter: bool
     group: str | None = None
 
     def __post_init__(self) -> None:
@@ -44,22 +46,22 @@ class WindowConfig:
             self.pattern = None
 
     def to_dict(self) -> ConfigDict:
-        """Convert WindowConfig object to dictionary"""
+        """Convert WindowData object to dictionary"""
 
-        return {"title": self.title, "name": self.name, "passkey": self.passkey, "group": self.group}
+        return {"title": self.title, "name": self.name, "passkey": self.passkey, "send_enter": self.send_enter, "group": self.group}
 
     @classmethod
-    def from_dict(cls, data: ConfigDict) -> "WindowConfig":
-        """Convert dictionary to WindowConfig object"""
+    def from_dict(cls, data: ConfigDict) -> "WindowData":
+        """Convert dictionary to WindowData object"""
 
-        return cls(title=data["title"], name=data["name"], passkey=data["passkey"], group=data["group"])
+        return cls(title=data["title"], name=data["name"], passkey=data["passkey"], send_enter=data["send_enter"], group=data["group"])
 
 
 @dataclass
 class Config:
-    """Group of WindowConfig's"""
+    """Group of WindowData's"""
 
-    windows: List[WindowConfig]
+    windows: List[WindowData]
 
     def update_group_name(self, old_name: str, new_name: str) -> None:
         """change the group name for all items that belong to the group"""
@@ -68,11 +70,11 @@ class Config:
             if window.group == old_name:
                 window.group = new_name
 
-    def get_window_from_title(self, title: str) -> WindowConfig:
+    def get_window_from_title(self, title: str) -> WindowData:
         """return the windows config via its name"""
         return next(w for w in self.windows if w.title == title)
 
-    def get_window_from_group(self, group: str) -> WindowConfig:
+    def get_window_from_group(self, group: str) -> WindowData:
         """return the windows config via its name"""
         return next(w for w in self.windows if w.group == group)
 
@@ -84,7 +86,7 @@ class Config:
     @classmethod
     def from_dict(cls, data: List[ConfigDict]) -> "Config":
         """Convert dictionary to Config object"""
-        return cls([WindowConfig.from_dict(window) for window in data])
+        return cls([WindowData.from_dict(window) for window in data])
 
     @overload
     def to_json(self, encode: Literal[True]) -> bytes:
@@ -107,10 +109,10 @@ class Config:
         """Convert JSON str/bytes to Config object"""
         return cls.from_dict(json.loads(data))
 
-    def group(self) -> Dict[str | None, List[WindowConfig]]:
+    def group(self) -> Dict[str | None, List[WindowData]]:
         """group items by group"""
 
-        groups: Dict[str | None, List[WindowConfig]] = {}
+        groups: Dict[str | None, List[WindowData]] = {}
         for window in self.windows:
             try:
                 groups[window.group].append(window)

@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable
 
 from pygetwindow import PyGetWindowException, Win32Window  # type: ignore[import-untyped]
 from tkhelper.widgets import MultiColumnListbox
@@ -62,7 +62,7 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
 
         self._root.after(500, lambda: self.__update_loop(window))
 
-    def select(self, windows_info: Iterable[WindowInfo]) -> Tuple[Win32Window, str] | None:
+    def select(self, windows_info: Iterable[WindowInfo]) -> Win32Window | None:
         window_info_list = list(windows_info)
         if not window_info_list:
             return None
@@ -71,15 +71,15 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         if self._root is None or self._listbox is None:
             return None
 
-        window_pin_rel: Dict[str, Tuple[Win32Window, str]] = {}
+        window_pin_rel: Dict[str, Win32Window] = {}
 
         window: Win32Window | None = None
         for window_info in window_info_list:
             if window is None:
                 window = window_info.window
 
-            self._listbox.add_row([window_info.name])
-            window_pin_rel[window_info.name] = (window_info.window, window_info.passkey)
+            self._listbox.add_row([window_info.window_data.name])
+            window_pin_rel[window_info.window_data.name] = window_info
 
         self._root.wm_overrideredirect(True)
         self._root.wm_attributes("-topmost", True)
