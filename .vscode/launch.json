@@ -8,6 +8,15 @@
             "console": "integratedTerminal",
             "env": {"SECURITY_BYPASS_MK":"test"},
             "justMyCode": true
+        },
+        {
+            "name": "Python: Security Bypass",
+            "type": "python",
+            "request": "launch",
+            "program": "security_bypass.py",
+            "console": "integratedTerminal",
+            "env": {"SECURITY_BYPASS_MK":"test"},
+            "justMyCode": true
         }
     ]
 }
