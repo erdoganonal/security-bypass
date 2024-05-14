@@ -1,10 +1,11 @@
 """Helps you to manage the passwords"""
 
 import ast
+import collections
 import sys
 import time
 from getpass import getpass
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 
 import colorama
 
@@ -30,7 +31,8 @@ class PasswordManager:
 
     def __init__(self) -> None:
         self._name_action_map: Dict[str, Callable[[], Any]] = {
-            "Show Passwords": self.show_passwords,
+            "Show Passkeys": self.show_passwords,
+            "Show Passkeys Names": self.show_pwd_names,
             "Add New Passkey": self.add_new_pwd,
             "Delete a Passkey": self.delete_pwd,
             "Change a Passkey": self.change_pwd,
@@ -42,6 +44,7 @@ class PasswordManager:
 
         self._idx_name_map = {str(idx): name for idx, name in enumerate(self._name_action_map, start=1)}
         self._is_active = False
+        self._completer = Completer()
 
         try:
             self._config_mgr = ConfigManager(key=validate_and_get_mk())
@@ -68,6 +71,7 @@ class PasswordManager:
     def _loop(self) -> None:
         while self._is_active:
             time.sleep(1)
+            self._completer.clear()
             try:
                 self._get_user_input()
             except ContinueLoopError:
@@ -98,10 +102,12 @@ class PasswordManager:
             InputOutputHelper.error("The Title does not exist!")
             raise ContinueLoopError() from err
 
-    def _list_names(self, window: WindowConfig) -> None:
+    def _list_names(self, window: WindowConfig, add_auto_complete: bool = True) -> None:
         print("Available passkey names listed below:")
         for name in window.passkey_data:
             print(f" - {name}")
+            if add_auto_complete:
+                self._completer.add_new(name)
 
     def __get_name(self, window: WindowConfig, list_names: bool = True) -> str:
         if list_names:
@@ -117,10 +123,16 @@ class PasswordManager:
     def show_passwords(self) -> None:
         """Show the currently saved passwords"""
         print()
-        print(self._config.to_user_str())
+        print(self._config.to_user_str(name_only=False, color=True))
+
+    def show_pwd_names(self) -> None:
+        """Show the currently saved password names"""
+        print()
+        print(self._config.to_user_str(name_only=True, color=True))
 
     def add_new_pwd(self) -> None:
         """Add a new password"""
+        self.list_titles()
         title = InputOutputHelper.ask_title()
         name = InputOutputHelper.ask_name()
         passkey = InputOutputHelper.ask_password(validate=True, evaluate=True)
@@ -168,11 +180,13 @@ class PasswordManager:
         self.__save_config()
         InputOutputHelper.info("\nThe passkey has been updated successfully!")
 
-    def list_titles(self) -> None:
+    def list_titles(self, add_auto_complete: bool = True) -> None:
         """List all available title"""
         InputOutputHelper.title("\nAvailable titles are listed below: ")
         for window in self._config.windows:
             print(f" - {window.window_title}")
+            if add_auto_complete:
+                self._completer.add_new(window.window_title)
 
     def delete_title(self) -> None:
         """Delete a title"""
@@ -256,6 +270,36 @@ class InputOutputHelper:
     def error(cls, prompt: str) -> None:
         """A standard way to print an error message"""
         print(colorama.Fore.RED + prompt + colorama.Fore.RESET, file=sys.stderr)
+
+
+class Completer:
+    """Helper class for auto complete inputs"""
+
+    def __init__(self) -> None:
+        self._auto_complete: List[str] = []
+        self._completer_setup()
+
+    def _completer(self, text: str, state: int) -> str | None:
+        options = [cmd for cmd in self._auto_complete if cmd.startswith(text)]
+        if state < len(options):
+            return options[state]
+        return None
+
+    def _completer_setup(self) -> None:
+        # Workaround for readline error(AttributeError: module 'collections' has no attribute 'Callable')
+        collections.Callable = collections.abc.Callable  # type: ignore[attr-defined]
+        import readline  # pylint: disable=import-outside-toplevel
+
+        readline.parse_and_bind("tab: complete")  # type: ignore[attr-defined]
+        readline.set_completer(self._completer)  # type: ignore[attr-defined]
+
+    def add_new(self, text: str) -> None:
+        """Add a new item in the auto-complete list"""
+        self._auto_complete.append(text)
+
+    def clear(self) -> None:
+        """Clear every item in the auto-complete list"""
+        self._auto_complete.clear()
 
 
 if __name__ == "__main__":

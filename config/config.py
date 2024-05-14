@@ -73,7 +73,7 @@ class Config:
         """Convert JSON str/bytes to Config object"""
         return cls.from_dict(json.loads(data))
 
-    def to_user_str(self, color: bool = True) -> str:
+    def to_user_str(self, name_only: bool = False, color: bool = True) -> str:
         """Print the config as human readable form"""
         res = ""
 
@@ -86,7 +86,10 @@ class Config:
             res += f"{color_blue}Title: {window.window_title}{colorama.Fore.RESET}\n"
             for name, key in window.passkey_data.items():
                 has_newline = key.endswith("\n")
-                res += f" - {name}: {key[:-1] + newline_escaped if has_newline else key}\n"
+                if name_only:
+                    res += f" - {name}\n"
+                else:
+                    res += f" - {name}: {key[:-1] + newline_escaped if has_newline else key}\n"
 
         return res.strip()
 

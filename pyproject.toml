@@ -51,6 +51,7 @@ deps =
     tkhelper
     colorama
     types-colorama
+    pyreadline
 
 commands =
     isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
