@@ -3,20 +3,22 @@
 
 import sys
 import time
-from typing import Generator
+from typing import Generator, List
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
+from common.tools import is_windows_locked
 from config import ConfigManager
+from config.config import WindowConfig
 from config.config_key_manager import validate_and_get_mk
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
+from settings import ASK_PASSWORD_ON_LOCK, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
 
 
 def main() -> None:
@@ -38,8 +40,11 @@ class SecurityBypass:
         self.sleep_secs = 1
         self._notification_handler = notification_handler
 
+        self._windows = self.__get_windows()
+
+    def __get_windows(self) -> List[WindowConfig]:
         try:
-            self._windows = ConfigManager(key=validate_and_get_mk()).get_config().windows
+            return ConfigManager(key=validate_and_get_mk()).get_config().windows
         except ValueError:
             self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
             sys.exit(1)
@@ -58,10 +63,25 @@ class SecurityBypass:
             sleep_secs += 1
             time.sleep(1)
 
+    def _handle_windows_lock(self) -> None:
+        if not is_windows_locked():
+            return
+
+        while is_windows_locked():
+            time.sleep(1)
+
+        self._notification_handler.warning("Windows is locked. The password must be provided.")
+        self._windows = self.__get_windows()
+
     def _start(self) -> None:
         self._loop = True
 
+        self._notification_handler.debug("Application is started.")
+
         while self._loop:
+            if ASK_PASSWORD_ON_LOCK:
+                self._handle_windows_lock()
+
             windows = self.filter_windows()
             window_info = self._select_window_info_func(windows)
             if window_info is not None:
