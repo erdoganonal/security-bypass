@@ -10,6 +10,7 @@ from typing import NoReturn, overload
 try:
     import win32api
 
+    from common.exit_codes import ExitCodes
     from config.config import Config, ConfigManager
     from config.config_key_manager import check_config_file
     from settings import DFT_ENCODING
@@ -27,6 +28,8 @@ except ImportError:
 
         GREEN = ""
         BLUE = ""
+        YELLOW = ""
+        RED = ""
         RESET = ""
 
 
@@ -36,9 +39,23 @@ REQUIREMENT_FILE = "requirements.txt"
 TASK_SCHEDULER_XML = "Security Bypass.xml"
 TASK_TEMP_SCHEDULER_XML = "temp.xml"
 
+DESCRIPTION = f"""Security Bypass
+
+You can easily enter your passwords without touching the keyboard.
+It is one click a way.
+
+Error Codes and reasons:
+{ExitCodes.ALREADY_RUNNING.value} -> Another instance of the application is already running. Stop it and run the task again.
+{ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXISTS.value} -> The credential file does not found. Use the 'password_manager.py' to create it.
+{ExitCodes.EMPTY_MASTER_KEY.value} -> The master key that is entered is empty. An empty master key is not allowed.
+{ExitCodes.WRONG_MASTER_KEY.value} -> The master key that is entered is wrong. Please enter the correct one.
+"""
+
 
 def main() -> None:
     """starts from here"""
+
+    check_virtual_environment()
 
     install_requirements()
 
@@ -58,11 +75,15 @@ def _system(cmd: str, error_message: str = "") -> None:
     exit_code = os.system(cmd)
     if exit_code != 0:
         if error_message:
-            if RESTART:
-                print(error_message, file=sys.stderr)
-            else:
-                InputOutputHelper.error(error_message, exit_code=exit_code)
+            InputOutputHelper.error(error_message, exit_code=exit_code)
         sys.exit(exit_code)
+
+
+def check_virtual_environment() -> None:
+    """check whether the script is running in a virtual environment or not"""
+
+    if os.getenv("VIRTUAL_ENV"):
+        InputOutputHelper.error("Running the installation script in a virtual environment is not allowed.", exit_code=-1)
 
 
 def install_requirements() -> None:
@@ -96,6 +117,7 @@ def adjust_task_scheduler_xml() -> None:
     xml_content = xml_content.format(
         username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
         pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
+        description=DESCRIPTION,
         script_dir=SCRIPT_DIR,
     )
 
@@ -141,7 +163,7 @@ class InputOutputHelper:
                 cls.error("\nValues did not match!")
                 raise ContinueLoopError
 
-        return passkey + "\n"
+        return passkey
 
     @classmethod
     def title(cls, prompt: str) -> None:
