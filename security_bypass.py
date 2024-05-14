@@ -8,6 +8,7 @@ from typing import Generator, List
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
+from tendo import singleton
 
 from common.tools import is_windows_locked
 from config import ConfigManager
@@ -141,4 +142,9 @@ class SecurityBypass:
 
 
 if __name__ == "__main__":
+    try:
+        me = singleton.SingleInstance()  # type: ignore[no-untyped-call]
+    except singleton.SingleInstanceException:
+        sys.exit(2)
+
     main()
