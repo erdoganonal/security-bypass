@@ -7,6 +7,8 @@ from getpass import getpass
 from pathlib import Path
 from typing import NoReturn, overload
 
+from settings import MK_ENV_NAME
+
 try:
     import win32api
 
@@ -70,7 +72,7 @@ def main() -> None:
 
     _system('schtasks /run /tn "Security Bypass"')
 
-    InputOutputHelper.info("\nInstallation completed. Please add your passkeys using 'python password_manager.py'")
+    InputOutputHelper.info("\nInstallation completed")  # . Please add your passkeys using 'python password_manager.py'")
 
 
 def _system(cmd: str, error_message: str = "") -> None:
@@ -98,7 +100,7 @@ def install_requirements() -> None:
         "cannot install one or more packages with pip",
     )
     if not RESTART:
-        InputOutputHelper.info("requirements have been installed.\n")
+        InputOutputHelper.info("The required libraries have been installed.\n")
 
 
 def restart() -> None:
@@ -234,8 +236,7 @@ def initial_setup() -> None:
 
     InputOutputHelper.info("\nan empty configuration file has been created.\n")
 
-    # with subprocess.Popen(f"{sys.executable} password_manager.py", env=os.environ | {MK_ENV_NAME: key}):
-    #     pass
+    subprocess.check_output(f"{sys.executable} password_manager.py", env=os.environ | {MK_ENV_NAME: key})
 
 
 def rollback() -> None:
