@@ -137,3 +137,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# UI generated
+ui_generated_*.py

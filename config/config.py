@@ -5,9 +5,9 @@ import json
 import os
 import re
 from builtins import bytes
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, TypeAlias, overload
+from typing import Dict, List, Literal, TypedDict, overload
 
 import colorama
 from Crypto import Random
@@ -16,25 +16,43 @@ from Crypto.Hash import SHA256
 
 from settings import CONFIG_PATH, CREDENTIALS_FILE, DFT_ENCODING
 
-T: Dict[str, Dict[str, str]] = {
-    "Windows Security": {
-        "PIN": "00393200\n",
-        "PinkyPwd": "apple/pear_2022#1\n",
-    },
-}
 
-ConfigDict: TypeAlias = Dict[str, Dict[str, str]]
+class ConfigDict(TypedDict):
+    """ConfigDict"""
+
+    title: str
+    name: str
+    passkey: str
+    group: str | None
 
 
 @dataclass
 class WindowConfig:
     """Window title/passkey data pairs"""
 
-    window_title: str
-    passkey_data: Dict[str, str] = field(default_factory=dict)
+    title: str
+    name: str
+    passkey: str
+    group: str | None = None
 
     def __post_init__(self) -> None:
-        self.pattern = re.compile(self.window_title)
+        self.pattern: re.Pattern[str] | None
+
+        try:
+            self.pattern = re.compile(self.title)
+        except TypeError:
+            self.pattern = None
+
+    def to_dict(self) -> ConfigDict:
+        """Convert WindowConfig object to dictionary"""
+
+        return {"title": self.title, "name": self.name, "passkey": self.passkey, "group": self.group}
+
+    @classmethod
+    def from_dict(cls, data: ConfigDict) -> "WindowConfig":
+        """Convert dictionary to WindowConfig object"""
+
+        return cls(title=data["title"], name=data["name"], passkey=data["passkey"], group=data["group"])
 
 
 @dataclass
@@ -43,14 +61,30 @@ class Config:
 
     windows: List[WindowConfig]
 
-    def to_dict(self) -> ConfigDict:
+    def update_group_name(self, old_name: str, new_name: str) -> None:
+        """change the group name for all items that belong to the group"""
+
+        for window in self.windows:
+            if window.group == old_name:
+                window.group = new_name
+
+    def get_window_from_title(self, title: str) -> WindowConfig:
+        """return the windows config via its name"""
+        return next(w for w in self.windows if w.title == title)
+
+    def get_window_from_group(self, group: str) -> WindowConfig:
+        """return the windows config via its name"""
+        return next(w for w in self.windows if w.group == group)
+
+    def to_dict(self) -> List[ConfigDict]:
         """Convert Config object to dictionary"""
-        return {window.window_title: window.passkey_data for window in self.windows}
+
+        return [window.to_dict() for window in self.windows]
 
     @classmethod
-    def from_dict(cls, data: ConfigDict) -> "Config":
+    def from_dict(cls, data: List[ConfigDict]) -> "Config":
         """Convert dictionary to Config object"""
-        return cls([WindowConfig(window_title, passkey_data) for window_title, passkey_data in data.items()])
+        return cls([WindowConfig.from_dict(window) for window in data])
 
     @overload
     def to_json(self, encode: Literal[True]) -> bytes:
@@ -73,15 +107,19 @@ class Config:
         """Convert JSON str/bytes to Config object"""
         return cls.from_dict(json.loads(data))
 
-    @overload
-    def to_user_str(self, name_only: Literal[False] = ..., color: bool = ...) -> str:
-        pass
+    def group(self) -> Dict[str | None, List[WindowConfig]]:
+        """group items by group"""
 
-    @overload
-    def to_user_str(self, name_only: Literal[True], color: bool = ..., show_send_enter: bool = ...) -> str:
-        pass
+        groups: Dict[str | None, List[WindowConfig]] = {}
+        for window in self.windows:
+            try:
+                groups[window.group].append(window)
+            except KeyError:
+                groups[window.group] = [window]
 
-    def to_user_str(self, name_only: bool = False, color: bool = True, show_send_enter: bool = False) -> str:
+        return groups
+
+    def to_user_str(self, name_only: bool = False, color: bool = True) -> str:
         """Print the config as human readable form"""
         res = ""
 
@@ -89,16 +127,17 @@ class Config:
         if color:
             color_blue = colorama.Fore.BLUE
 
-        for window in self.windows:
-            res += f"{color_blue}Title: {window.window_title}{colorama.Fore.RESET}\n"
-            for name, key in window.passkey_data.items():
-                has_newline = key.endswith("\n")
-                if name_only:
-                    res += f" - {name}\n"
-                else:
-                    res += f" - {name}: {key[:-1] if has_newline else key}\n"
-                    if show_send_enter:
-                        res += f"   send enter: {has_newline}\n"
+        for group_name, windows in self.group().items():
+            res += f"{color_blue}{group_name}{colorama.Fore.RESET}\n"
+
+            space = "" if name_only else "  "
+
+            for window in windows:
+                res += f" - Title{space}: {window.title}\n"
+                res += f" - Name {space}: {window.name}\n"
+                if not name_only:
+                    res += f" - Passkey: {window.passkey.rstrip()}\n"
+                res += "\n"
 
         return res.strip()
 
@@ -117,6 +156,7 @@ class ConfigManager:
 
     def save_config(self, cfg: Config) -> None:
         """Save the passkey data in the config file encrypted"""
+
         os.makedirs(CONFIG_PATH, exist_ok=True)
 
         self.encrypt_file(CREDENTIALS_FILE, cfg.to_json(True))
@@ -160,6 +200,7 @@ class ConfigManager:
 
     def change_master_key(self, new_key: bytes, filename: str | Path = CREDENTIALS_FILE) -> None:
         """Changes the master key with given key"""
+
         file_content = self.decrypt_file(filename)
         self.__key = new_key
         self.encrypt_file(filename, file_content)

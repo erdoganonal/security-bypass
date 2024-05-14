@@ -77,9 +77,9 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         for window_info in window_info_list:
             if window is None:
                 window = window_info.window
-            for pin_name, pin in window_info.pin_info.items():
-                self._listbox.add_row([pin_name])
-                window_pin_rel[pin_name] = (window_info.window, pin)
+
+            self._listbox.add_row([window_info.name])
+            window_pin_rel[window_info.name] = (window_info.window, window_info.passkey)
 
         self._root.wm_overrideredirect(True)
         self._root.wm_attributes("-topmost", True)

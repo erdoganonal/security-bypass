@@ -2,7 +2,7 @@
 
 import abc
 from dataclasses import dataclass
-from typing import Dict, Iterable, Tuple
+from typing import Iterable, Tuple
 
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
@@ -11,9 +11,11 @@ from pygetwindow import Win32Window  # type: ignore[import-untyped]
 class WindowInfo:
     """Holder for window information"""
 
-    window_title: str
+    title: str
+    name: str
+    passkey: str
+    group: str | None
     window: Win32Window
-    pin_info: Dict[str, str]
 
 
 class SelectWindowInfoBase(abc.ABC):

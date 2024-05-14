@@ -3,22 +3,32 @@
 import os
 import subprocess
 import sys
+from getpass import getpass
 from pathlib import Path
-from typing import Callable
+from typing import NoReturn, overload
 
 try:
     import win32api
 
     from config.config import Config, ConfigManager
     from config.config_key_manager import check_config_file
-    from password_manager import ContinueLoopError, InputOutputHelper
     from settings import DFT_ENCODING
 except ImportError:
     RESTART = True
-    info: Callable[[str], None] = print
 else:
     RESTART = False
-    info = InputOutputHelper.info
+
+try:
+    from colorama import Fore
+except ImportError:
+    # pylint: disable=too-few-public-methods
+    class Fore:  # type: ignore[no-redef]
+        """fake fore"""
+
+        GREEN = ""
+        BLUE = ""
+        RESET = ""
+
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -59,13 +69,13 @@ def install_requirements() -> None:
     """install required python libraries"""
 
     if RESTART:
-        info("installing requirements, please wait...")
+        InputOutputHelper.info("installing requirements, please wait...")
     _system(
         f'"{sys.executable}" -m pip install -r {REQUIREMENT_FILE} -q -q -q --exists-action i',
         "cannot install one or more packages with pip",
     )
     if not RESTART:
-        info("requirements have been installed.\n")
+        InputOutputHelper.info("requirements have been installed.\n")
 
 
 def restart() -> None:
@@ -98,10 +108,78 @@ def adjust_task_scheduler_xml() -> None:
         os.unlink(TASK_TEMP_SCHEDULER_XML)
 
 
+class ContinueLoopError(Exception):
+    """This is a fake error. When this error is raised the loop will continue"""
+
+
+class InputOutputHelper:
+    """Helper class to get the inputs from the user and show to the user."""
+
+    @classmethod
+    def ask_yes_no(cls, prompt: str, yes_no_str: str = "[y/N]: ", yes: str = "y") -> bool:
+        """A standard way to get user yes/no response"""
+        return input(prompt + yes_no_str) == yes
+
+    @classmethod
+    def ask_title(cls) -> str:
+        """A standard way to get the title from the user"""
+        return input("Please enter the title or title pattern: ")
+
+    @classmethod
+    def ask_name(cls) -> str:
+        """A standard way to get the name from the user"""
+        return input("Please enter a name for your key: ")
+
+    @classmethod
+    def ask_password(cls, prompt: str = "Please enter the new passkey", validate: bool = True) -> str:
+        """A standard way to get the passkey from the user"""
+        passkey = getpass(f"{prompt}: ")
+        if validate:
+            passkey_validation = getpass(f"{prompt} again: ")
+
+            if passkey != passkey_validation:
+                cls.error("\nValues did not match!")
+                raise ContinueLoopError
+
+        return passkey + "\n"
+
+    @classmethod
+    def title(cls, prompt: str) -> None:
+        """A standard way to print an info message"""
+        print(Fore.BLUE + prompt + Fore.RESET)
+
+    @classmethod
+    def info(cls, prompt: str) -> None:
+        """A standard way to print an info message"""
+        print(Fore.GREEN + prompt + Fore.RESET)
+
+    @classmethod
+    def warning(cls, prompt: str) -> None:
+        """A standard way to print an warning message"""
+        print(Fore.YELLOW + prompt + Fore.RESET)
+
+    @overload
+    @classmethod
+    def error(cls, prompt: str, exit_code: None = None) -> None:
+        pass
+
+    @overload
+    @classmethod
+    def error(cls, prompt: str, exit_code: int) -> NoReturn:
+        pass
+
+    @classmethod
+    def error(cls, prompt: str, exit_code: int | None = None) -> None:
+        """A standard way to print an error message"""
+        print(Fore.RED + prompt + Fore.RESET, file=sys.stderr)
+        if exit_code is not None:
+            sys.exit(exit_code)
+
+
 def _get_password() -> str:
     while True:
         try:
-            return InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys", ask_send_enter=False)
+            return InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys")
         except ContinueLoopError:
             continue
 

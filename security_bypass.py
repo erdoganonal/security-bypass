@@ -165,11 +165,15 @@ class SecurityBypass:
     def filter_windows(self) -> Generator[WindowInfo, None, None]:
         """Filter the windows by title"""
 
+        break_loop = False
         for window in pyautogui.getAllWindows():  # type: ignore[attr-defined]
             for window_info in self._windows:
-                if window_info.pattern.match(window.title):
-                    yield WindowInfo(window.title, window, window_info.passkey_data)
-                    break
+                if (window_info.pattern is not None and window_info.pattern.match(window.title)) or window_info.title == window.title:
+                    break_loop = True
+                    yield WindowInfo(window.title, window_info.name, window_info.passkey, window_info.group, window)
+
+            if break_loop:
+                break
 
 
 if __name__ == "__main__":

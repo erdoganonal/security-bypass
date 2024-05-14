@@ -51,6 +51,7 @@ deps =
     pylint
     pyreadline
     pywin32
+    pyqt6
     tkhelper
     types-colorama
     types-psutil
@@ -58,6 +59,7 @@ deps =
     types-pywin32
 
 commands =
+    python generate_all.py
     isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
     mypy . --install-types
     black . --check

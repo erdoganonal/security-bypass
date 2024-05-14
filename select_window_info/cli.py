@@ -17,10 +17,9 @@ class CLISelectWindowInfo(SelectWindowInfoBase):
 
         idx = 1
         for window_info in windows_info:
-            for pin_name, pin in window_info.pin_info.items():
-                print(f"[{idx}] {window_info.window_title} - {pin_name}")
-                window_pin_rel[str(idx)] = (window_info.window, pin)
-                idx += 1
+            print(f"[{idx}] {window_info.title} - {window_info.name}")
+            window_pin_rel[str(idx)] = (window_info.window, window_info.passkey)
+            idx += 1
 
         if idx == 1:
             return None

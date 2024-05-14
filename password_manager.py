@@ -1,341 +1,425 @@
-"""Helps you to manage the passwords"""
+"""a UI to manage the passwords"""
 
-import collections
-import os
+# pylint: disable=c-extension-no-member
+
 import sys
-import time
-from getpass import getpass
-from typing import Any, Callable, Dict, List, NoReturn, overload
+from typing import Any, List, TypedDict
 
-import colorama
+from PyQt6 import QtCore, QtGui, QtWidgets
 
-from config import ConfigManager
-from config.config import Config, WindowConfig
+from common.exit_codes import ExitCodes
+from config.config import Config, ConfigManager, WindowConfig
 from config.config_key_manager import check_config_file, validate_and_get_mk
-from settings import DFT_ENCODING
-
-ASK_SEND_ENTER = "--ask-send-enter" in sys.argv
-GREETINGS = "\nWelcome to Password Manager. You can easily manage your passkeys."
-
-
-def main() -> None:
-    """starts from here"""
-    colorama.init()
-
-    PasswordManager().loop()
+from generated.ui_generated_add_item_dialog import Ui_AddItemWidget  # type: ignore[attr-defined]
+from generated.ui_generated_main import Ui_MainWindow  # type: ignore[attr-defined]
+from notification_handler.gui import GUINotificationHandler
 
 
-class ContinueLoopError(Exception):
-    """This is a fake error. When this error is raised the loop will continue"""
+# pylint: disable=too-few-public-methods
+class QStandardPasskeyItem(QtGui.QStandardItem):
+    """customized q-item for window config"""
+
+    def __init__(self, text: str, window: WindowConfig | None) -> None:
+        super().__init__(text)
+        self.window = window
 
 
-class PasswordManager:
-    """Helper class for manage passwords"""
+class PasswordManagerUI:
+    """a UI to manage the passwords"""
 
     def __init__(self) -> None:
-        self._name_action_map: Dict[str, Callable[[], Any]] = {
-            "Show Passkeys": self.show_passwords,
-            "Show Passkeys Names": self.show_pwd_names,
-            "Add New Passkey": self.add_new_pwd,
-            "Delete a Passkey": self.delete_pwd,
-            "Change a Passkey": self.change_pwd,
-            "List Passkey Titles": self.list_titles,
-            "Delete Passkey Title": self.delete_title,
-            "Change Master Key": self.change_mk,
-            "Exit": self.exit,
-        }
+        self._notification_handler = GUINotificationHandler()
 
-        self._idx_name_map = {str(idx): name for idx, name in enumerate(self._name_action_map, start=1)}
-        self._is_active = False
-        self._completer = Completer()
+        self._config_mgr: ConfigManager
+        self._config: Config
 
+        self._get_config_manager()
+
+        self.model = QtGui.QStandardItemModel()
+        setattr(self.model, "setData", self._set_data_hook)
+        self.ui = Ui_MainWindow()
+
+        self._handler = SignalHandler(self)
+
+    def _set_data_hook(self, index: QtCore.QModelIndex, value: Any, role: int = 0) -> bool:
+        old_value = None
+        if role == QtCore.Qt.ItemDataRole.EditRole:
+            old_value = index.data(QtCore.Qt.ItemDataRole.DisplayRole)
+
+        res = QtGui.QStandardItemModel.setData(self.model, index, value, role)
+        if not res:
+            return res
+
+        item: QStandardPasskeyItem | None = self.model.itemFromIndex(index)  # type: ignore[assignment]
+        if item is None:
+            return False
+
+        if item.window is None:
+            # parent item is changed, all group names should be updated
+            self._config.update_group_name(old_value, value)  # type: ignore[arg-type]
+        else:
+            item.window.name = value
+
+        self._config_mgr.save_config(self._config)
+        self._refresh()
+
+        return True
+
+    def _refresh(self) -> None:
+        self._handler.load_window_config(self.ui.tree.currentIndex())
+
+    def _get_config_manager(self) -> None:
         try:
             check_config_file()
 
             self._config_mgr = ConfigManager(key=validate_and_get_mk())
             self._config = self._config_mgr.get_config()
         except ValueError:
-            InputOutputHelper.error("Cannot load configurations. The Master Key is wrong.", exit_code=1)
+            self._notification_handler.error("Cannot load configurations. The Master Key is wrong.")
+            ExitCodes.WRONG_MASTER_KEY.exit()
         except KeyError as err:
-            InputOutputHelper.error(err.args[0], exit_code=1)
+            self._notification_handler.error(err.args[0])
+            ExitCodes.EMPTY_MASTER_KEY.exit()
         except FileNotFoundError:
             # Initial usage, create an empty config file
             self._config_mgr = ConfigManager(key=validate_and_get_mk(prompt="Please enter a Master Key to encrypt your passkeys."))
             self._config = Config([])
-            self.__save_config()
+            self._config_mgr.save_config(self._config)
 
-            InputOutputHelper.info("The credentials file created.")
+            self._notification_handler.info("The credentials file created.")
 
-    def _get_user_input(self) -> None:
-        print()
-        space = int(max(self._idx_name_map, key=len))
-        for idx, name in self._idx_name_map.items():
-            extra = " " * (space - len(idx))
-            print(f"{extra}[{idx}] {name}")
+    def add_item(self, window: WindowConfig, __save: bool = True) -> None:
+        """add a new item in the tree"""
 
-        response = input("\nSelect an action: ")
-        try:
-            self._name_action_map[self._idx_name_map[response]]()
-        except KeyError as err:
-            InputOutputHelper.error("Invalid action!")
-            raise ContinueLoopError() from err
+        item: QtGui.QStandardItemModel | QtGui.QStandardItem
 
-    def _loop(self) -> None:
-        os.system("cls")
-        InputOutputHelper.info(GREETINGS)
-
-        while self._is_active:
-            time.sleep(1)
-            self._completer.clear()
+        if window.group is None:
+            item = self.model
+        else:
+            root = self.model.invisibleRootItem()
             try:
-                self._get_user_input()
-            except ContinueLoopError:
-                pass
+                item = next(root.child(row) for row in range(root.rowCount()) if root.child(row).text() == window.group)  # type: ignore
+            except StopIteration:
+                item = QStandardPasskeyItem(window.group, window=None)
+                self.model.appendRow(item)
+
+        sub_item = QStandardPasskeyItem(window.name, window=window)
+        item.appendRow(sub_item)
+
+        if __save:
+            self._config.windows.append(window)
+            self._config_mgr.save_config(self._config)
+
+    def remove_item(self, item: QStandardPasskeyItem, __save: bool = True) -> None:
+        """remove the item from the config"""
+
+        current_index = self.ui.tree.currentIndex()
+        if current_index is None:
+            raise ValueError("No item is selected")
+
+        if item.window is None:
+            # delete parent
+            sub_items = [
+                item.child(row) for row in range(item.rowCount())
+            ]  # get items first, otherwise order is changing and causes problems
+            for sub_item in sub_items:
+                if sub_item is None:
+                    continue
+                item.removeRow(sub_item.row())
+            self.model.removeRow(current_index.row())
+        else:
+            parent_item: QtGui.QStandardItem | QtGui.QStandardItemModel = self.model
+            if item.window.group is not None:
+                item_from_index = self.model.itemFromIndex(current_index.parent())
+                if item_from_index is None:
+                    raise ValueError("item did not exist.")
+                parent_item = item_from_index
+
+            parent_item.removeRow(current_index.row())
+            self._config.windows.remove(item.window)
+
+        if __save:
+            self._config_mgr.save_config(self._config)
+
+        self._refresh()
+
+    def update_window(self, window: WindowConfig, title: str, name: str, passkey: str) -> None:
+        """update the window data and save the config"""
+
+        window.title = title
+        window.name = name
+        window.passkey = passkey + "\n"
+
+        self._config_mgr.save_config(self._config)
+        self._refresh()
+
+    def render(self) -> None:
+        """render the widgets"""
+
+        self.ui.tree.setHeaderHidden(True)
+        self.ui.tree.setModel(self.model)
+
+        for group_name, windows in self._config.group().items():
+            if group_name is not None:
+                item = QStandardPasskeyItem(group_name, window=None)
+                self.model.appendRow(item)
+
+            for window in windows:
+                self.add_item(window, False)
+
+        self._handler.bind()
 
     def loop(self) -> None:
-        """Start a user input loop until KeyboardInterrupt is received"""
-        if self._is_active:
-            return
+        """start the loop"""
 
-        self._is_active = True
-        try:
-            self._loop()
-        except KeyboardInterrupt:
-            self.exit()
+        app = QtWidgets.QApplication([])
+        main_window = QtWidgets.QMainWindow()
 
-    def __save_config(self) -> None:
-        self._config_mgr.save_config(self._config)
+        self.ui.setupUi(main_window)
+        self.render()
 
-    def __get_title(self, list_titles: bool = True) -> WindowConfig:
-        if list_titles:
-            self.list_titles()
-
-        title = input("Please select the title: ")
-        try:
-            return next(window for window in self._config.windows if window.window_title == title)
-        except StopIteration as err:
-            InputOutputHelper.error("The Title does not exist!")
-            raise ContinueLoopError() from err
-
-    def _list_names(self, window: WindowConfig, add_auto_complete: bool = True) -> None:
-        print("Available passkey names listed below:")
-        for name in window.passkey_data:
-            print(f" - {name}")
-            if add_auto_complete:
-                self._completer.add_new(name)
-
-    def __get_name(self, window: WindowConfig, list_names: bool = True) -> str:
-        if list_names:
-            self._list_names(window)
-
-        name = input("Please select the name: ")
-        if name in window.passkey_data:
-            return name
-
-        InputOutputHelper.error("The name does not exist!")
-        raise ContinueLoopError()
-
-    def show_passwords(self) -> None:
-        """Show the currently saved passwords"""
-        if not self._config.windows:
-            InputOutputHelper.error("\nThere is no title saved yet.")
-            return
-        print()
-        print(self._config.to_user_str(name_only=False, color=True))
-
-    def show_pwd_names(self) -> None:
-        """Show the currently saved password names"""
-        print()
-        print(self._config.to_user_str(name_only=True, color=True, show_send_enter=ASK_SEND_ENTER))
-
-    def add_new_pwd(self) -> None:
-        """Add a new password"""
-        self.list_titles()
-        title = InputOutputHelper.ask_title()
-        name = InputOutputHelper.ask_name()
-        passkey = InputOutputHelper.ask_password(validate=True, ask_send_enter=True)
-
-        print(f"title: {title}\nname: {name}")
-        if not InputOutputHelper.ask_yes_no("Is the parameters correct?"):
-            self.add_new_pwd()
-            return
-
-        try:
-            window = next(window for window in self._config.windows if window.window_title == title)
-            window.passkey_data[name] = passkey
-        except StopIteration:
-            self._config.windows.append(WindowConfig(window_title=title, passkey_data={name: passkey}))
-
-        self.__save_config()
-        InputOutputHelper.info("\nThe new passkey has been added successfully!")
-
-    def delete_pwd(self) -> None:
-        """Delete a passkey from the config file"""
-        window = self.__get_title(list_titles=True)
-        name = self.__get_name(window)
-
-        del window.passkey_data[name]
-
-        self.__save_config()
-        InputOutputHelper.info("\nThe passkey has been deleted!")
-
-    def change_pwd(self) -> None:
-        """Change the name of the passkey or the passkey"""
-        window = self.__get_title(list_titles=True)
-        name = self.__get_name(window)
-
-        if InputOutputHelper.ask_yes_no("Do you want to change the name?"):
-            new_name = InputOutputHelper.ask_name()
-        else:
-            new_name = name
-
-        if InputOutputHelper.ask_yes_no("Do you want to change the passkey?"):
-            passkey = InputOutputHelper.ask_password(validate=True, ask_send_enter=True)
-
-        del window.passkey_data[name]
-        window.passkey_data[new_name] = passkey
-
-        self.__save_config()
-        InputOutputHelper.info("\nThe passkey has been updated successfully!")
-
-    def list_titles(self, add_auto_complete: bool = True) -> None:
-        """List all available title"""
-        InputOutputHelper.title("\nAvailable titles are listed below: ")
-        for window in self._config.windows:
-            print(f" - {window.window_title}")
-            if add_auto_complete:
-                self._completer.add_new(window.window_title)
-
-    def delete_title(self) -> None:
-        """Delete a title"""
-        window = self.__get_title()
-        if window.passkey_data:
-            if not InputOutputHelper.ask_yes_no(
-                "There is at least one passkey found. Are you sure to delete this title with it's content?"
-            ):
-                raise ContinueLoopError()
-
-        self._config.windows.remove(window)
-        self.__save_config()
-        InputOutputHelper.info(f"\nThe Title[{window.window_title}] has been deleted!")
-
-    def change_mk(self) -> None:
-        """Change the config file master key"""
-        new_key = InputOutputHelper.ask_password(
-            "Please enter the new Master Key",
-            validate=True,
-            ask_send_enter=False,
-        )[
-            :-1
-        ].encode(encoding=DFT_ENCODING)
-        self._config_mgr.change_master_key(new_key)
-
-        InputOutputHelper.info("\nThe Master Key has been changed!")
-
-    def exit(self) -> None:
-        """Exit the program"""
-        self._is_active = False
-        InputOutputHelper.warning("Exiting...")
+        main_window.show()
+        sys.exit(app.exec())
 
 
-class InputOutputHelper:
-    """Helper class to get the inputs from the user and show to the user."""
+class Notification:
+    """show a notification to the user"""
+
+    @staticmethod
+    def show_message(
+        widget: QtWidgets.QWidget, message: str, title: str, *, info: str | None = None, icon: QtWidgets.QMessageBox.Icon
+    ) -> None:
+        """show a notification message to the user. the icon changes the message type"""
+
+        error_message = QtWidgets.QMessageBox(widget)
+        error_message.setIcon(icon)
+        error_message.setText(message)
+        if info:
+            error_message.setInformativeText(info)
+        error_message.setWindowTitle(title)
+        error_message.show()
 
     @classmethod
-    def ask_yes_no(cls, prompt: str, yes_no_str: str = "[y/N]: ", yes: str = "y") -> bool:
-        """A standard way to get user yes/no response"""
-        return input(prompt + yes_no_str) == yes
-
-    @classmethod
-    def ask_title(cls) -> str:
-        """A standard way to get the title from the user"""
-        return input("Please enter the title or title pattern: ")
-
-    @classmethod
-    def ask_name(cls) -> str:
-        """A standard way to get the name from the user"""
-        return input("Please enter a name for your key: ")
-
-    @classmethod
-    def ask_password(cls, prompt: str = "Please enter the new passkey", validate: bool = True, ask_send_enter: bool = False) -> str:
-        """A standard way to get the passkey from the user"""
-        passkey = getpass(f"{prompt}: ")
-        if validate:
-            passkey_validation = getpass(f"{prompt} again: ")
-
-            if passkey != passkey_validation:
-                cls.error("\nValues did not match!")
-                raise ContinueLoopError
-
-        if ASK_SEND_ENTER and ask_send_enter:
-            if cls.ask_yes_no("Do you want to send the enter key after the password sent?"):
-                passkey = passkey + "\n"
-        else:
-            passkey = passkey + "\n"
-        return passkey
-
-    @classmethod
-    def title(cls, prompt: str) -> None:
-        """A standard way to print an info message"""
-        print(colorama.Fore.BLUE + prompt + colorama.Fore.RESET)
-
-    @classmethod
-    def info(cls, prompt: str) -> None:
-        """A standard way to print an info message"""
-        print(colorama.Fore.GREEN + prompt + colorama.Fore.RESET)
-
-    @classmethod
-    def warning(cls, prompt: str) -> None:
-        """A standard way to print an warning message"""
-        print(colorama.Fore.YELLOW + prompt + colorama.Fore.RESET)
-
-    @overload
-    @classmethod
-    def error(cls, prompt: str, exit_code: None = None) -> None:
-        pass
-
-    @overload
-    @classmethod
-    def error(cls, prompt: str, exit_code: int) -> NoReturn:
-        pass
-
-    @classmethod
-    def error(cls, prompt: str, exit_code: int | None = None) -> None:
-        """A standard way to print an error message"""
-        print(colorama.Fore.RED + prompt + colorama.Fore.RESET, file=sys.stderr)
-        if exit_code is not None:
-            sys.exit(exit_code)
+    def show_error(cls, widget: QtWidgets.QWidget, message: str, title: str, *, info: str | None = None) -> None:
+        """show an error message"""
+        cls.show_message(widget=widget, message=message, title=title, info=info, icon=QtWidgets.QMessageBox.Icon.Critical)
 
 
-class Completer:
-    """Helper class for auto complete inputs"""
+class AddItemDialog:
+    """a dialog widget to get user input for adding a new item"""
 
-    def __init__(self) -> None:
-        self._auto_complete: List[str] = []
-        self._completer_setup()
+    class Data(TypedDict):
+        """the return data of AddItemDialog"""
 
-    def _completer(self, text: str, state: int) -> str | None:
-        options = [cmd for cmd in self._auto_complete if cmd.startswith(text)]
-        if state < len(options):
-            return options[state]
+        group: str | None
+        name: str
+        title: str
+
+    def __init__(self, groups: List[str]) -> None:
+        self._groups = groups
+
+        self._wrapper_widget = QtWidgets.QWidget()
+        self._wrapper_widget.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+
+        self._ui = Ui_AddItemWidget()
+        self._ui.setupUi(self._wrapper_widget)
+
+        self._data: AddItemDialog.Data | None = None
+
+    def setup(self) -> None:
+        """setup the dialog"""
+
+        self._wrapper_widget.setWindowTitle("Add New Item")
+
+        self._ui.dropdown_group.addItem("No group")
+        self._ui.dropdown_group.addItems(self._groups)
+        self._ui.dropdown_group.addItem("Create new...")
+
+        italic_font = QtGui.QFont("Times", italic=True)
+        self._ui.dropdown_group.setItemData(0, italic_font, QtCore.Qt.ItemDataRole.FontRole)
+        self._ui.dropdown_group.setItemData(len(self._groups) + 1, italic_font, QtCore.Qt.ItemDataRole.FontRole)
+
+    def get_data(self, selected: str | None = None) -> Data | None:
+        """show the add item dialog and return the data if OK clicked."""
+
+        self.setup()
+        index = self._ui.dropdown_group.findText(selected)
+        if index != -1:
+            self._ui.dropdown_group.setCurrentIndex(index)
+
+        self.loop()
+
+        return self._data
+
+    def _cancel(self) -> None:
+        self._data = None
+        self._wrapper_widget.destroyed.emit()
+
+    def _get_new_group_name(self) -> str | None:
+        group, ok = QtWidgets.QInputDialog.getText(self._wrapper_widget, "New Group Name", "Enter the new group name:")
+        if not ok:
+            return None
+
+        index = self._ui.dropdown_group.findText(group)
+        if index == -1:
+            return group
+
+        Notification.show_error(self._wrapper_widget, "The group name is already exists.", "The Group Already Exists")
+        self._ui.dropdown_group.setCurrentIndex(index)
+
         return None
 
-    def _completer_setup(self) -> None:
-        # Workaround for readline error(AttributeError: module 'collections' has no attribute 'Callable')
-        collections.Callable = collections.abc.Callable  # type: ignore[attr-defined]
-        import readline  # pylint: disable=import-outside-toplevel
+    def _save(self) -> None:
+        current_index = self._ui.dropdown_group.currentIndex()
+        if current_index == 0:
+            group = None
+        elif current_index == len(self._groups) + 1:
+            group = self._get_new_group_name()
+            if group is None:
+                return
+        else:
+            group = self._ui.dropdown_group.currentText()
 
-        readline.parse_and_bind("tab: complete")  # type: ignore[attr-defined]
-        readline.set_completer(self._completer)  # type: ignore[attr-defined]
+        title = self._ui.entry_title.text()
+        name = self._ui.entry_name.text()
+        for value, value_str in ((title, "title"), (name, "name")):
+            if not value:
+                Notification.show_error(self._wrapper_widget, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
+                return
 
-    def add_new(self, text: str) -> None:
-        """Add a new item in the auto-complete list"""
-        self._auto_complete.append(text)
+        self._data = AddItemDialog.Data(group=group, name=name, title=title)
 
-    def clear(self) -> None:
-        """Clear every item in the auto-complete list"""
-        self._auto_complete.clear()
+        self._wrapper_widget.destroyed.emit()
+
+    def loop(self) -> None:
+        """create an event loop and wait until window closes"""
+        self._wrapper_widget.show()
+
+        loop = QtCore.QEventLoop()
+
+        self._wrapper_widget.destroyed.connect(loop.quit)
+        self._ui.button_cancel.clicked.connect(self._cancel)
+        self._ui.button_ok.clicked.connect(self._save)
+
+        loop.exec()
+
+
+class SignalHandler:
+    """signal handlers"""
+
+    def __init__(self, manager: PasswordManagerUI) -> None:
+        self._manager = manager
+
+    def get_current_item(self, index: QtCore.QModelIndex | None = None) -> QStandardPasskeyItem:
+        """return the window config for given index"""
+
+        if index is None:
+            index = self._manager.ui.tree.currentIndex()
+
+        item = self._manager.model.itemFromIndex(index)
+        if item is None:
+            raise ValueError("cannot retrieve the current item")
+        if isinstance(item, QStandardPasskeyItem):
+            return item
+        raise TypeError("The item type is not QStandardPasskeyItem")
+
+    def toggle_password(self) -> None:
+        """when the show password checkbutton clicked, show/hide the password"""
+
+        if self._manager.ui.checkbox_toggle_password.isChecked():
+            self._manager.ui.entry_password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+        else:
+            self._manager.ui.entry_password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+
+    def set_controller_visibility(self, index: QtCore.QModelIndex) -> None:
+        """change the visibility of the add/remove buttons"""
+
+        parent = index.parent().data()
+        current = index.data()
+
+        self._manager.ui.button_delete_item.setEnabled(bool(parent or current))
+
+    def load_window_config(self, index: QtCore.QModelIndex) -> None:
+        """load the config widget based on selected item"""
+
+        window = self.get_current_item(index).window
+
+        items = (
+            (self._manager.ui.entry_title, True),
+            (self._manager.ui.entry_name, True),
+            (self._manager.ui.entry_password, True),
+            (self._manager.ui.checkbox_toggle_password, False),
+            (self._manager.ui.button_save, False),
+        )
+
+        if window is None:
+            for item, set_text in items:
+                item.setDisabled(True)
+                if set_text:
+                    item.setText("")
+            return
+
+        for item, _ in items:
+            item.setDisabled(False)
+
+        self._manager.ui.entry_title.setText(window.title)
+        self._manager.ui.entry_name.setText(window.name)
+        self._manager.ui.entry_password.setText(window.passkey[:-1])
+
+    def add_item_dialog(self) -> None:
+        """open a dialog window and get the necessary data for a new item"""
+
+        root = self._manager.model.invisibleRootItem()
+        if root is None:
+            return
+
+        groups = []
+        for row in range(root.rowCount()):
+            child = root.child(row)
+            if child and isinstance(child, QStandardPasskeyItem) and child.window is None:
+                groups.append(child.text())
+
+        current_index = self._manager.ui.tree.currentIndex()
+        item = self.get_current_item(current_index)
+
+        data = AddItemDialog(groups).get_data(current_index.data() if item.window is None else None)
+        if data is not None:
+            self._manager.add_item(WindowConfig(**data, passkey=""))
+
+    def delete_item(self) -> None:
+        """delete the selected item from the tree"""
+        current_item = self.get_current_item()
+
+        self._manager.remove_item(current_item)
+
+    def save_item(self) -> None:
+        """save all configuration for given item"""
+
+        title = self._manager.ui.entry_title.text()
+        name = self._manager.ui.entry_name.text()
+        passkey = self._manager.ui.entry_password.text()
+
+        for value, value_str in ((title, "title"), (name, "name")):
+            if not value:
+                Notification.show_error(self._manager.ui.tree, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
+                return
+
+        window = self.get_current_item().window
+        if window:
+            self._manager.update_window(window, title, name, passkey)
+
+    def bind(self) -> None:
+        """bind signals"""
+
+        self._manager.ui.checkbox_toggle_password.stateChanged.connect(self.toggle_password)
+        self._manager.ui.tree.clicked.connect(self.set_controller_visibility)
+        self._manager.ui.tree.clicked.connect(self.load_window_config)
+
+        self._manager.ui.button_add_item.clicked.connect(self.add_item_dialog)
+        self._manager.ui.button_delete_item.clicked.connect(self.delete_item)
+
+        self._manager.ui.button_save.clicked.connect(self.save_item)
 
 
 if __name__ == "__main__":
-    main()
+    PasswordManagerUI().loop()
