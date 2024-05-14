@@ -2,6 +2,7 @@
 import psutil
 import pyautogui
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
+from screeninfo import get_monitors
 from tendo import singleton
 
 from common.exit_codes import ExitCodes
@@ -104,3 +105,27 @@ def get_window_hwnd(window: Win32Window) -> int:
 
     # pylint: disable=protected-access
     return window._hWnd  # type: ignore[no-any-return]
+
+
+def focus_window(window: Win32Window) -> None:
+    """focus on given window by minimizing and maximizing it"""
+
+    left, top, width, height = window.left, window.top, window.width, window.height
+
+    window.minimize()
+    window.maximize()
+
+    window.resizeTo(width, height)
+    window.moveTo(left, top)
+
+
+def get_position(window: Win32Window) -> tuple[int, int]:
+    """return the passkey window position based on given window"""
+
+    tolerance = 180
+    left_shift = 10
+    last_monitor = get_monitors()[-1]
+
+    if (window.left + window.width + tolerance) > (last_monitor.x + last_monitor.width):
+        return window.left + left_shift, window.top
+    return window.left + window.width, window.top

@@ -53,6 +53,7 @@ deps =
     pyreadline
     pywin32
     pyqt6
+    screeninfo
     tkhelper
     types-colorama
     types-psutil

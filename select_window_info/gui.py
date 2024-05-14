@@ -7,7 +7,7 @@ from typing import Dict, Sequence
 from pygetwindow import PyGetWindowException, Win32Window  # type: ignore[import-untyped]
 from tkhelper.widgets import MultiColumnListbox
 
-from common.tools import get_window_by_hwnd
+from common.tools import focus_window, get_position, get_window_by_hwnd
 from config.config import WindowData
 from select_window_info.base import SelectWindowInfoBase
 
@@ -81,22 +81,18 @@ class _GUISelectWindowInfoHelper:
             return
 
         try:
-            left, top, width = window.left, window.top, window.width
+            left, top = get_position(window)
         except PyGetWindowException:
             self._on_ok()
             return
-        self._root.wm_geometry(f"+{left + width}+{top}")
+        self._root.wm_geometry(f"+{left}+{top}")
         self._root.after(1000, lambda: self.__update_loop(window))
 
     def _update(self, window: Win32Window | None) -> None:
         if window is None or self._root is None:
             return
 
-        left, top, width, height = window.left, window.top, window.width, window.height
-        window.minimize()
-        window.maximize()
-        window.resizeTo(width, height)
-        window.moveTo(left, top)
+        focus_window(window)
 
         self._root.after(500, lambda: self.__update_loop(window))
 

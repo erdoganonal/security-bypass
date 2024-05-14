@@ -21,7 +21,8 @@ from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
+from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
 
 SLEEP_SECS = 1
 
@@ -29,7 +30,10 @@ SLEEP_SECS = 1
 def main() -> None:
     """starts from here"""
     if GUI:
-        security_bypass = SecurityBypass(GUISelectWindowInfo(), GUINotificationHandler())
+        if PYQT_UI:
+            security_bypass = SecurityBypass(PyQtGUISelectWindowInfo(), GUINotificationHandler())
+        else:
+            security_bypass = SecurityBypass(GUISelectWindowInfo(), GUINotificationHandler())
     else:
         security_bypass = SecurityBypass(CLISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
     security_bypass.start()
@@ -186,7 +190,12 @@ class SecurityBypass:
     def filter_windows(self) -> tuple[Win32Window | None, list[WindowData]]:
         """Filter the windows by title"""
 
-        for window in pyautogui.getAllWindows():  # type: ignore[attr-defined]
+        try:
+            windows: list[Win32Window] = pyautogui.getAllWindows()  # type: ignore[attr-defined]
+        except OSError:
+            return None, []
+
+        for window in windows:
             windows = [
                 window_data
                 for window_data in self._windows
