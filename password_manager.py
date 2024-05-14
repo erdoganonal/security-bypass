@@ -10,7 +10,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 
 from common.exit_codes import ExitCodes
 from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
-from common.tools import split_long_string
+from common.tools import check_single_instance, split_long_string
 from config.config import Config, ConfigManager, WindowData
 from config.config_key_manager import check_config_file, validate_and_get_mk
 from generated.ui_generated_add_item_dialog import Ui_AddItemWidget  # type: ignore[attr-defined]
@@ -527,8 +527,14 @@ class SignalHandler:
     def load_window_config(self, index: QtCore.QModelIndex) -> None:
         """load the config widget based on selected item"""
 
+        current_item = self.get_current_item(index)
+
+        if self._old_item is current_item and current_item.text() == self._manager.ui.entry_name.text():
+            # ignore the click if the item and it's title remained the same
+            return
+
         unsaved = self._get_first_unsaved()
-        if unsaved is not None:
+        if unsaved is not None and self._old_item is not current_item:
             question = QtWidgets.QMessageBox.question(
                 self._manager.ui.tree, "Are you sure?", f"The {unsaved} has been changed and not saved. Are you sure to discard?"
             )
@@ -536,8 +542,8 @@ class SignalHandler:
                 self._manager.ui.tree.setCurrentIndex(self._manager.model.indexFromItem(self._old_item))
                 return
 
-        self._old_item = self.get_current_item(index)
-        window = self._old_item.window
+        self._old_item = current_item
+        window = current_item.window
 
         items = (
             (self._manager.ui.entry_title, True),
@@ -687,4 +693,6 @@ class FocusMap:
 
 
 if __name__ == "__main__":
+    check_single_instance()
+
     PasswordManagerUI().loop()

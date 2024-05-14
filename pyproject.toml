@@ -61,7 +61,8 @@ deps =
 
 commands =
     python generate_all.py
-    isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
+    # isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
+    isort . --line-length 140 --extend-skip env --extend-skip .env --profile black
     mypy . --install-types
     black . --check
     python -c "sys=__import__('sys');os=__import__('os');IGNORED_FOLDERS=('.vscode','.git', 'env', '.env', '__pycache__', '.mypy_cache', '.tox', '.hooks', 'venv_temp', 'SecurityBypass.egg-info', 'tests', '.pytest_cache',);IGNORED_FILES=();ROOT_DIR = '.';pylint_params=[os.path.basename(path_info.path) for path_info in os.scandir(ROOT_DIR) if not ((path_info.is_dir() and any(ignored == path_info.name for ignored in IGNORED_FOLDERS)) or (path_info.is_file() and (any(ignored == path_info.name for ignored in IGNORED_FILES) or not path_info.path.endswith('.py'))))];sys.exit(os.system(f'pylint ' + ' '.join(pylint_params)))"

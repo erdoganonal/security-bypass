@@ -8,10 +8,9 @@ from typing import Generator, List, NoReturn, Set
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
-from tendo import singleton
 
 from common.exit_codes import ExitCodes
-from common.tools import InplaceInt, is_windows_locked
+from common.tools import InplaceInt, check_single_instance, is_windows_locked
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
@@ -191,9 +190,6 @@ class SecurityBypass:
 
 
 if __name__ == "__main__":
-    try:
-        me = singleton.SingleInstance()  # type: ignore[no-untyped-call]
-    except singleton.SingleInstanceException:
-        ExitCodes.ALREADY_RUNNING.exit()
+    check_single_instance()
 
     main()

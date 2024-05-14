@@ -1,5 +1,10 @@
 """Common function/methods"""
 import psutil
+from tendo import singleton
+
+from common.exit_codes import ExitCodes
+
+_GLOBAL = {}
 
 
 def is_windows_locked() -> bool:
@@ -72,3 +77,12 @@ def split_long_string(input_string: str, max_length: int) -> str:
         start = end + 1
 
     return "\n".join(lines)
+
+
+def check_single_instance() -> None:
+    """Check if a single instance is running"""
+
+    try:
+        _GLOBAL["singleton"] = singleton.SingleInstance()  # type: ignore[no-untyped-call]
+    except singleton.SingleInstanceException:
+        ExitCodes.ALREADY_RUNNING.exit()
