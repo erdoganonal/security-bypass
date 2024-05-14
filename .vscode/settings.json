@@ -1,0 +1,13 @@
+{
+    "python.languageServer": "Pylance",
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.env\\Scripts\\python.exe",
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "black-formatter.args": [
+        "--line-length=140"
+    ],
+    "editor.formatOnSave": true,
+    "isort.args": [
+        "--profile",
+        "black"
+    ]
+}

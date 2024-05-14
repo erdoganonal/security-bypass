@@ -1,0 +1,58 @@
+[project]
+name = "SecurityBypass"
+authors = [{ name = "Erdogan Onal", email = "erdoganonal@windowslive.com" }]
+version = "1.0.0"
+description = "Allows you pick a pre-saved password and enters it for you"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+readme = { file = 'README.md', content-type = 'text/markdown' }
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+packages = ["config", "select_window_info", "notification_handler"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 140
+
+[tool.mypy]
+strict = true
+show_error_codes = true
+implicit_reexport = true
+exclude = [".env", "env", "tests"]
+
+[tool.pylint]
+max-line-length = 140
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist =
+    py310
+
+[testenv]
+deps =
+    isort
+    mypy
+    black
+    pylint
+    pyautogui
+    types-PyAutoGUI
+    pycryptodome
+
+commands =
+    isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black
+    mypy . --install-types
+    black . --check
+    python -c "sys=__import__('sys');os=__import__('os');IGNORED_FOLDERS=('.vscode','.git', 'env', '.env', '__pycache__', '.mypy_cache', '.tox', '.hooks', 'venv_temp', 'SecurityBypass.egg-info', 'tests', '.pytest_cache',);IGNORED_FILES=();ROOT_DIR = '.';pylint_params=[os.path.basename(path_info.path) for path_info in os.scandir(ROOT_DIR) if not ((path_info.is_dir() and any(ignored == path_info.name for ignored in IGNORED_FOLDERS)) or (path_info.is_file() and (any(ignored == path_info.name for ignored in IGNORED_FILES) or not path_info.path.endswith('.py'))))];sys.exit(os.system(f'pylint ' + ' '.join(pylint_params)))"
+    # pytest
+"""
