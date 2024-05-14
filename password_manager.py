@@ -3,16 +3,22 @@
 # pylint: disable=c-extension-no-member
 
 import sys
+import warnings
 from typing import Any, Dict, List, Sequence, TypedDict
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 from common.exit_codes import ExitCodes
+from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
+from common.tools import split_long_string
 from config.config import Config, ConfigManager, WindowConfig
 from config.config_key_manager import check_config_file, validate_and_get_mk
 from generated.ui_generated_add_item_dialog import Ui_AddItemWidget  # type: ignore[attr-defined]
+from generated.ui_generated_get_password_dialog import Ui_GetPasswordDialog  # type: ignore[attr-defined]
 from generated.ui_generated_main import Ui_MainWindow  # type: ignore[attr-defined]
 from notification_handler.gui import GUINotificationHandler
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 # pylint: disable=too-few-public-methods
@@ -133,6 +139,11 @@ class PasswordManagerUI:
             self._config_mgr.save_config(self._config)
 
             self._notification_handler.info("The credentials file created.")
+
+    def change_master_key(self, new: str) -> None:
+        """change the master key"""
+
+        self._config_mgr.change_master_key(new.encode())
 
     def add_item(self, window: WindowConfig, __save: bool = True) -> None:
         """add a new item in the tree"""
@@ -388,6 +399,73 @@ class AddItemDialog:
         loop.exec()
 
 
+class PasswordDialog(QtWidgets.QWidget):
+    """opens a dialog and waits for user input"""
+
+    def __init__(self, parent: QtWidgets.QWidget | None = None, flags: QtCore.Qt.WindowType | None = None) -> None:
+        if flags is not None:
+            super().__init__(parent, flags)
+        else:
+            super().__init__(parent)
+
+        self._loop = QtCore.QEventLoop()
+        self._get_password_dialog = Ui_GetPasswordDialog()
+        self._password: str | None = None
+
+    @staticmethod
+    def _check_password(password: str) -> bool:
+        return PASSWORD_SCHEMA.validate(password)  # type: ignore[no-any-return]
+
+    @staticmethod
+    def _get_password_hint(max_length: int | None = 100) -> str:
+        hint = get_schema_rules(PASSWORD_SCHEMA)
+        if max_length is None or len(hint) < max_length:
+            return hint
+
+        return split_long_string(hint, max_length)
+
+    def accept(self) -> None:
+        """this function is called when OK button is pressed"""
+
+        password = self._get_password_dialog.entry_password.text()
+        password_again = self._get_password_dialog.entry_password_again.text()
+
+        if password != password_again:
+            Notification.show_error(self, "the passwords did not match", "Password did not match")
+        elif self._check_password(password):
+            self._password = password
+            self._loop.quit()
+        else:
+            Notification.show_error(self, "the passwords did not met the requirements", "Password did not met the requirements")
+
+    # pylint: disable=invalid-name
+    def closeEvent(self, a0: QtGui.QCloseEvent | None) -> None:
+        """closeEvent"""
+        super().closeEvent(a0)
+        self._loop.quit()
+
+    def reject(self) -> None:
+        """this function is called when Cancel button is pressed"""
+        self._password = None
+        self._loop.quit()
+
+    def get_password(self) -> str | None:
+        """open the dialog and return the user entered password"""
+
+        self.loop()
+        return self._password
+
+    def loop(self) -> None:
+        """show the dialog an wait until the user closes it"""
+
+        self.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+        self._get_password_dialog.setupUi(self)
+        self._get_password_dialog.label_password_hint.setText(self._get_password_hint(70))
+        self.show()
+
+        self._loop.exec()
+
+
 class SignalHandler:
     """signal handlers"""
 
@@ -515,6 +593,13 @@ class SignalHandler:
 
         self._manager.remove_item(current_item)
 
+    def change_master_key_dialog(self) -> None:
+        """open a dialog window and ask user to enter a new master key"""
+
+        password = PasswordDialog().get_password()
+        if password is not None:
+            self._manager.change_master_key(password)
+
     def save_item(self) -> None:
         """save all configuration for given item"""
 
@@ -560,6 +645,8 @@ class SignalHandler:
         self._manager.ui.entry_password.textChanged.connect(lambda _: self._item_changed())
 
         self._manager.ui.button_save.clicked.connect(self.save_item)
+
+        self._manager.ui.button_change_master_key.clicked.connect(self.change_master_key_dialog)
 
 
 class FocusMap:

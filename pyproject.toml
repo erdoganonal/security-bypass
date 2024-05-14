@@ -45,6 +45,7 @@ deps =
     colorama
     isort
     mypy
+    password_validator
     psutil
     pyautogui
     pycryptodome

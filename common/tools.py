@@ -39,3 +39,36 @@ class InplaceInt:
 
         self._value += by
         return self._value
+
+
+def split_long_string(input_string: str, max_length: int) -> str:
+    """Splits a long string into smaller pieces based on the given maximum length,
+    ensuring that the split occurs at spaces and not in the middle of words.
+
+    Args:
+    - input_string (str): The input string to be split.
+    - max_length (int): The maximum length for each divided piece.
+
+    Returns:
+    - str: A string with line breaks inserted where necessary to fit within
+      the specified maximum length.
+    """
+
+    if len(input_string) <= max_length:
+        return input_string
+
+    lines = []
+    start = 0
+
+    while start < len(input_string):
+        end = start + max_length
+
+        # Adjust end index to the last space within the limit
+        if end < len(input_string) and input_string[end] != " ":
+            while end > start and input_string[end] != " ":
+                end -= 1
+
+        lines.append(input_string[start:end].strip())
+        start = end + 1
+
+    return "\n".join(lines)
