@@ -5,13 +5,13 @@ import collections
 import sys
 import time
 from getpass import getpass
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, NoReturn, overload
 
 import colorama
 
 from config import ConfigManager
-from config.config import WindowConfig
-from config.config_key_manager import validate_and_get_mk
+from config.config import Config, WindowConfig
+from config.config_key_manager import check_config_file, validate_and_get_mk
 from settings import DFT_ENCODING
 
 
@@ -47,14 +47,21 @@ class PasswordManager:
         self._completer = Completer()
 
         try:
+            check_config_file()
+
             self._config_mgr = ConfigManager(key=validate_and_get_mk())
             self._config = self._config_mgr.get_config()
         except ValueError:
-            InputOutputHelper.error("Cannot load configurations. The Master Key is wrong.")
-            sys.exit(1)
+            InputOutputHelper.error("Cannot load configurations. The Master Key is wrong.", exit_code=1)
         except KeyError as err:
-            InputOutputHelper.error(err.args[0])
-            sys.exit(1)
+            InputOutputHelper.error(err.args[0], exit_code=1)
+        except FileNotFoundError:
+            # Initial usage, create an empty config file
+            self._config_mgr = ConfigManager(key=validate_and_get_mk(prompt="Please enter a Master Key to encrypt your passkeys."))
+            self._config = Config([])
+            self.__save_config()
+
+            InputOutputHelper.info("The credentials file created.")
 
     def _get_user_input(self) -> None:
         print()
@@ -122,6 +129,9 @@ class PasswordManager:
 
     def show_passwords(self) -> None:
         """Show the currently saved passwords"""
+        if not self._config.windows:
+            InputOutputHelper.error("\nThere is no title saved yet.")
+            return
         print()
         print(self._config.to_user_str(name_only=False, color=True))
 
@@ -266,10 +276,22 @@ class InputOutputHelper:
         """A standard way to print an warning message"""
         print(colorama.Fore.YELLOW + prompt + colorama.Fore.RESET)
 
+    @overload
     @classmethod
-    def error(cls, prompt: str) -> None:
+    def error(cls, prompt: str, exit_code: None = None) -> None:
+        pass
+
+    @overload
+    @classmethod
+    def error(cls, prompt: str, exit_code: int) -> NoReturn:
+        pass
+
+    @classmethod
+    def error(cls, prompt: str, exit_code: int | None = None) -> None:
         """A standard way to print an error message"""
         print(colorama.Fore.RED + prompt + colorama.Fore.RESET, file=sys.stderr)
+        if exit_code is not None:
+            sys.exit(exit_code)
 
 
 class Completer:

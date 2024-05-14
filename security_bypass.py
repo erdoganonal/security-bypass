@@ -12,9 +12,10 @@ from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from common.tools import is_windows_locked
 from config import ConfigManager
 from config.config import WindowConfig
-from config.config_key_manager import validate_and_get_mk
+from config.config_key_manager import check_config_file, validate_and_get_mk
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
+from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
@@ -44,12 +45,16 @@ class SecurityBypass:
 
     def __get_windows(self) -> List[WindowConfig]:
         try:
+            check_config_file()
             return ConfigManager(key=validate_and_get_mk()).get_config().windows
         except ValueError:
             self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
             sys.exit(1)
         except KeyError as err:
             self._notification_handler.error(err.args[0])
+            sys.exit(1)
+        except FileNotFoundError:
+            self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
             sys.exit(1)
 
     def _sleep(self, secs: int = 0) -> None:

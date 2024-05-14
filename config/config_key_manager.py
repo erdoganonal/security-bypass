@@ -8,17 +8,24 @@ from tkinter import ttk
 
 from tkhelper.widgets import update_and_center
 
-from settings import DFT_ENCODING, MK_ENV_NAME, MK_REQUEST_PARAM
+from settings import CREDENTIALS_FILE, DFT_ENCODING, MK_ENV_NAME, MK_REQUEST_PARAM
 
 
-def get_mk() -> bytes | None:
+def check_config_file() -> None:
+    """Check if the config file exists"""
+    if not CREDENTIALS_FILE.exists():
+        raise FileNotFoundError()
+
+
+def get_mk(prompt: str | None = None) -> bytes | None:
     """Tries to get the master key with all possible ways"""
-    return get_mk_cli_on_request() or get_mk_from_env() or get_mk_ui()
+    return get_mk_cli_on_request(prompt=prompt) or get_mk_from_env() or get_mk_ui(prompt=prompt)
 
 
-def validate_and_get_mk() -> bytes:
+def validate_and_get_mk(prompt: str | None = None) -> bytes:
     """Call the get_mk and validate"""
-    mk = get_mk()
+
+    mk = get_mk(prompt=prompt)
     if mk:
         return mk
 
@@ -28,11 +35,13 @@ def validate_and_get_mk() -> bytes:
     )
 
 
-def get_mk_cli_on_request() -> bytes | None:
+def get_mk_cli_on_request(prompt: str | None = None) -> bytes | None:
     """Check the cli arguments for user request to pass the key."""
 
     if MK_REQUEST_PARAM in sys.argv:
-        return getpass().encode(encoding=DFT_ENCODING)
+        if prompt is None:
+            return getpass().encode(encoding=DFT_ENCODING)
+        return getpass(prompt).encode(encoding=DFT_ENCODING)
 
     return None
 
@@ -45,7 +54,7 @@ def get_mk_from_env() -> bytes | None:
     return None
 
 
-def get_mk_ui() -> bytes | None:
+def get_mk_ui(prompt: str | None = None) -> bytes | None:
     """Create a window to let user to enter the master key"""
     mk = ""
 
@@ -89,7 +98,7 @@ def get_mk_ui() -> bytes | None:
 
         root.destroy()
 
-    root.wm_title("Please enter the Master Key")
+    root.wm_title(prompt or "Please enter the Master Key")
     root.wm_geometry("350x75")
     root.wm_protocol("WM_DELETE_WINDOW", _close)
     update_and_center(root)
