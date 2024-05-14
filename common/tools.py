@@ -1,15 +1,23 @@
 """Common function/methods"""
 
+import sys
+import warnings
 from typing import Type
 
 import psutil
 import pyautogui
-import pywinauto  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from screeninfo import get_monitors
 from tendo import singleton
 
 from common.exit_codes import ExitCodes
+
+# workaround for: https://github.com/pywinauto/pywinauto/issues/472
+sys.coinit_flags = 2  # type: ignore[attr-defined]
+warnings.simplefilter("ignore", UserWarning)
+
+# pylint: disable=wrong-import-order, wrong-import-position
+import pywinauto  # type: ignore[import-untyped]
 
 _GLOBAL = {}
 
