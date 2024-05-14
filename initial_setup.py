@@ -47,11 +47,11 @@ You can easily enter your passwords without touching the keyboard.
 It is one click a way.
 
 Error Codes and reasons:
+{unknown} -> The application faced an unknown issue. Most probably a bug.
 {already_running} -> Another instance of the application is already running. Stop it and run the task again.
 {credential_file_not_exists} -> The credential file does not found. Use the 'password_manager.py' to create it.
 {empty_key} -> The master key that is entered is empty. An empty master key is not allowed.
 {wrong_key} -> The master key that is entered is wrong. Please enter the correct one.
-{unknown} -> The application faced an unknown issue. Most probably a bug.
 """
 
 
@@ -126,7 +126,7 @@ def complete_update() -> NoReturn:
 
     _system('schtasks /end /tn "Security Bypass"')
     pid = subprocess.check_output(
-        """wmic process where "commandline like '%security_bypass.py%' and not commandline like 'wmic%%'" get processid""",
+        """wmic process where "commandline like '%security_bypass_wrapper.py%' and not commandline like 'wmic%%'" get processid""",
         text=True,
         stderr=subprocess.PIPE,
     ).splitlines()[2]
@@ -150,11 +150,11 @@ def adjust_task_scheduler_xml() -> None:
         username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
         pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
         description=DESCRIPTION.format(
+            unknown=ExitCodes.UNKNOWN.value,
             already_running=ExitCodes.ALREADY_RUNNING.value,
             credential_file_not_exists=ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST,
             empty_key=ExitCodes.EMPTY_MASTER_KEY.value,
             wrong_key=ExitCodes.WRONG_MASTER_KEY.value,
-            unknown=ExitCodes.UNKNOWN.value,
         ),
         script_dir=SCRIPT_DIR,
     )

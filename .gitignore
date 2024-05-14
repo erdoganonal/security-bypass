@@ -143,3 +143,6 @@ ui_generated_*.py
 
 # exe
 *.exe
+
+# wrapper files
+*_wrapper.py

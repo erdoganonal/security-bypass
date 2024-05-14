@@ -10,6 +10,8 @@ from installer import Installer, InstallerData
 CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"
 
+WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
+
 CONFIG_FILE = INSTALLER_DIR / "Config.txt"
 INSTALLER_SCRIPT = INSTALLER_DIR / "install.bat"
 ZIP_APP_FILENAME = CURRENT_DIR / "windows_security_bypass.zip"
@@ -34,6 +36,7 @@ EXCLUDED_FOLDERS = [
 ]
 
 ADDITIONAL = [
+    WRAPPER_FILE,
     CURRENT_DIR / "requirements.txt",
     CURRENT_DIR / "generated" / "ui_generated_add_item_dialog.py",
     CURRENT_DIR / "generated" / "ui_generated_get_passkey_dialog.py",
@@ -44,6 +47,7 @@ ADDITIONAL = [
 
 def main() -> None:
     """starts from here"""
+    generate_wrapper_file()
 
     files = get_files_to_archive()
     Installer.create(
@@ -65,6 +69,26 @@ def _is_excluded(path: Path) -> bool:
     return path.parts[0] in EXCLUDED_FOLDERS
 
 
+def generate_wrapper_file() -> None:
+    """generate the wrapper file"""
+
+    content = '''"""wrapper for the main application to catch unhandled exceptions"""
+
+try:
+    from security_bypass import main
+
+    main()
+except Exception as e:
+    with open("error.log", "a+", encoding="utf-8") as error_fd:
+        error_fd.write(str(e))
+
+    raise SystemExit(1) from e
+'''
+
+    with open(WRAPPER_FILE, "w", encoding="utf-8") as wrapper_fd:
+        wrapper_fd.write(content)
+
+
 def get_files_to_archive() -> Generator[Path, None, None]:
     """get list of all files to include in the zip file"""
     for item in subprocess.check_output("git ls-tree -r master --name-only", text=True).splitlines():
@@ -75,4 +99,7 @@ def get_files_to_archive() -> Generator[Path, None, None]:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        WRAPPER_FILE.unlink(missing_ok=True)
