@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Generator, Iterable, TypeVar
 
 from installer import Installer, InstallerData
+from generate_all import main as generate_all
 
 CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"
@@ -47,6 +48,7 @@ ADDITIONAL = [
 
 def main() -> None:
     """starts from here"""
+    generate_all()
     generate_wrapper_file()
 
     files = get_files_to_archive()
