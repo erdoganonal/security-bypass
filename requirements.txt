@@ -11,6 +11,7 @@ pycryptodome==3.19.0
 PyGetWindow==0.0.9
 PyMsgBox==1.0.9
 pyperclip==1.8.2
+pyreadline==2.1
 PyRect==0.2.0
 pyscreenshot==3.1
 PyScreeze==0.1.29
