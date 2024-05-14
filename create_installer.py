@@ -91,7 +91,7 @@ except Exception as e:
 
 def get_files_to_archive() -> Generator[Path, None, None]:
     """get list of all files to include in the zip file"""
-    for item in subprocess.check_output("git ls-tree -r master --name-only", text=True).splitlines():
+    for item in subprocess.check_output("git ls-tree -r main --name-only", text=True).splitlines():
         path = Path(item)
         if _is_excluded(path):
             continue
