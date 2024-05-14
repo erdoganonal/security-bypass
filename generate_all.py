@@ -8,6 +8,7 @@ UI_PY_MAP = {
     "ui/password_manager.ui": "generated/ui_generated_main.py",
     "ui/add_item_dialog.ui": "generated/ui_generated_add_item_dialog.py",
     "ui/get_password_dialog.ui": "generated/ui_generated_get_password_dialog.py",
+    "ui/get_passkey_dialog.ui": "generated/ui_generated_get_passkey_dialog.py",
 }
 
 GENERATED = Path("generated")

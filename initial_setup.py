@@ -7,7 +7,7 @@ from getpass import getpass
 from pathlib import Path
 from typing import NoReturn, overload
 
-from settings import MK_ENV_NAME
+from settings import DFT_ENCODING, MK_ENV_NAME
 
 try:
     import win32api
@@ -16,7 +16,6 @@ try:
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
     from config.config import Config, ConfigManager
     from config.config_key_manager import check_config_file
-    from settings import DFT_ENCODING
 except ImportError:
     RESTART = True
 else:
@@ -66,6 +65,9 @@ def main() -> None:
     if RESTART:
         restart()
 
+    if is_update():
+        complete_update()
+
     adjust_task_scheduler_xml()
 
     initial_setup()
@@ -110,6 +112,26 @@ def restart() -> None:
     with subprocess.Popen(f"{python} {' '.join(sys.argv)}") as process:
         pass
     sys.exit(process.returncode)
+
+
+def is_update() -> bool:
+    """check whether the application is updated or not"""
+
+    return os.system('schtasks /query /tn "Security Bypass"') == 0
+
+
+def complete_update() -> NoReturn:
+    """complete the update process by stopping and starting again the task scheduler"""
+
+    _system('schtasks /end /tn "Security Bypass"')
+    pid = subprocess.check_output(
+        """wmic process where "commandline like '%security_bypass.py%' and not commandline like 'wmic%%'" get processid""", text=True
+    ).splitlines()[2]
+    _system(f"taskkill /f /pid {pid}")
+    _system('schtasks /run /tn "Security Bypass"')
+
+    InputOutputHelper.info("\nUpdate completed.")
+    sys.exit(0)
 
 
 def adjust_task_scheduler_xml() -> None:

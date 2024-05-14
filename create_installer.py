@@ -11,7 +11,7 @@ CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"
 
 CONFIG_FILE = INSTALLER_DIR / "Config.txt"
-INSTALLER_SCRIPT = INSTALLER_DIR / "postscript.bat"
+INSTALLER_SCRIPT = INSTALLER_DIR / "install.bat"
 ZIP_APP_FILENAME = CURRENT_DIR / "windows_security_bypass.zip"
 EXE_APP_FILENAME = CURRENT_DIR / "windows_security_bypass_installer.exe"
 
@@ -24,6 +24,7 @@ EXCLUDED_FILES = [
     "*.txt",
     "*.toml",
     "*.zip",
+    "*.sfx",
 ]
 
 EXCLUDED_FOLDERS = [

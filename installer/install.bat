@@ -34,10 +34,10 @@ echo.
 cd %DESTINATION_FOLDER% || goto :error
 
 %PYTHON_PATH% -m pip install --upgrade pip > nul || goto :error
-%PYTHON_PATH% initial_setup.py
+%PYTHON_PATH% initial_setup.py || goto :error
 
 pause
-goto :EOF
+exit /b 0
 
 :error
 echo Failed with error #%errorlevel%.

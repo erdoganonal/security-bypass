@@ -10,7 +10,7 @@ import py7zr
 
 CURRENT_DIR = Path(__file__).parent
 TEMP_DATA_DIR = CURRENT_DIR / "tmp"
-SFX_FILE = CURRENT_DIR / "7zS2.sfx"
+SFX_FILE = CURRENT_DIR / "7zSD.sfx"
 
 
 @dataclass

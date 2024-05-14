@@ -4,7 +4,6 @@ Desired behavior might cause some problems during runtime. This module is
 a helper file to create a subprocess to call the desired functions.
 """
 
-
 import argparse
 import json
 import subprocess

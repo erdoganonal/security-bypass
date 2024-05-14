@@ -1,6 +1,8 @@
 """Common function/methods"""
+
 import psutil
 import pyautogui
+import pywinauto  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from screeninfo import get_monitors
 from tendo import singleton
@@ -96,7 +98,7 @@ def get_window_by_hwnd(hwnd: int) -> Win32Window | None:
 
     try:
         return next(window for window in pyautogui.getAllWindows() if get_window_hwnd(window) == hwnd)  # type: ignore[attr-defined]
-    except StopAsyncIteration:
+    except StopIteration:
         return None
 
 
@@ -129,3 +131,32 @@ def get_position(window: Win32Window) -> tuple[int, int]:
     if (window.left + window.width + tolerance) > (last_monitor.x + last_monitor.width):
         return window.left + left_shift, window.top
     return window.left + window.width, window.top
+
+
+def _extract_text_from_window(window: pywinauto.application.WindowSpecification) -> str:
+    text = ""
+    try:
+        # Get the text of the current window
+        if isinstance(window, pywinauto.controls.uia_controls.StaticWrapper):
+            text += window.window_text() + "\n"
+    except Exception:  # pylint: disable=broad-except
+        pass
+
+    # Recursively search for child windows
+    for child in window.children():
+        text += _extract_text_from_window(child)
+
+    return text
+
+
+def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
+    """recursively search for child windows and extract text"""
+
+    desktop = pywinauto.Desktop(backend="uia")
+    if isinstance(window_or_id, Win32Window):
+        window_id = get_window_hwnd(window_or_id)
+    else:
+        window_id = int(window_or_id)
+
+    window = desktop.window(handle=window_id)
+    return _extract_text_from_window(window)

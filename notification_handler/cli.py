@@ -1,6 +1,5 @@
 """CLI notification handler"""
 
-
 import sys
 
 from notification_handler.base import MessageType, NotificationHandlerBase

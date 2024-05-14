@@ -1,6 +1,5 @@
 """Parse the config file and get the pre-saved passwords"""
 
-
 import json
 import os
 import re
@@ -89,12 +88,10 @@ class Config:
         return cls([WindowData.from_dict(window) for window in data])
 
     @overload
-    def to_json(self, encode: Literal[True]) -> bytes:
-        ...
+    def to_json(self, encode: Literal[True]) -> bytes: ...
 
     @overload
-    def to_json(self, encode: Literal[False]) -> str:
-        ...
+    def to_json(self, encode: Literal[False]) -> str: ...
 
     def to_json(self, encode: bool = False) -> str | bytes:
         """Convert the Config object to a json string or bytes"""

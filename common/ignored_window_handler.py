@@ -1,6 +1,5 @@
 """handler for ignored windows. creates an interface to easily manage the ignored windows"""
 
-
 import threading
 import time
 from typing import Set
