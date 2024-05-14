@@ -23,7 +23,7 @@ class _GUISelectWindowInfoHelper:
     """helper class for GUISelectWindowInfo"""
 
     def __init__(self) -> None:
-        self._name: str | None = None
+        self._index: str | None = None
         self._send_enter: bool = True
 
         self._root: tk.Tk | None = None
@@ -38,8 +38,7 @@ class _GUISelectWindowInfoHelper:
         window_pin_rel: Dict[str | None, str] = {}
 
         for window_data in windows_data:
-            self._listbox.add_row([window_data.name])
-            window_pin_rel[window_data.name] = window_data.passkey
+            window_pin_rel[self._listbox.add_row([window_data.name])] = window_data.passkey
 
         self._root.wm_overrideredirect(True)
         self._root.wm_attributes("-topmost", True)
@@ -48,7 +47,7 @@ class _GUISelectWindowInfoHelper:
         self._root.mainloop()
 
         try:
-            return window_pin_rel[self._name] + ("\n" if self._send_enter else "")
+            return window_pin_rel[self._index] + ("\n" if self._send_enter else "")
         except KeyError:
             return None
 
@@ -78,7 +77,7 @@ class _GUISelectWindowInfoHelper:
         if self._root is None:
             return
 
-        self._name = self._listbox.get_selected("name")
+        self._index = self._listbox.tree.selection()[0]
         self._send_enter = self._send_enter_checkbox.get()
 
         self._root.destroy()
@@ -116,7 +115,9 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         if not windows_data:
             return None
 
-        return thread_execute(__file__, window_hwnd, windows_data)
+        if self.supports_thread:
+            return thread_execute(__file__, window_hwnd, windows_data)
+        return _GUISelectWindowInfoHelper().select(window_hwnd, windows_data)
 
 
 if __name__ == "__main__":

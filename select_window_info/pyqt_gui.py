@@ -29,7 +29,7 @@ class _PyQtGUISelectWindowInfoHelper:
 
         self._model = QtGui.QStandardItemModel()
 
-        self._value: str | None = None
+        self._selected_index: int | None = None
         self._send_enter: bool = True
 
         self._main_window.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
@@ -41,13 +41,13 @@ class _PyQtGUISelectWindowInfoHelper:
 
         self._timer = QtCore.QTimer(self._main_window)
 
-    def get(self) -> str | None:
+    def get(self, windows_data: Sequence[WindowData]) -> str | None:
         """return the selected value and the send enter value"""
 
-        if self._value is None:
+        if self._selected_index is None:
             return None
 
-        return self._value + ("\n" if self._send_enter else "")
+        return windows_data[self._selected_index].passkey + ("\n" if self._send_enter else "")
 
     def add_item(self, item: str) -> None:
         """add a new item into the list"""
@@ -59,7 +59,7 @@ class _PyQtGUISelectWindowInfoHelper:
 
         indexes = self._ui.list_view.selectedIndexes()
         if indexes:
-            self._value = indexes[0].data()
+            self._selected_index = indexes[0].row()
 
         self._send_enter = self._ui.checkbutton_send_enter.isChecked()
 
@@ -68,7 +68,7 @@ class _PyQtGUISelectWindowInfoHelper:
     def reject(self) -> None:
         """close the window"""
 
-        self._value = None
+        self._selected_index = None
 
         self._app.quit()
 
@@ -97,7 +97,7 @@ class _PyQtGUISelectWindowInfoHelper:
         self._timer.start(1000)
         self.render()
 
-        return self.get()
+        return self.get(windows_data)
 
     def render(self) -> None:
         """start the app and render"""
@@ -116,12 +116,14 @@ class PyQtGUISelectWindowInfo(SelectWindowInfoBase):
 
     @property
     def supports_thread(self) -> bool:
-        return False
+        return True
 
     def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
         if not windows_data:
             return None
 
+        # even if the operation runs in main thread, the pyqt gui acts strangely.
+        # to overcome this, there is no direct call for _PyQtGUISelectWindowInfoHelper.select
         return thread_execute(__file__, window_hwnd, windows_data)
 
 
