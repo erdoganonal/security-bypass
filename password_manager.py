@@ -1,7 +1,7 @@
 """Helps you to manage the passwords"""
 
-import ast
 import collections
+import os
 import sys
 import time
 from getpass import getpass
@@ -12,7 +12,10 @@ import colorama
 from config import ConfigManager
 from config.config import Config, WindowConfig
 from config.config_key_manager import check_config_file, validate_and_get_mk
-from settings import DFT_ENCODING
+from settings import DFT_ENCODING, PASSWORD_REQUIRED_FILE_PATH, RELOAD_REQUIRED_FILE_PATH
+
+ASK_SEND_ENTER = "--ask-send-enter" in sys.argv
+GREETINGS = "\nWelcome to Password Manager. You can easily manage your passkeys."
 
 
 def main() -> None:
@@ -65,8 +68,10 @@ class PasswordManager:
 
     def _get_user_input(self) -> None:
         print()
+        space = int(max(self._idx_name_map, key=len))
         for idx, name in self._idx_name_map.items():
-            print(f"[{idx}] {name}")
+            extra = " " * (space - len(idx))
+            print(f"{extra}[{idx}] {name}")
 
         response = input("\nSelect an action: ")
         try:
@@ -76,6 +81,9 @@ class PasswordManager:
             raise ContinueLoopError() from err
 
     def _loop(self) -> None:
+        os.system("cls")
+        InputOutputHelper.info(GREETINGS)
+
         while self._is_active:
             time.sleep(1)
             self._completer.clear()
@@ -95,7 +103,8 @@ class PasswordManager:
         except KeyboardInterrupt:
             self.exit()
 
-    def __save_config(self) -> None:
+    def __save_config(self, password_required: bool = False) -> None:
+        self._set_reload_required(password_required=password_required)
         self._config_mgr.save_config(self._config)
 
     def __get_title(self, list_titles: bool = True) -> WindowConfig:
@@ -138,14 +147,14 @@ class PasswordManager:
     def show_pwd_names(self) -> None:
         """Show the currently saved password names"""
         print()
-        print(self._config.to_user_str(name_only=True, color=True))
+        print(self._config.to_user_str(name_only=True, color=True, show_send_enter=ASK_SEND_ENTER))
 
     def add_new_pwd(self) -> None:
         """Add a new password"""
         self.list_titles()
         title = InputOutputHelper.ask_title()
         name = InputOutputHelper.ask_name()
-        passkey = InputOutputHelper.ask_password(validate=True, evaluate=True)
+        passkey = InputOutputHelper.ask_password(validate=True, ask_send_enter=True)
 
         print(f"title: {title}\nname: {name}")
         if not InputOutputHelper.ask_yes_no("Is the parameters correct?"):
@@ -182,12 +191,12 @@ class PasswordManager:
             new_name = name
 
         if InputOutputHelper.ask_yes_no("Do you want to change the passkey?"):
-            passkey = InputOutputHelper.ask_password(validate=True, evaluate=True)
+            passkey = InputOutputHelper.ask_password(validate=True, ask_send_enter=True)
 
         del window.passkey_data[name]
         window.passkey_data[new_name] = passkey
 
-        self.__save_config()
+        self.__save_config(password_required=True)
         InputOutputHelper.info("\nThe passkey has been updated successfully!")
 
     def list_titles(self, add_auto_complete: bool = True) -> None:
@@ -216,11 +225,20 @@ class PasswordManager:
         new_key = InputOutputHelper.ask_password(
             "Please enter the new Master Key",
             validate=True,
-            evaluate=False,
+            ask_send_enter=False,
         ).encode(encoding=DFT_ENCODING)
         self._config_mgr.change_master_key(new_key)
 
+        self._set_reload_required()
         InputOutputHelper.info("\nThe Master Key has been changed!")
+
+    def _set_reload_required(self, password_required: bool = False) -> None:
+        """create the RELOAD_REQUIRED_FILE_PATH file if something changed"""
+
+        if password_required:
+            PASSWORD_REQUIRED_FILE_PATH.touch(exist_ok=True)
+
+        RELOAD_REQUIRED_FILE_PATH.touch(exist_ok=True)
 
     def exit(self) -> None:
         """Exit the program"""
@@ -247,7 +265,7 @@ class InputOutputHelper:
         return input("Please enter a name for your key: ")
 
     @classmethod
-    def ask_password(cls, prompt: str = "Please enter the new passkey", validate: bool = True, evaluate: bool = True) -> str:
+    def ask_password(cls, prompt: str = "Please enter the new passkey", validate: bool = True, ask_send_enter: bool = False) -> str:
         """A standard way to get the passkey from the user"""
         passkey = getpass(f"{prompt}: ")
         if validate:
@@ -257,8 +275,11 @@ class InputOutputHelper:
                 cls.error("\nValues did not match!")
                 raise ContinueLoopError
 
-        if evaluate:
-            return ast.literal_eval(f"'{passkey}'")  # type: ignore[no-any-return]
+        if ASK_SEND_ENTER and ask_send_enter:
+            if cls.ask_yes_no("Do you want to send the enter key after the password sent?"):
+                passkey = passkey + "\n"
+        else:
+            passkey = passkey + "\n"
         return passkey
 
     @classmethod

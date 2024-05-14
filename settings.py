@@ -1,5 +1,6 @@
 """General settings"""
 
+import tempfile
 from pathlib import Path
 
 CONFIG_PATH = Path("~").expanduser() / ".security_bypass"
@@ -14,3 +15,6 @@ GUI = True
 MIN_SLEEP_SECS_AFTER_KEY_SENT = 3
 
 ASK_PASSWORD_ON_LOCK = False
+
+PASSWORD_REQUIRED_FILE_PATH = Path(tempfile.gettempdir()) / ".security_bypass_password_required"
+RELOAD_REQUIRED_FILE_PATH = Path(tempfile.gettempdir()) / ".security_bypass_reload_required"

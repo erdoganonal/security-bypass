@@ -73,12 +73,19 @@ class Config:
         """Convert JSON str/bytes to Config object"""
         return cls.from_dict(json.loads(data))
 
-    def to_user_str(self, name_only: bool = False, color: bool = True) -> str:
+    @overload
+    def to_user_str(self, name_only: Literal[False] = ..., color: bool = ...) -> str:
+        pass
+
+    @overload
+    def to_user_str(self, name_only: Literal[True], color: bool = ..., show_send_enter: bool = ...) -> str:
+        pass
+
+    def to_user_str(self, name_only: bool = False, color: bool = True, show_send_enter: bool = False) -> str:
         """Print the config as human readable form"""
         res = ""
 
         color_blue = ""
-        newline_escaped = r"\n"
         if color:
             color_blue = colorama.Fore.BLUE
 
@@ -89,7 +96,9 @@ class Config:
                 if name_only:
                     res += f" - {name}\n"
                 else:
-                    res += f" - {name}: {key[:-1] + newline_escaped if has_newline else key}\n"
+                    res += f" - {name}: {key[:-1] if has_newline else key}\n"
+                    if show_send_enter:
+                        res += f"   send enter: {has_newline}\n"
 
         return res.strip()
 

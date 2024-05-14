@@ -84,7 +84,7 @@ def adjust_task_scheduler_xml() -> None:
         xml_content = xml_fd.read()
 
     xml_content = xml_content.format(
-        username=win32api.GetUserNameEx(win32api.NameSamCompatible),
+        username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
         pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
         script_dir=SCRIPT_DIR,
     )
@@ -101,7 +101,7 @@ def adjust_task_scheduler_xml() -> None:
 def _get_password() -> str:
     while True:
         try:
-            return InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys", evaluate=False)
+            return InputOutputHelper.ask_password("Please enter a Master Key to encrypt your passkeys", ask_send_enter=False)
         except ContinueLoopError:
             continue
 

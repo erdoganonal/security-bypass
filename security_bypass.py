@@ -21,7 +21,7 @@ from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
+from settings import ASK_PASSWORD_ON_LOCK, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PASSWORD_REQUIRED_FILE_PATH, RELOAD_REQUIRED_FILE_PATH
 
 
 def main() -> None:
@@ -42,22 +42,25 @@ class SecurityBypass:
         self._select_window_info_func = select_window.select
         self.sleep_secs = 1
         self._notification_handler = notification_handler
+        self.__key: bytes | None = None
 
         self._windows = self.__get_windows()
 
     def __get_windows(self) -> List[WindowConfig]:
-        try:
-            check_config_file()
-            return ConfigManager(key=validate_and_get_mk()).get_config().windows
-        except ValueError:
-            self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
-            sys.exit(1)
-        except KeyError as err:
-            self._notification_handler.error(err.args[0])
-            sys.exit(1)
-        except FileNotFoundError:
-            self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
-            sys.exit(1)
+        self.__key = self.__key or validate_and_get_mk()
+        while True:
+            try:
+                check_config_file()
+                return ConfigManager(key=self.__key).get_config().windows
+            except ValueError:
+                self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
+                continue
+            except KeyError as err:
+                self._notification_handler.error(err.args[0])
+                sys.exit(1)
+            except FileNotFoundError:
+                self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
+                sys.exit(1)
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:
@@ -80,6 +83,15 @@ class SecurityBypass:
         self._notification_handler.warning("Windows is locked. The password must be provided.")
         self._windows = self.__get_windows()
 
+    def _reload_if_required(self) -> None:
+        if RELOAD_REQUIRED_FILE_PATH.exists():
+            if PASSWORD_REQUIRED_FILE_PATH.exists():
+                self.__key = None
+            self._windows = self.__get_windows()
+
+        RELOAD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
+        PASSWORD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
+
     def _start(self) -> None:
         self._loop = True
 
@@ -88,6 +100,8 @@ class SecurityBypass:
         while self._loop:
             if ASK_PASSWORD_ON_LOCK:
                 self._handle_windows_lock()
+
+            self._reload_if_required()
 
             windows = self.filter_windows()
             window_info = self._select_window_info_func(windows)
