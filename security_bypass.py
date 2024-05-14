@@ -15,6 +15,7 @@ from config.config import WindowConfig
 from config.config_key_manager import check_config_file, validate_and_get_mk
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
+from notification_handler.gui import GUINotificationHandler
 from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
@@ -25,7 +26,7 @@ from settings import ASK_PASSWORD_ON_LOCK, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
 def main() -> None:
     """starts from here"""
     if GUI:
-        security_bypass = SecurityBypass(GUISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
+        security_bypass = SecurityBypass(GUISelectWindowInfo(), GUINotificationHandler())
     else:
         security_bypass = SecurityBypass(CLISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
     security_bypass.start()
