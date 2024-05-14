@@ -4,6 +4,7 @@
 import threading
 import time
 import traceback
+from dataclasses import dataclass, field
 from typing import List, NoReturn, Set
 
 import pyautogui
@@ -11,6 +12,7 @@ import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from common.exit_codes import ExitCodes
+from common.ignored_window_handler import IgnoredWindowsHandler
 from common.tools import InplaceInt, check_single_instance, get_window_hwnd, is_windows_locked
 from config import ConfigManager
 from config.config import WindowData
@@ -40,6 +42,13 @@ def main() -> None:
     security_bypass.start()
 
 
+@dataclass
+class _WindowData:
+    windows: List[WindowData]
+    window_hwnd_s: Set[int] = field(default_factory=set)
+    ignored_windows_handler: IgnoredWindowsHandler = field(default_factory=IgnoredWindowsHandler)
+
+
 class SecurityBypass:
     """Allows you to save passwords and let you to bypass the windows security windows
     by entering the passwords automatically"""
@@ -50,9 +59,8 @@ class SecurityBypass:
         self._notification_handler = notification_handler
         self.__key: bytes | None = None
 
-        self._windows = self.__get_windows()
         self._credential_file_modified_time = 0.0
-        self.__window_hwnd_s: Set[int] = set()
+        self._window_data = _WindowData(windows=self.__get_windows())
 
     def _exit(self, exit_code: ExitCodes) -> NoReturn:
         self._loop = False
@@ -103,7 +111,7 @@ class SecurityBypass:
             time.sleep(1)
 
         self._notification_handler.warning("Windows is locked. The password must be provided.")
-        self._windows = self.__get_windows()
+        self._window_data.windows = self.__get_windows()
 
     def _reload_config_in_bg(self) -> None:
         while self._loop:
@@ -113,7 +121,7 @@ class SecurityBypass:
     def _reload_if_required(self) -> None:
         credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
         if credential_file_modified_time != self._credential_file_modified_time:
-            self._windows = self.__get_windows(show_error=False)
+            self._window_data.windows = self.__get_windows(show_error=False)
             self._credential_file_modified_time = credential_file_modified_time
 
     def _select(self) -> None:
@@ -122,19 +130,24 @@ class SecurityBypass:
             return  # no matching window found
 
         window_hwnd = get_window_hwnd(window)
-        if window_hwnd in self.__window_hwnd_s:
+        if window_hwnd in self._window_data.window_hwnd_s:
             return  # already processing
 
-        self.__window_hwnd_s.add(window_hwnd)
+        if self._window_data.ignored_windows_handler.is_ignored(window_hwnd):
+            return
+
+        self._window_data.window_hwnd_s.add(window_hwnd)
         passkey = self._window_selector.select(window_hwnd, windows)
 
-        if passkey is not None:
+        if passkey is None:
+            self._window_data.ignored_windows_handler.ignore(window)
+        else:
             self.send_keys(window, passkey)
             # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
             if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
                 self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
 
-        self.__window_hwnd_s.remove(window_hwnd)
+        self._window_data.window_hwnd_s.remove(window_hwnd)
 
     def _start(self) -> None:
         self._loop = True
@@ -204,7 +217,7 @@ class SecurityBypass:
         for window in windows:
             windows = [
                 window_data
-                for window_data in self._windows
+                for window_data in self._window_data.windows
                 if (window_data.pattern is not None and window_data.pattern.match(window.title)) or window_data.title == window.title
             ]
             if windows:
