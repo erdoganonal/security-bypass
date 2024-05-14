@@ -25,7 +25,7 @@ class GUINotificationHandler(NotificationHandlerBase):
         root.withdraw()
         root.attributes("-topmost", 1)
 
-        if self.timeout_ms is not None:
+        if self.timeout_ms is not None and msg_type not in (MessageType.ERROR, MessageType.CRITICAL):
             root.after(self.timeout_ms, root.destroy)
 
         try:

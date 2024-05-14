@@ -12,7 +12,7 @@ import colorama
 from config import ConfigManager
 from config.config import Config, WindowConfig
 from config.config_key_manager import check_config_file, validate_and_get_mk
-from settings import DFT_ENCODING, PASSWORD_REQUIRED_FILE_PATH, RELOAD_REQUIRED_FILE_PATH
+from settings import DFT_ENCODING, PASSWORD_REQUIRED_FILE_PATH
 
 ASK_SEND_ENTER = "--ask-send-enter" in sys.argv
 GREETINGS = "\nWelcome to Password Manager. You can easily manage your passkeys."
@@ -103,8 +103,7 @@ class PasswordManager:
         except KeyboardInterrupt:
             self.exit()
 
-    def __save_config(self, password_required: bool = False) -> None:
-        self._set_reload_required(password_required=password_required)
+    def __save_config(self) -> None:
         self._config_mgr.save_config(self._config)
 
     def __get_title(self, list_titles: bool = True) -> WindowConfig:
@@ -196,7 +195,8 @@ class PasswordManager:
         del window.passkey_data[name]
         window.passkey_data[new_name] = passkey
 
-        self.__save_config(password_required=True)
+        self.__save_config()
+        self._set_password_required()
         InputOutputHelper.info("\nThe passkey has been updated successfully!")
 
     def list_titles(self, add_auto_complete: bool = True) -> None:
@@ -229,16 +229,12 @@ class PasswordManager:
         ).encode(encoding=DFT_ENCODING)
         self._config_mgr.change_master_key(new_key)
 
-        self._set_reload_required()
         InputOutputHelper.info("\nThe Master Key has been changed!")
 
-    def _set_reload_required(self, password_required: bool = False) -> None:
-        """create the RELOAD_REQUIRED_FILE_PATH file if something changed"""
+    def _set_password_required(self) -> None:
+        """create the PASSWORD_REQUIRED_FILE_PATH file if password changed"""
 
-        if password_required:
-            PASSWORD_REQUIRED_FILE_PATH.touch(exist_ok=True)
-
-        RELOAD_REQUIRED_FILE_PATH.touch(exist_ok=True)
+        PASSWORD_REQUIRED_FILE_PATH.touch(exist_ok=True)
 
     def exit(self) -> None:
         """Exit the program"""

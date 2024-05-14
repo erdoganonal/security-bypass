@@ -2,8 +2,9 @@
  by entering the passwords automatically"""
 
 import sys
+import threading
 import time
-from typing import Generator, List
+from typing import Generator, List, TypedDict
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
@@ -21,7 +22,14 @@ from password_manager import __name__ as pwd_manager_name
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PASSWORD_REQUIRED_FILE_PATH, RELOAD_REQUIRED_FILE_PATH
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PASSWORD_REQUIRED_FILE_PATH
+
+
+class FileModifiedData(TypedDict):
+    """hold the file modified data"""
+
+    credentials: float
+    password_required: float
 
 
 def main() -> None:
@@ -45,11 +53,12 @@ class SecurityBypass:
         self.__key: bytes | None = None
 
         self._windows = self.__get_windows()
+        self._file_modified_data: FileModifiedData = {"credentials": 0.0, "password_required": 0.0}
 
     def __get_windows(self) -> List[WindowConfig]:
-        self.__key = self.__key or validate_and_get_mk()
         while True:
             try:
+                self.__key = self.__key or validate_and_get_mk()
                 check_config_file()
                 return ConfigManager(key=self.__key).get_config().windows
             except ValueError:
@@ -83,25 +92,35 @@ class SecurityBypass:
         self._notification_handler.warning("Windows is locked. The password must be provided.")
         self._windows = self.__get_windows()
 
-    def _reload_if_required(self) -> None:
-        if RELOAD_REQUIRED_FILE_PATH.exists():
-            if PASSWORD_REQUIRED_FILE_PATH.exists():
-                self.__key = None
-            self._windows = self.__get_windows()
+    def _reload_config_in_bg(self) -> None:
+        while self._loop:
+            self._reload_if_required()
+            time.sleep(1)
 
-        RELOAD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
-        PASSWORD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
+    def _reload_if_required(self) -> None:
+        try:
+            password_required_file_modified_time = PASSWORD_REQUIRED_FILE_PATH.stat().st_mtime
+            if password_required_file_modified_time != self._file_modified_data["password_required"]:
+                PASSWORD_REQUIRED_FILE_PATH.unlink(missing_ok=True)
+                self.__key = None
+                self._file_modified_data["password_required"] = password_required_file_modified_time
+        except FileNotFoundError:
+            pass
+
+        credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
+        if credential_file_modified_time != self._file_modified_data["credentials"]:
+            self._windows = self.__get_windows()
+            self._file_modified_data["credentials"] = credential_file_modified_time
 
     def _start(self) -> None:
         self._loop = True
 
         self._notification_handler.debug("Application is started.")
+        threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
 
         while self._loop:
             if ASK_PASSWORD_ON_LOCK:
                 self._handle_windows_lock()
-
-            self._reload_if_required()
 
             windows = self.filter_windows()
             window_info = self._select_window_info_func(windows)
