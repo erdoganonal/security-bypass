@@ -23,6 +23,52 @@ class QStandardPasskeyItem(QtGui.QStandardItem):
         super().__init__(text)
         self.window = window
 
+    @classmethod
+    def clone_from(cls, item: "QStandardPasskeyItem") -> "QStandardPasskeyItem":
+        """clone a QStandardPasskeyItem and return as a new item"""
+
+        return cls(text=item.text(), window=item.window)
+
+
+class Hooks:
+    """allows to to customized actions on specific methods"""
+
+    def __init__(self, manager: "PasswordManagerUI") -> None:
+        self._manager = manager
+        self.i = 0
+
+    def drag_move_event_hook(self, event: QtGui.QDragMoveEvent) -> None:
+        """event for drag and drop items."""
+
+        current_item = self._manager.model.itemFromIndex(self._manager.ui.tree.currentIndex())
+
+        target_item = self._manager.model.itemFromIndex(
+            self._manager.ui.tree.indexAt(QtCore.QPoint(int(event.position().x()), int(event.position().y())))
+        )
+        if target_item and isinstance(target_item, QStandardPasskeyItem) and target_item.window is not None:
+            event.ignore()
+        elif current_item and isinstance(current_item, QStandardPasskeyItem) and current_item.window is None:
+            event.ignore()
+        else:
+            QtWidgets.QTreeView.dragMoveEvent(self._manager.ui.tree, event)
+
+    def drop_event_hook(self, event: QtGui.QDropEvent) -> None:
+        """event for drag and drop items."""
+
+        current_index = self._manager.ui.tree.currentIndex()
+        current_item = self._manager.model.itemFromIndex(current_index)
+        target_index = self._manager.ui.tree.indexAt(QtCore.QPoint(int(event.position().x()), int(event.position().y())))
+        target_item = self._manager.model.itemFromIndex(target_index)
+
+        if isinstance(current_item, QStandardPasskeyItem) and isinstance(target_item, QStandardPasskeyItem):
+            self._manager.move_item(current_item, target_item)
+
+    def hook(self) -> None:
+        """replace the original methods with hooks"""
+
+        self._manager.ui.tree.dragMoveEvent = self.drag_move_event_hook
+        self._manager.ui.tree.dropEvent = self.drop_event_hook
+
 
 class PasswordManagerUI:
     """a UI to manage the passwords"""
@@ -110,6 +156,20 @@ class PasswordManagerUI:
             self._config.windows.append(window)
             self._config_mgr.save_config(self._config)
 
+    def move_item(self, current_item: QStandardPasskeyItem, target_item: QStandardPasskeyItem, __save: bool = True) -> None:
+        """move the item to another location"""
+
+        cloned_item = QStandardPasskeyItem.clone_from(current_item)
+
+        (current_item.parent() or self.model).removeRow(current_item.row())
+        (target_item or self.model).appendRow(cloned_item)
+
+        if current_item.window:
+            current_item.window.group = None if target_item is None else target_item.text()
+
+        if __save:
+            self._config_mgr.save_config(self._config)
+
     def remove_item(self, item: QStandardPasskeyItem, __save: bool = True) -> None:
         """remove the item from the config"""
 
@@ -126,6 +186,8 @@ class PasswordManagerUI:
                 if sub_item is None:
                     continue
                 item.removeRow(sub_item.row())
+                if isinstance(sub_item, QStandardPasskeyItem) and sub_item.window is not None:
+                    self._config.windows.remove(sub_item.window)
             self.model.removeRow(current_index.row())
         else:
             parent_item: QtGui.QStandardItem | QtGui.QStandardItemModel = self.model
@@ -167,6 +229,7 @@ class PasswordManagerUI:
             for window in windows:
                 self.add_item(window, False)
 
+        Hooks(self).hook()
         self._handler.bind()
 
     def loop(self) -> None:
