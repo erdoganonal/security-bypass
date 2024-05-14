@@ -11,6 +11,7 @@ import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
+from common.auto_key_trigger_manager import AutoKeyTriggerManager
 from common.exit_codes import ExitCodes
 from common.ignored_window_handler import IgnoredWindowsHandler
 from common.tools import InplaceInt, check_single_instance, extract_text_from_window, get_window_hwnd, is_windows_locked
@@ -28,6 +29,14 @@ from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
 from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
 
 SLEEP_SECS = 1
+
+TEMP_WARNING_TIMEOUT = 15
+if GUI:
+    TEMP_WARNING_AUTO_CLOSE_MSG = (
+        f"\n\nThis message will be deleted after {TEMP_WARNING_TIMEOUT} seconds and the password selection window will be opened."
+    )
+else:
+    TEMP_WARNING_AUTO_CLOSE_MSG = ""
 
 
 def main() -> None:
@@ -47,6 +56,7 @@ class _WindowData:
     windows: List[WindowData]
     window_hwnd_s: Set[int] = field(default_factory=set)
     ignored_windows_handler: IgnoredWindowsHandler = field(default_factory=IgnoredWindowsHandler)
+    auto_key_trigger_manager: AutoKeyTriggerManager = field(default_factory=AutoKeyTriggerManager)
 
 
 class SecurityBypass:
@@ -65,6 +75,10 @@ class SecurityBypass:
     def _exit(self, exit_code: ExitCodes) -> NoReturn:
         self._loop = False
         exit_code.exit()
+
+    def _set_temp_timeout(self) -> None:
+        if isinstance(self._notification_handler, GUINotificationHandler):
+            self._notification_handler.set_temp_timeout(TEMP_WARNING_TIMEOUT * 1000)
 
     def __get_windows(self, show_error: bool = True) -> List[WindowData]:
         which = InplaceInt()
@@ -134,10 +148,22 @@ class SecurityBypass:
         ]
 
         if len(auto_detected) == 1:
+            if self._window_data.auto_key_trigger_manager.is_already_triggered(auto_detected[0]):
+                self._set_temp_timeout()
+                self._notification_handler.warning(
+                    "The key has already been automatically sent to the window but it didn't help. "
+                    "This may be due to an incorrect password or a sync problem. "
+                    "Please select the correct key from the list to avoid potential system blockage due to multiple incorrect entries."
+                    + TEMP_WARNING_AUTO_CLOSE_MSG,
+                    title="Key Already Sent",
+                )
+                return None
+            self._window_data.auto_key_trigger_manager.add_triggered(auto_detected[0])
             return auto_detected[0].passkey + ("\n" if auto_detected[0].send_enter else "")
         if len(auto_detected) > 1:
+            self._set_temp_timeout()
             self._notification_handler.warning(
-                f"Multiple windows are detected for matching pattern {text}. Please select one manually.",
+                f"Multiple windows are detected for matching pattern {text}. Please select one manually." + TEMP_WARNING_AUTO_CLOSE_MSG,
                 title="Multiple Windows Detected",
             )
         return None

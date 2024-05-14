@@ -19,14 +19,23 @@ class GUINotificationHandler(NotificationHandlerBase):
 
     def __init__(self, timeout_ms: int | None = 2000) -> None:
         self.timeout_ms = timeout_ms
+        self._temp_timeout_ms: int | None = None
+
+    def set_temp_timeout(self, timeout_ms: int) -> None:
+        """Set the timeout for the next message, once"""
+        self._temp_timeout_ms = timeout_ms
 
     def show(self, message: str, title: str, msg_type: MessageType) -> None:
         root = tk.Tk()
         root.withdraw()
         root.attributes("-topmost", 1)
 
-        if self.timeout_ms is not None and msg_type not in (MessageType.ERROR, MessageType.CRITICAL):
-            root.after(self.timeout_ms, root.destroy)
+        if msg_type not in (MessageType.ERROR, MessageType.CRITICAL):
+            if self._temp_timeout_ms is not None:
+                root.after(self._temp_timeout_ms, root.destroy)
+            elif self.timeout_ms is not None:
+                root.after(self.timeout_ms, root.destroy)
+        self._temp_timeout_ms = None
 
         try:
             _MSG_ACTION_MAP[msg_type](title=title or message, message=message, master=root)

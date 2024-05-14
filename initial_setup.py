@@ -66,6 +66,7 @@ def main() -> None:
         restart()
 
     if is_update():
+        print("\nCompleting the update process...")
         complete_update()
 
     adjust_task_scheduler_xml()
@@ -125,9 +126,14 @@ def complete_update() -> NoReturn:
 
     _system('schtasks /end /tn "Security Bypass"')
     pid = subprocess.check_output(
-        """wmic process where "commandline like '%security_bypass.py%' and not commandline like 'wmic%%'" get processid""", text=True
+        """wmic process where "commandline like '%security_bypass.py%' and not commandline like 'wmic%%'" get processid""",
+        text=True,
+        stderr=subprocess.PIPE,
     ).splitlines()[2]
-    _system(f"taskkill /f /pid {pid}")
+
+    if pid:
+        _system(f"taskkill /f /pid {pid}")
+
     _system('schtasks /run /tn "Security Bypass"')
 
     InputOutputHelper.info("\nUpdate completed.")
@@ -274,6 +280,9 @@ if __name__ == "__main__":
         DO_ROLLBACK = False
     except KeyboardInterrupt:
         sys.exit("\nOperation cancelled by user")
+    except SystemExit as err:
+        if err.code == 0:
+            DO_ROLLBACK = False
     finally:
         if DO_ROLLBACK:
             rollback()

@@ -39,6 +39,9 @@ class WindowData:
     auto_key_trigger: str
     group: str | None = None
 
+    def __hash__(self) -> int:
+        return hash((self.title, self.name, self.passkey, self.send_enter, self.auto_key_trigger, self.group))
+
     def __post_init__(self) -> None:
         self.title_pattern: re.Pattern[str] | None = None
         self.auto_key_trigger_pattern: re.Pattern[str] | None = None
