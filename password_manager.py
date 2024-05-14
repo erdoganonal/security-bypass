@@ -143,9 +143,15 @@ class PasswordManagerUI:
             item = self.model
         else:
             root = self.model.invisibleRootItem()
-            try:
-                item = next(root.child(row) for row in range(root.rowCount()) if root.child(row).text() == window.group)  # type: ignore
-            except StopIteration:
+            if root is None:
+                return
+
+            for row in range(root.rowCount()):
+                child = root.child(row)
+                if isinstance(child, QStandardPasskeyItem) and child.window is None and child.text() == window.group:
+                    item = child
+                    break
+            else:
                 item = QStandardPasskeyItem(window.group, window=None)
                 self.model.appendRow(item)
 
