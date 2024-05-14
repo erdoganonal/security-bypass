@@ -50,10 +50,12 @@ deps =
     pycryptodome
     pylint
     pyreadline
+    pywin32
     tkhelper
     types-colorama
     types-psutil
     types-PyAutoGUI
+    types-pywin32
 
 commands =
     isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black

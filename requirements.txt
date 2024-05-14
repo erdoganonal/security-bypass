@@ -16,6 +16,7 @@ PyRect==0.2.0
 pyscreenshot==3.1
 PyScreeze==0.1.29
 pytweening==1.0.7
+pywin32==306
 six==1.16.0
 tendo==0.3.0
 tkhelper==2.1.0
