@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            // "env": {"SECURITY_BYPASS_MK":"test"},
+            "env": {"SECURITY_BYPASS_MK":"test"},
             "justMyCode": true
         }
     ]

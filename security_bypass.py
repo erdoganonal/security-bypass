@@ -16,7 +16,7 @@ from notification_handler.cli import CLINotificationHandler
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
 from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
-from settings import GUI
+from settings import GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
 
 
 def main() -> None:
@@ -47,9 +47,14 @@ class SecurityBypass:
             self._notification_handler.error(err.args[0])
             sys.exit(1)
 
-    def _sleep(self) -> None:
+    def _sleep(self, secs: int = 0) -> None:
+        if secs == 0:
+            secs = self.sleep_secs
+        elif secs < 0:
+            raise ValueError("Time travel did not invent yet!")
+
         sleep_secs = 0
-        while sleep_secs < self.sleep_secs and self._loop:
+        while sleep_secs < secs and self._loop:
             sleep_secs += 1
             time.sleep(1)
 
@@ -61,6 +66,9 @@ class SecurityBypass:
             window_info = self._select_window_info_func(windows)
             if window_info is not None:
                 self.send_keys(*window_info)
+                # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
+                if self.sleep_secs < MIN_SLEEP_SECS_AFTER_KEY_SENT:
+                    self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
 
             self._sleep()
 

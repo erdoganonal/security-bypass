@@ -49,6 +49,8 @@ deps =
     types-PyAutoGUI
     pycryptodome
     tkhelper
+    colorama
+    types-colorama
 
 commands =
     isort . --check --diff --line-length 140 --extend-skip env --extend-skip .env --profile black

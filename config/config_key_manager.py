@@ -65,7 +65,7 @@ def get_mk_ui() -> bytes | None:
     mk_entry.bind("<Return>", lambda e: _close(False))
     mk_entry.focus_set()
 
-    mk_preview_button = ttk.Button(main_frame, text="Preview")
+    mk_preview_button = ttk.Button(main_frame, text="Show Password")
     mk_preview_button.grid_configure(row=1, column=0, sticky=tk.NSEW, padx=5, pady=5)
     mk_ok_button = ttk.Button(main_frame, text="OK", command=lambda: _close(False))
     mk_ok_button.grid_configure(row=1, column=1, sticky=tk.NSEW, padx=5, pady=5)
@@ -74,8 +74,10 @@ def get_mk_ui() -> bytes | None:
         nonlocal mk_preview_button, mk_entry
         if mk_entry.config("show")[-1] == "*":
             mk_entry.config(show="")
+            mk_preview_button.configure(text="Hide Password")
         else:
             mk_entry.config(show="*")
+            mk_preview_button.configure(text="Show Password")
 
     mk_preview_button.configure(command=_preview)
 

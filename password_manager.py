@@ -1,8 +1,12 @@
 """Helps you to manage the passwords"""
 
+import ast
 import sys
+import time
 from getpass import getpass
 from typing import Any, Callable, Dict
+
+import colorama
 
 from config import ConfigManager
 from config.config import WindowConfig
@@ -12,6 +16,8 @@ from settings import DFT_ENCODING
 
 def main() -> None:
     """starts from here"""
+    colorama.init()
+
     PasswordManager().loop()
 
 
@@ -27,9 +33,11 @@ class PasswordManager:
             "Show Passwords": self.show_passwords,
             "Add New Passkey": self.add_new_pwd,
             "Delete a Passkey": self.delete_pwd,
+            "Change a Passkey": self.change_pwd,
             "List Passkey Titles": self.list_titles,
             "Delete Passkey Title": self.delete_title,
             "Change Master Key": self.change_mk,
+            "Exit": self.exit,
         }
 
         self._idx_name_map = {str(idx): name for idx, name in enumerate(self._name_action_map, start=1)}
@@ -39,10 +47,10 @@ class PasswordManager:
             self._config_mgr = ConfigManager(key=validate_and_get_mk())
             self._config = self._config_mgr.get_config()
         except ValueError:
-            print("Cannot load configurations. The Master Key is wrong.")
+            InputOutputHelper.error("Cannot load configurations. The Master Key is wrong.")
             sys.exit(1)
         except KeyError as err:
-            print(err.args[0])
+            InputOutputHelper.error(err.args[0])
             sys.exit(1)
 
     def _get_user_input(self) -> None:
@@ -54,11 +62,12 @@ class PasswordManager:
         try:
             self._name_action_map[self._idx_name_map[response]]()
         except KeyError as err:
-            print("Invalid action!")
+            InputOutputHelper.error("Invalid action!")
             raise ContinueLoopError() from err
 
     def _loop(self) -> None:
         while self._is_active:
+            time.sleep(1)
             try:
                 self._get_user_input()
             except ContinueLoopError:
@@ -73,7 +82,7 @@ class PasswordManager:
         try:
             self._loop()
         except KeyboardInterrupt:
-            self._is_active = False
+            self.exit()
 
     def __save_config(self) -> None:
         self._config_mgr.save_config(self._config)
@@ -86,7 +95,7 @@ class PasswordManager:
         try:
             return next(window for window in self._config.windows if window.window_title == title)
         except StopIteration as err:
-            print("The Title does not exist!")
+            InputOutputHelper.error("The Title does not exist!")
             raise ContinueLoopError() from err
 
     def _list_names(self, window: WindowConfig) -> None:
@@ -102,7 +111,7 @@ class PasswordManager:
         if name in window.passkey_data:
             return name
 
-        print("The name does not exist!")
+        InputOutputHelper.error("The name does not exist!")
         raise ContinueLoopError()
 
     def show_passwords(self) -> None:
@@ -112,13 +121,12 @@ class PasswordManager:
 
     def add_new_pwd(self) -> None:
         """Add a new password"""
-        title = input("Please enter the title or title pattern: ")
-        name = input("Please enter a name for your key: ")
-        passkey = getpass("Please enter the new passkey: ")
+        title = InputOutputHelper.ask_title()
+        name = InputOutputHelper.ask_name()
+        passkey = InputOutputHelper.ask_password(validate=True, evaluate=True)
 
         print(f"title: {title}\nname: {name}")
-        print(passkey)
-        if "y" != input("Is the parameters correct?[y/N]: "):
+        if not InputOutputHelper.ask_yes_no("Is the parameters correct?"):
             self.add_new_pwd()
             return
 
@@ -129,7 +137,7 @@ class PasswordManager:
             self._config.windows.append(WindowConfig(window_title=title, passkey_data={name: passkey}))
 
         self.__save_config()
-        print("\nThe new passkey has been added successfully!")
+        InputOutputHelper.info("\nThe new passkey has been added successfully!")
 
     def delete_pwd(self) -> None:
         """Delete a passkey from the config file"""
@@ -139,11 +147,30 @@ class PasswordManager:
         del window.passkey_data[name]
 
         self.__save_config()
-        print("\nThe passkey has been deleted!")
+        InputOutputHelper.info("\nThe passkey has been deleted!")
+
+    def change_pwd(self) -> None:
+        """Change the name of the passkey or the passkey"""
+        window = self.__get_title(list_titles=True)
+        name = self.__get_name(window)
+
+        if InputOutputHelper.ask_yes_no("Do you want to change the name?"):
+            new_name = InputOutputHelper.ask_name()
+        else:
+            new_name = name
+
+        if InputOutputHelper.ask_yes_no("Do you want to change the passkey?"):
+            passkey = InputOutputHelper.ask_password(validate=True, evaluate=True)
+
+        del window.passkey_data[name]
+        window.passkey_data[new_name] = passkey
+
+        self.__save_config()
+        InputOutputHelper.info("\nThe passkey has been updated successfully!")
 
     def list_titles(self) -> None:
         """List all available title"""
-        print("Available titles are listed below: ")
+        InputOutputHelper.title("\nAvailable titles are listed below: ")
         for window in self._config.windows:
             print(f" - {window.window_title}")
 
@@ -151,18 +178,84 @@ class PasswordManager:
         """Delete a title"""
         window = self.__get_title()
         if window.passkey_data:
-            response = input("There is at least one passkey found. Are you sure to delete this title with it's content?[y/N]: ")
-            if response != "y":
+            if not InputOutputHelper.ask_yes_no(
+                "There is at least one passkey found. Are you sure to delete this title with it's content?"
+            ):
                 raise ContinueLoopError()
 
         self._config.windows.remove(window)
         self.__save_config()
-        print(f"The Title[{window.window_title}] has been deleted!")
+        InputOutputHelper.info(f"\nThe Title[{window.window_title}] has been deleted!")
 
     def change_mk(self) -> None:
         """Change the config file master key"""
-        new_key = getpass("New Master Key: ").encode(encoding=DFT_ENCODING)
+        new_key = InputOutputHelper.ask_password(
+            "Please enter the new Master Key",
+            validate=True,
+            evaluate=False,
+        ).encode(encoding=DFT_ENCODING)
         self._config_mgr.change_master_key(new_key)
+
+        InputOutputHelper.info("\nThe Master Key has been changed!")
+
+    def exit(self) -> None:
+        """Exit the program"""
+        self._is_active = False
+        InputOutputHelper.warning("Exiting...")
+
+
+class InputOutputHelper:
+    """Helper class to get the inputs from the user and show to the user."""
+
+    @classmethod
+    def ask_yes_no(cls, prompt: str, yes_no_str: str = "[y/N]: ", yes: str = "y") -> bool:
+        """A standard way to get user yes/no response"""
+        return input(prompt + yes_no_str) == yes
+
+    @classmethod
+    def ask_title(cls) -> str:
+        """A standard way to get the title from the user"""
+        return input("Please enter the title or title pattern: ")
+
+    @classmethod
+    def ask_name(cls) -> str:
+        """A standard way to get the name from the user"""
+        return input("Please enter a name for your key: ")
+
+    @classmethod
+    def ask_password(cls, prompt: str = "Please enter the new passkey", validate: bool = True, evaluate: bool = True) -> str:
+        """A standard way to get the passkey from the user"""
+        passkey = getpass(f"{prompt}: ")
+        if validate:
+            passkey_validation = getpass(f"{prompt} again: ")
+
+            if passkey != passkey_validation:
+                cls.error("\nValues did not match!")
+                raise ContinueLoopError
+
+        if evaluate:
+            return ast.literal_eval(f"'{passkey}'")  # type: ignore[no-any-return]
+        return passkey
+
+    @classmethod
+    def title(cls, prompt: str) -> None:
+        """A standard way to print an info message"""
+        print(colorama.Fore.BLUE + prompt + colorama.Fore.RESET)
+
+    @classmethod
+    def info(cls, prompt: str) -> None:
+        """A standard way to print an info message"""
+        print(colorama.Fore.GREEN + prompt + colorama.Fore.RESET)
+
+    @classmethod
+    def warning(cls, prompt: str) -> None:
+        """A standard way to print an warning message"""
+        print(colorama.Fore.YELLOW + prompt + colorama.Fore.RESET)
+
+    @classmethod
+    def error(cls, prompt: str) -> None:
+        """A standard way to print an error message"""
+        print(colorama.Fore.RED + prompt + colorama.Fore.RESET, file=sys.stderr)
 
 
 if __name__ == "__main__":

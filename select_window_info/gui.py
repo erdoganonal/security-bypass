@@ -25,6 +25,9 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         self._name = self._listbox.get_selected("name")
         self._root.destroy()
 
+        self._root = None
+        self._listbox = None
+
     def _configure_window(self) -> None:
         self._root = tk.Tk()
         self._root.grid_rowconfigure(0, weight=1)
@@ -33,6 +36,14 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         next(widget for widget in self._listbox.tree.master.winfo_children() if isinstance(widget, ttk.Scrollbar)).grid_forget()
 
         ttk.Button(self._root, text="OK", command=self._on_ok).grid(sticky=tk.NSEW)
+
+    def __update_loop(self, window: Win32Window) -> None:
+        if self._root is None:
+            return
+
+        left, top, width = window.left, window.top, window.width
+        self._root.wm_geometry(f"+{left + width}+{top}")
+        self._root.after(1000, lambda: self.__update_loop(window))
 
     def _update(self, window: Win32Window | None) -> None:
         if window is None or self._root is None:
@@ -44,7 +55,7 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         window.resizeTo(width, height)
         window.moveTo(left, top)
 
-        self._root.wm_geometry(f"+{left + width}+{top}")
+        self._root.after(500, lambda: self.__update_loop(window))
 
     def select(self, windows_info: Iterable[WindowInfo]) -> Tuple[Win32Window, str] | None:
         window_info_list = list(windows_info)
