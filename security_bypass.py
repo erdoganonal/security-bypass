@@ -11,10 +11,10 @@ import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from tendo import singleton
 
-from common.tools import is_windows_locked
+from common.tools import InplaceInt, is_windows_locked
 from config import ConfigManager
 from config.config import WindowConfig
-from config.config_key_manager import check_config_file, validate_and_get_mk
+from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
 from notification_handler.gui import GUINotificationHandler
@@ -56,13 +56,20 @@ class SecurityBypass:
         self._file_modified_data: FileModifiedData = {"credentials": 0.0, "password_required": 0.0}
 
     def __get_windows(self) -> List[WindowConfig]:
+        which = InplaceInt()
+
         while True:
             try:
-                self.__key = self.__key or validate_and_get_mk()
+                which.set(NOT_SET)
+                self.__key = self.__key or validate_and_get_mk(which=which)
                 check_config_file()
                 return ConfigManager(key=self.__key).get_config().windows
             except ValueError:
                 self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
+                if which.get() == FROM_ENV:
+                    # if the passkey is coming from the environment variable, and it was wrong;
+                    # do not try to get it. It goes endless loop, otherwise.
+                    sys.exit(1)
                 continue
             except KeyError as err:
                 self._notification_handler.error(err.args[0])

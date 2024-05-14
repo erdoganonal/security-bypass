@@ -8,7 +8,13 @@ from tkinter import ttk
 
 from tkhelper.widgets import update_and_center
 
+from common.tools import InplaceInt
 from settings import CREDENTIALS_FILE, DFT_ENCODING, MK_ENV_NAME, MK_REQUEST_PARAM
+
+NOT_SET = 0
+FROM_CLI = 1
+FROM_ENV = 2
+FROM_UI = 3
 
 
 def check_config_file() -> None:
@@ -17,15 +23,16 @@ def check_config_file() -> None:
         raise FileNotFoundError()
 
 
-def get_mk(prompt: str | None = None) -> bytes | None:
+def get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes | None:
     """Tries to get the master key with all possible ways"""
-    return get_mk_cli_on_request(prompt=prompt) or get_mk_from_env() or get_mk_ui(prompt=prompt)
+
+    return get_mk_cli_on_request(prompt=prompt, which=which) or get_mk_from_env(which=which) or get_mk_ui(prompt=prompt, which=which)
 
 
-def validate_and_get_mk(prompt: str | None = None) -> bytes:
+def validate_and_get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes:
     """Call the get_mk and validate"""
 
-    mk = get_mk(prompt=prompt)
+    mk = get_mk(prompt=prompt, which=which)
     if mk:
         return mk
 
@@ -35,10 +42,12 @@ def validate_and_get_mk(prompt: str | None = None) -> bytes:
     )
 
 
-def get_mk_cli_on_request(prompt: str | None = None) -> bytes | None:
+def get_mk_cli_on_request(prompt: str | None = None, which: InplaceInt | None = None) -> bytes | None:
     """Check the cli arguments for user request to pass the key."""
 
     if MK_REQUEST_PARAM in sys.argv:
+        if which:
+            which.set(FROM_CLI)
         if prompt is None:
             return getpass().encode(encoding=DFT_ENCODING)
         return getpass(prompt).encode(encoding=DFT_ENCODING)
@@ -46,15 +55,17 @@ def get_mk_cli_on_request(prompt: str | None = None) -> bytes | None:
     return None
 
 
-def get_mk_from_env() -> bytes | None:
+def get_mk_from_env(which: InplaceInt | None = None) -> bytes | None:
     """Check the environment variables for the master key"""
     if (key := os.getenv(MK_ENV_NAME)) is not None:
+        if which:
+            which.set(FROM_ENV)
         return key.encode(DFT_ENCODING)
 
     return None
 
 
-def get_mk_ui(prompt: str | None = None) -> bytes | None:
+def get_mk_ui(prompt: str | None = None, which: InplaceInt | None = None) -> bytes | None:
     """Create a window to let user to enter the master key"""
     mk = ""
 
@@ -105,5 +116,7 @@ def get_mk_ui(prompt: str | None = None) -> bytes | None:
     root.mainloop()
 
     if mk:
+        if which:
+            which.set(FROM_UI)
         return mk.encode(DFT_ENCODING)
     return None
