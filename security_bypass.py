@@ -3,7 +3,7 @@
 
 import threading
 import time
-from typing import Generator, List, NoReturn
+from typing import Generator, List, NoReturn, Set
 
 import pyautogui
 import pyperclip  # type: ignore[import-untyped]
@@ -24,6 +24,8 @@ from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
 from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, GUI, MIN_SLEEP_SECS_AFTER_KEY_SENT
 
+SLEEP_SECS = 1
+
 
 def main() -> None:
     """starts from here"""
@@ -41,12 +43,12 @@ class SecurityBypass:
     def __init__(self, select_window: SelectWindowInfoBase, notification_handler: NotificationHandlerBase) -> None:
         self._loop = False
         self._select_window_info_func = select_window.select
-        self.sleep_secs = 1
         self._notification_handler = notification_handler
         self.__key: bytes | None = None
 
         self._windows = self.__get_windows()
         self._credential_file_modified_time = 0.0
+        self.__window_hwnd_s: Set[int] = set()
 
     def _exit(self, exit_code: ExitCodes) -> NoReturn:
         self._loop = False
@@ -80,7 +82,7 @@ class SecurityBypass:
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:
-            secs = self.sleep_secs
+            secs = SLEEP_SECS
         elif secs < 0:
             raise ValueError("Time travel did not invent yet!")
 
@@ -110,6 +112,26 @@ class SecurityBypass:
             self._windows = self.__get_windows(show_error=False)
             self._credential_file_modified_time = credential_file_modified_time
 
+    def _select(self) -> None:
+        windows = list(self.filter_windows())
+        if not windows:
+            return  # no matching window found
+
+        window_hwnd = windows[0].window._hWnd  # pylint: disable=protected-access
+        if window_hwnd in self.__window_hwnd_s:
+            return  # already processing
+
+        self.__window_hwnd_s.add(window_hwnd)
+        window_info = self._select_window_info_func(windows)
+
+        if window_info is not None:
+            self.send_keys(*window_info)
+            # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
+            if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
+                self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
+
+        self.__window_hwnd_s.remove(window_hwnd)
+
     def _start(self) -> None:
         self._loop = True
 
@@ -120,13 +142,7 @@ class SecurityBypass:
             if ASK_PASSWORD_ON_LOCK:
                 self._handle_windows_lock()
 
-            windows = self.filter_windows()
-            window_info = self._select_window_info_func(windows)
-            if window_info is not None:
-                self.send_keys(*window_info)
-                # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
-                if self.sleep_secs < MIN_SLEEP_SECS_AFTER_KEY_SENT:
-                    self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
+            threading.Thread(target=self._select, daemon=True).start()
 
             self._sleep()
 
