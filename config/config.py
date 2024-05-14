@@ -22,10 +22,12 @@ class ConfigDict(TypedDict):
     title: str
     name: str
     passkey: str
+    auto_key_trigger: str
     send_enter: bool
     group: str | None
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class WindowData:
     """Window title/passkey data pairs"""
@@ -34,26 +36,48 @@ class WindowData:
     name: str
     passkey: str
     send_enter: bool
+    auto_key_trigger: str
     group: str | None = None
 
     def __post_init__(self) -> None:
-        self.pattern: re.Pattern[str] | None
+        self.title_pattern: re.Pattern[str] | None = None
+        self.auto_key_trigger_pattern: re.Pattern[str] | None = None
 
         try:
-            self.pattern = re.compile(self.title)
+            self.title_pattern = re.compile(self.title)
         except TypeError:
-            self.pattern = None
+            pass
+
+        try:
+            if self.auto_key_trigger:
+                self.auto_key_trigger_pattern = re.compile(self.auto_key_trigger)
+        except TypeError:
+            pass
 
     def to_dict(self) -> ConfigDict:
         """Convert WindowData object to dictionary"""
 
-        return {"title": self.title, "name": self.name, "passkey": self.passkey, "send_enter": self.send_enter, "group": self.group}
+        return {
+            "title": self.title,
+            "name": self.name,
+            "passkey": self.passkey,
+            "send_enter": self.send_enter,
+            "auto_key_trigger": self.auto_key_trigger,
+            "group": self.group,
+        }
 
     @classmethod
     def from_dict(cls, data: ConfigDict) -> "WindowData":
         """Convert dictionary to WindowData object"""
 
-        return cls(title=data["title"], name=data["name"], passkey=data["passkey"], send_enter=data["send_enter"], group=data["group"])
+        return cls(
+            title=data["title"],
+            name=data["name"],
+            passkey=data["passkey"],
+            send_enter=data["send_enter"],
+            auto_key_trigger=data.get("auto_key_trigger", ""),
+            group=data["group"],
+        )
 
 
 @dataclass

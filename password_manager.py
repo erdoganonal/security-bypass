@@ -237,12 +237,8 @@ class PasswordManagerUI:
 
         self._refresh()
 
-    def update_window(self, window: WindowData, title: str, name: str, passkey: str) -> None:
+    def update_window(self) -> None:
         """update the window data and save the config"""
-
-        window.title = title
-        window.name = name
-        window.passkey = passkey
 
         self._config_mgr.save_config(self._config)
         self._refresh()
@@ -515,6 +511,7 @@ class SignalHandler:
         item_compare_map = (
             ("title", self._old_item.window.title, self._manager.ui.entry_title.text()),
             ("name", self._old_item.window.name, self._manager.ui.entry_name.text()),
+            ("auto_key_trigger", self._old_item.window.auto_key_trigger, self._manager.ui.entry_auto_key_trigger.text()),
             ("password", self._old_item.window.passkey, self._manager.ui.entry_password.text()),
         )
 
@@ -548,6 +545,7 @@ class SignalHandler:
         items = (
             (self._manager.ui.entry_title, True),
             (self._manager.ui.entry_name, True),
+            (self._manager.ui.entry_auto_key_trigger, True),
             (self._manager.ui.entry_password, True),
             (self._manager.ui.checkbox_toggle_password, False),
             (self._manager.ui.button_save, False),
@@ -565,6 +563,7 @@ class SignalHandler:
 
         self._manager.ui.entry_title.setText(window.title)
         self._manager.ui.entry_name.setText(window.name)
+        self._manager.ui.entry_auto_key_trigger.setText(window.auto_key_trigger)
         self._manager.ui.entry_password.setText(window.passkey)
 
     def add_item_dialog(self) -> None:
@@ -592,7 +591,7 @@ class SignalHandler:
 
         data = AddItemDialog(groups).get_data(selected_group)
         if data is not None:
-            self._manager.add_item(WindowData(**data, passkey=""))
+            self._manager.add_item(WindowData(**data, auto_key_trigger="", passkey=""))
 
     def delete_item(self) -> None:
         """delete the selected item from the tree"""
@@ -612,6 +611,7 @@ class SignalHandler:
 
         title = self._manager.ui.entry_title.text()
         name = self._manager.ui.entry_name.text()
+        auto_key_trigger = self._manager.ui.entry_auto_key_trigger.text()
         passkey = self._manager.ui.entry_password.text()
 
         for value, value_str in ((title, "title"), (name, "name")):
@@ -621,7 +621,12 @@ class SignalHandler:
 
         window = self.get_current_item().window
         if window:
-            self._manager.update_window(window, title, name, passkey)
+            window.title = title
+            window.name = name
+            window.auto_key_trigger = auto_key_trigger
+            window.passkey = passkey
+
+            self._manager.update_window()
 
         self._item_changed()
 
@@ -634,6 +639,7 @@ class SignalHandler:
         self._focus_map.add(
             self._manager.ui.entry_title,
             self._manager.ui.entry_name,
+            self._manager.ui.entry_auto_key_trigger,
             self._manager.ui.entry_password,
             self._manager.ui.checkbox_toggle_password,
             self._manager.ui.button_save,
@@ -648,6 +654,7 @@ class SignalHandler:
         self._manager.ui.button_delete_item.clicked.connect(self.delete_item)
 
         self._manager.ui.entry_title.textChanged.connect(lambda _: self._item_changed())
+        self._manager.ui.entry_auto_key_trigger.textChanged.connect(lambda _: self._item_changed())
         self._manager.ui.entry_name.textChanged.connect(lambda _: self._item_changed())
         self._manager.ui.entry_password.textChanged.connect(lambda _: self._item_changed())
 

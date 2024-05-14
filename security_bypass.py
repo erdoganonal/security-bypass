@@ -13,7 +13,7 @@ from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from common.exit_codes import ExitCodes
 from common.ignored_window_handler import IgnoredWindowsHandler
-from common.tools import InplaceInt, check_single_instance, get_window_hwnd, is_windows_locked
+from common.tools import InplaceInt, check_single_instance, extract_text_from_window, get_window_hwnd, is_windows_locked
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
@@ -124,6 +124,24 @@ class SecurityBypass:
             self._window_data.windows = self.__get_windows(show_error=False)
             self._credential_file_modified_time = credential_file_modified_time
 
+    def _auto_detect_passkey(self, window: Win32Window, windows: list[WindowData]) -> str | None:
+        text = extract_text_from_window(window)
+        auto_detected = [
+            window_data
+            for window_data in windows
+            if (window_data.auto_key_trigger_pattern is not None and window_data.auto_key_trigger_pattern.match(text))
+            or (window_data.auto_key_trigger and window_data.auto_key_trigger in text)
+        ]
+
+        if len(auto_detected) == 1:
+            return auto_detected[0].passkey + ("\n" if auto_detected[0].send_enter else "")
+        if len(auto_detected) > 1:
+            self._notification_handler.warning(
+                f"Multiple windows are detected for matching pattern {text}. Please select one manually.",
+                title="Multiple Windows Detected",
+            )
+        return None
+
     def _select(self) -> None:
         window, windows = self.filter_windows()
         if window is None or not windows:
@@ -137,7 +155,8 @@ class SecurityBypass:
             return
 
         self._window_data.window_hwnd_s.add(window_hwnd)
-        passkey = self._window_selector.select(window_hwnd, windows)
+        if (passkey := self._auto_detect_passkey(window, windows)) is None:
+            passkey = self._window_selector.select(window_hwnd, windows)
 
         if passkey is None:
             self._window_data.ignored_windows_handler.ignore(window)
@@ -218,7 +237,8 @@ class SecurityBypass:
             windows = [
                 window_data
                 for window_data in self._window_data.windows
-                if (window_data.pattern is not None and window_data.pattern.match(window.title)) or window_data.title == window.title
+                if (window_data.title_pattern is not None and window_data.title_pattern.match(window.title))
+                or window_data.title == window.title
             ]
             if windows:
                 return window, windows
