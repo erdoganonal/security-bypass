@@ -3,7 +3,7 @@
 # pylint: disable=c-extension-no-member
 
 import sys
-from typing import Any, List, TypedDict
+from typing import Any, Dict, List, Sequence, TypedDict
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
@@ -395,6 +395,8 @@ class SignalHandler:
         self._manager = manager
         self._old_item: QStandardPasskeyItem | None = None
 
+        self._focus_map = FocusMap()
+
     def get_current_item(self, index: QtCore.QModelIndex | None = None) -> QStandardPasskeyItem:
         """return the window config for given index"""
 
@@ -427,9 +429,9 @@ class SignalHandler:
 
         self._manager.ui.button_delete_item.setEnabled(bool(parent or current))
 
-    def _check_is_saved(self) -> bool:
+    def _get_first_unsaved(self) -> str | None:
         if self._old_item is None or self._old_item.window is None:
-            return True
+            return None
 
         item_compare_map = (
             ("title", self._old_item.window.title, self._manager.ui.entry_title.text()),
@@ -439,20 +441,21 @@ class SignalHandler:
 
         for name, old_value, new_value in item_compare_map:
             if new_value != old_value:
-                question = QtWidgets.QMessageBox.question(
-                    self._manager.ui.tree, "Are you sure?", f"The {name} has been changed and not saved. Are you sure to discard?"
-                )
-                if question == QtWidgets.QMessageBox.StandardButton.Yes:
-                    return True
-                self._manager.ui.tree.setCurrentIndex(self._manager.model.indexFromItem(self._old_item))
-                return False
-        return True
+                return name
+
+        return None
 
     def load_window_config(self, index: QtCore.QModelIndex) -> None:
         """load the config widget based on selected item"""
 
-        if not self._check_is_saved():
-            return
+        unsaved = self._get_first_unsaved()
+        if unsaved is not None:
+            question = QtWidgets.QMessageBox.question(
+                self._manager.ui.tree, "Are you sure?", f"The {unsaved} has been changed and not saved. Are you sure to discard?"
+            )
+            if question != QtWidgets.QMessageBox.StandardButton.Yes:
+                self._manager.ui.tree.setCurrentIndex(self._manager.model.indexFromItem(self._old_item))
+                return
 
         self._old_item = self.get_current_item(index)
         window = self._old_item.window
@@ -528,8 +531,22 @@ class SignalHandler:
         if window:
             self._manager.update_window(window, title, name, passkey)
 
+        self._item_changed()
+
+    def _item_changed(self) -> None:
+        self._manager.ui.button_save.setEnabled(self._get_first_unsaved() is not None)
+
     def bind(self) -> None:
         """bind signals"""
+
+        self._focus_map.add(
+            self._manager.ui.entry_title,
+            self._manager.ui.entry_name,
+            self._manager.ui.entry_password,
+            self._manager.ui.checkbox_toggle_password,
+            self._manager.ui.button_save,
+        )
+        self._focus_map.bind(self._manager.ui.frame)
 
         self._manager.ui.checkbox_toggle_password.stateChanged.connect(self.toggle_password)
         self._manager.ui.tree.clicked.connect(self.set_controller_visibility)
@@ -538,7 +555,47 @@ class SignalHandler:
         self._manager.ui.button_add_item.clicked.connect(self.add_item_dialog)
         self._manager.ui.button_delete_item.clicked.connect(self.delete_item)
 
+        self._manager.ui.entry_title.textChanged.connect(lambda _: self._item_changed())
+        self._manager.ui.entry_name.textChanged.connect(lambda _: self._item_changed())
+        self._manager.ui.entry_password.textChanged.connect(lambda _: self._item_changed())
+
         self._manager.ui.button_save.clicked.connect(self.save_item)
+
+
+class FocusMap:
+    """map of which item to focus next based on current item"""
+
+    def __init__(self, focus_order: Sequence[QtWidgets.QWidget] | None = None) -> None:
+        self.focus_order_map: Dict[QtWidgets.QWidget, QtWidgets.QWidget] = {}
+        if focus_order is not None:
+            self.add(*focus_order)
+
+    def next_tab(self) -> None:
+        """when the tab is pressed, focus the next item based on current one"""
+
+        focus_widget = QtWidgets.QApplication.focusWidget()
+        if focus_widget is None:
+            return
+
+        try:
+            self.focus_order_map[focus_widget].setFocus()
+        except KeyError:
+            pass
+
+    def add(self, *focus_order: QtWidgets.QWidget) -> None:
+        """add new focus map group"""
+
+        for idx, focus in enumerate(focus_order):
+            try:
+                self.focus_order_map[focus] = focus_order[idx + 1]
+            except IndexError:
+                self.focus_order_map[focus] = focus_order[0]
+
+    def bind(self, widget: QtWidgets.QWidget) -> None:
+        """bind the tab key"""
+
+        shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Tab), widget)
+        shortcut.activated.connect(self.next_tab)
 
 
 if __name__ == "__main__":
