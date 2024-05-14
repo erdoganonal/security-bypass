@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Dict, Iterable, Tuple
 
-from pygetwindow import Win32Window  # type: ignore[import-untyped]
+from pygetwindow import PyGetWindowException, Win32Window  # type: ignore[import-untyped]
 from tkhelper.widgets import MultiColumnListbox
 
 from select_window_info.base import SelectWindowInfoBase, WindowInfo
@@ -41,7 +41,11 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         if self._root is None:
             return
 
-        left, top, width = window.left, window.top, window.width
+        try:
+            left, top, width = window.left, window.top, window.width
+        except PyGetWindowException:
+            self._on_ok()
+            return
         self._root.wm_geometry(f"+{left + width}+{top}")
         self._root.after(1000, lambda: self.__update_loop(window))
 
