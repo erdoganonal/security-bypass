@@ -7,9 +7,16 @@ from typing import Dict, Sequence
 from pygetwindow import PyGetWindowException, Win32Window  # type: ignore[import-untyped]
 from tkhelper.widgets import MultiColumnListbox
 
+try:
+    # pylint: disable=unused-import
+    import __path_fixer__  # type: ignore[import-not-found]
+except ImportError:
+    pass
+
 from common.tools import focus_window, get_position, get_window_by_hwnd
 from config.config import WindowData
 from select_window_info.base import SelectWindowInfoBase
+from select_window_info.multithread_support import main_execute, thread_execute
 
 
 class _GUISelectWindowInfoHelper:
@@ -22,8 +29,9 @@ class _GUISelectWindowInfoHelper:
         self._root: tk.Tk | None = None
         self._root, self._send_enter_checkbox, self._listbox = self.configure_window()
 
-    def render(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
         """show a ui to the user and get the values"""
+
         if self._root is None:
             return None
 
@@ -108,4 +116,8 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
         if not windows_data:
             return None
 
-        return _GUISelectWindowInfoHelper().render(window_hwnd, windows_data)
+        return thread_execute(__file__, window_hwnd, windows_data)
+
+
+if __name__ == "__main__":
+    main_execute(_GUISelectWindowInfoHelper())
