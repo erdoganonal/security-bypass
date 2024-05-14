@@ -377,7 +377,10 @@ class SignalHandler:
         """return the window config for given index"""
 
         if index is None:
-            index = self._manager.ui.tree.currentIndex()
+            try:
+                index = self._manager.ui.tree.selectedIndexes()[0]
+            except IndexError as err:
+                raise ValueError("no item is selected") from err
 
         item = self._manager.model.itemFromIndex(index)
         if item is None:
@@ -442,10 +445,17 @@ class SignalHandler:
             if child and isinstance(child, QStandardPasskeyItem) and child.window is None:
                 groups.append(child.text())
 
-        current_index = self._manager.ui.tree.currentIndex()
-        item = self.get_current_item(current_index)
+        try:
+            item = self.get_current_item()
+            parent = item.parent()
+            if parent is None:
+                selected_group = item.text() if item.window is None else None
+            else:
+                selected_group = parent.text()
+        except ValueError:
+            selected_group = None
 
-        data = AddItemDialog(groups).get_data(current_index.data() if item.window is None else None)
+        data = AddItemDialog(groups).get_data(selected_group)
         if data is not None:
             self._manager.add_item(WindowConfig(**data, passkey=""))
 
