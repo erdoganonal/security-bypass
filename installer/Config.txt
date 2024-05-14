@@ -1,6 +1,6 @@
 ;!@Install@!UTF-8!
-Title="Windows Security Bypass 1.0"
-BeginPrompt="Do you want to install the Windows Security Bypass 1.0?"
+Title="Security Bypass 1.1"
+BeginPrompt="Do you want to install the Security Bypass 1.1?"
 ExecuteFile="cmd.exe"
 ExecuteParameters="/c tmp\install.bat"
 ;!@InstallEnd@!

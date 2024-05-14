@@ -1,7 +1,7 @@
 [project]
 name = "SecurityBypass"
 authors = [{ name = "Erdogan Onal", email = "erdoganonal@windowslive.com" }]
-version = "1.0.0"
+version = "1.1.0"
 description = "Allows you pick a pre-saved password and enters it for you"
 requires-python = ">=3.10"
 classifiers = [

@@ -11,6 +11,7 @@ from settings import DFT_ENCODING, MK_ENV_NAME
 
 try:
     import win32api
+    import win32com.client
 
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
@@ -54,6 +55,12 @@ Error Codes and reasons:
 {wrong_key} -> The master key that is entered is wrong. Please enter the correct one.
 """
 
+PW_MANAGER_RUNNER_PATH = SCRIPT_DIR / "run_password_manager.bat"
+PW_MANAGER_RUNNER_CONTENT = """@echo off
+
+start /B {pythonw} password_manager.py
+"""
+
 
 def main() -> None:
     """starts from here"""
@@ -67,6 +74,7 @@ def main() -> None:
 
     if is_update():
         print("\nCompleting the update process...")
+        create_pw_manager_link()
         complete_update()
 
     adjust_task_scheduler_xml()
@@ -247,6 +255,22 @@ def _get_password() -> str:
             continue
 
 
+def create_pw_manager_link() -> None:
+    """create a link to the password manager"""
+
+    with open(PW_MANAGER_RUNNER_PATH, "w", encoding="utf-8") as runner_fd:
+        runner_fd.write(PW_MANAGER_RUNNER_CONTENT.format(pythonw=next(Path(sys.executable).parent.glob("pythonw.exe"))))
+
+    shell = win32com.client.Dispatch("WScript.Shell")
+    shortcut = shell.CreateShortCut(
+        os.getenv("APPDATA", "") + r"\Microsoft\Windows\Start Menu\Programs\Password Manager - Security Bypass.lnk"
+    )
+    shortcut.Targetpath = str(PW_MANAGER_RUNNER_PATH.resolve())
+    shortcut.WorkingDirectory = os.getcwd()
+    shortcut.IconLocation = os.getcwd() + r"\installer\password_manager.ico"
+    shortcut.save()
+
+
 def initial_setup() -> None:
     """do initial setup"""
 
@@ -264,6 +288,7 @@ def initial_setup() -> None:
 
     InputOutputHelper.info("\nan empty configuration file has been created.\n")
 
+    create_pw_manager_link()
     subprocess.check_output(f"{sys.executable} password_manager.py", env=os.environ | {MK_ENV_NAME: key})
 
 
