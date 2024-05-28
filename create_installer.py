@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 from typing import Generator, Iterable, TypeVar
 
-from installer import Installer, InstallerData
 from generate_all import main as generate_all
+from installer import Installer, InstallerData
 
 CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"

@@ -1,8 +1,6 @@
 """Common function/methods"""
 
-import sys
-import warnings
-from typing import Type
+from typing import TYPE_CHECKING, Type
 
 import psutil
 import pyautogui
@@ -12,12 +10,8 @@ from tendo import singleton
 
 from common.exit_codes import ExitCodes
 
-# workaround for: https://github.com/pywinauto/pywinauto/issues/472
-sys.coinit_flags = 2  # type: ignore[attr-defined]
-warnings.simplefilter("ignore", UserWarning)
-
-# pylint: disable=wrong-import-order, wrong-import-position
-import pywinauto  # type: ignore[import-untyped]
+if TYPE_CHECKING:
+    import pywinauto  # type: ignore[import-untyped]
 
 _GLOBAL = {}
 
@@ -143,8 +137,16 @@ def get_position(window: Win32Window) -> tuple[int, int]:
     return window.left + window.width, window.top
 
 
-def get_window(window_or_id: Win32Window | int | str) -> pywinauto.application.WindowSpecification:
+def _get_pywinauto() -> "pywinauto":
+    # workaround for: https://github.com/pywinauto/pywinauto/issues/472
+    import pywinauto  # pylint: disable=import-outside-toplevel
+
+    return pywinauto
+
+
+def get_window(window_or_id: Win32Window | int | str) -> "pywinauto.application.WindowSpecification":
     """return the window based on given ID or window object"""
+    pywinauto = _get_pywinauto()
 
     desktop = pywinauto.Desktop(backend="uia")
     if isinstance(window_or_id, Win32Window):
@@ -158,8 +160,8 @@ def get_window(window_or_id: Win32Window | int | str) -> pywinauto.application.W
 
 
 def _extract_text_from_window(
-    window: pywinauto.application.WindowSpecification,
-    kind: Type[pywinauto.controls.uiawrapper.UIAWrapper] = pywinauto.controls.uiawrapper.UIAWrapper,
+    window: "pywinauto.application.WindowSpecification",
+    kind: "Type[pywinauto.controls.uiawrapper.UIAWrapper]",
 ) -> str:
     text = ""
     try:
@@ -178,6 +180,7 @@ def _extract_text_from_window(
 
 def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
     """recursively search for child windows and extract text"""
+    pywinauto = _get_pywinauto()
 
     window = get_window(window_or_id)
     return _extract_text_from_window(window, kind=pywinauto.controls.uia_controls.StaticWrapper)
@@ -185,6 +188,7 @@ def extract_text_from_window(window_or_id: Win32Window | int | str) -> str:
 
 def get_password_length(window_or_id: Win32Window) -> int:
     """return the password length based on given window"""
+    pywinauto = _get_pywinauto()
 
     window = get_window(window_or_id)
 
