@@ -146,3 +146,6 @@ ui_generated_*.py
 
 # wrapper files
 *_wrapper.py
+
+# updater cache
+.updater_remote_raw_url_cache

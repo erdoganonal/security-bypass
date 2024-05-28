@@ -55,12 +55,14 @@ deps =
     pyreadline
     pywin32
     pyqt6
+    requests
     screeninfo
     tkhelper
     types-colorama
     types-psutil
     types-PyAutoGUI
     types-pywin32
+    types-requests
 
 commands =
     python generate_all.py
