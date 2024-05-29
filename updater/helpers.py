@@ -13,9 +13,8 @@ import requests
 def restart() -> None:
     """restart the application"""
 
-    python = sys.executable
     try:
-        with subprocess.Popen(f"{python} {' '.join(sys.argv)}") as process:
+        with subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}") as process:
             pass
     except KeyboardInterrupt:
         pass
