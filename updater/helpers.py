@@ -112,9 +112,7 @@ def check_for_updates(
         user_notify_callback("No updates available.", NotifyType.INFO)
         return
 
-    user_notify_callback("The following files need to be updated:\n" + "\n".join(update_list), NotifyType.DEBUG)
-
-    if not user_notify_callback("Do you want to update?", NotifyType.QUESTION):
+    if not user_notify_callback("An update available. Do you want to update?", NotifyType.QUESTION):
         # User does not want to update
         user_notify_callback("Update skipped.", NotifyType.INFO)
         return
