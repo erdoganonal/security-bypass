@@ -7,6 +7,7 @@ from typing import Generator, Iterable, TypeVar
 
 from generate_all import main as generate_all
 from installer import Installer, InstallerData
+from updater.constants import UPDATER_FILE_NAME
 
 CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"
@@ -28,6 +29,7 @@ EXCLUDED_FILES = [
     "*.toml",
     "*.zip",
     "*.sfx",
+    UPDATER_FILE_NAME,
 ]
 
 EXCLUDED_FOLDERS = [

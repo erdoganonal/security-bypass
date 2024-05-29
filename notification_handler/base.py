@@ -46,7 +46,7 @@ class NotificationHandlerBase(abc.ABC):
     def updater_callback(self, message: str, kind: NotifyType) -> bool:
         """Default user notify callback function."""
 
-        if kind == NotifyType.INFO:
+        if kind != NotifyType.DEBUG:
             self.info(message)
 
         return True
