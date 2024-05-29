@@ -15,6 +15,7 @@ try:
 
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
+    from common.tools import restart
     from config.config import Config, ConfigManager
     from config.config_key_manager import check_config_file
 except ImportError:
@@ -112,15 +113,6 @@ def install_requirements() -> None:
     )
     if not RESTART:
         InputOutputHelper.info("The required libraries have been installed.\n")
-
-
-def restart() -> None:
-    """restart the application"""
-
-    python = sys.executable
-    with subprocess.Popen(f"{python} {' '.join(sys.argv)}") as process:
-        pass
-    sys.exit(process.returncode)
 
 
 def is_update() -> bool:

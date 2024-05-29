@@ -1,5 +1,7 @@
 """Common function/methods"""
 
+import subprocess
+import sys
 from typing import TYPE_CHECKING, Type
 
 import psutil
@@ -194,3 +196,25 @@ def get_password_length(window_or_id: Win32Window) -> int:
 
     chars = _extract_text_from_window(window, kind=pywinauto.controls.uia_controls.EditWrapper)
     return len(chars.strip())
+
+
+def restart() -> None:
+    """restart the application"""
+
+    try:
+        with subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}") as process:
+            pass
+    except KeyboardInterrupt:
+        pass
+    sys.exit(process.returncode)
+
+
+def complete_update() -> None:
+    """Complete the update process"""
+
+    try:
+        del _GLOBAL["singleton"]
+    except KeyError:
+        pass
+
+    restart()

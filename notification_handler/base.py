@@ -3,6 +3,8 @@
 import abc
 import enum
 
+from updater.helpers import NotifyType
+
 
 class MessageType(enum.Enum):
     """Types of messages"""
@@ -40,3 +42,11 @@ class NotificationHandlerBase(abc.ABC):
     def critical(self, message: str, title: str = "") -> None:
         """Show an info message to the user"""
         return self.show(message=message, title=title, msg_type=MessageType.CRITICAL)
+
+    def updater_callback(self, message: str, kind: NotifyType) -> bool:
+        """Default user notify callback function."""
+
+        if kind == NotifyType.INFO:
+            self.info(message)
+
+        return True

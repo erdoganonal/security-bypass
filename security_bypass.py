@@ -17,6 +17,7 @@ from common.ignored_window_handler import IgnoredWindowsHandler
 from common.tools import (
     InplaceInt,
     check_single_instance,
+    complete_update,
     extract_text_from_window,
     get_password_length,
     get_window_hwnd,
@@ -34,6 +35,7 @@ from select_window_info.cli import CLISelectWindowInfo
 from select_window_info.gui import GUISelectWindowInfo
 from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
 from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
+from updater.helpers import check_for_updates
 
 SLEEP_SECS = 1
 
@@ -48,13 +50,27 @@ else:
 
 def main() -> None:
     """starts from here"""
+    notification_handler: NotificationHandlerBase
+    select_window: SelectWindowInfoBase
+
     if GUI:
+        notification_handler = GUINotificationHandler()
         if PYQT_UI:
-            security_bypass = SecurityBypass(PyQtGUISelectWindowInfo(), GUINotificationHandler())
+            select_window = PyQtGUISelectWindowInfo()
         else:
-            security_bypass = SecurityBypass(GUISelectWindowInfo(), GUINotificationHandler())
+            select_window = GUISelectWindowInfo()
     else:
-        security_bypass = SecurityBypass(CLISelectWindowInfo(), CLINotificationHandler(message_format="{message}"))
+        select_window = CLISelectWindowInfo()
+        notification_handler = CLINotificationHandler(message_format="{message}")
+
+    check_for_updates(
+        "https://raw.github.com/erdoganonal/security-bypass/main",
+        ".updater.hashes",
+        notification_handler.updater_callback,
+        complete_update,
+    )
+
+    security_bypass = SecurityBypass(select_window, notification_handler)
     security_bypass.start()
 
 
