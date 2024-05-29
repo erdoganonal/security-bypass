@@ -22,7 +22,7 @@ d41d8cd98f00b204e9800998ecf8427e notification_handler\__init__.py
 8b74a77e9a7010514a18590784b5aa98 notification_handler\cli.py
 0a6fd7c9101c9835e3df81b2556dc731 notification_handler\gui.py
 4cffde349a57ec43c9d58a69c9486c91 password_manager.py
-4c62809750167450332e9d85cb805ea9 requirements.txt
+03edbc9f4d9850819040103834176ccf requirements.txt
 71f05b489b6f5927a81c857cc79ace1f Security Bypass.xml
 b470eaccacba5c6a074d278f30d5531e security_bypass.py
 d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
@@ -40,4 +40,4 @@ f5165e9c6cb4550394efc79d140f249a ui\get_password_dialog.ui
 4f145a98f54f0c6b1e804da9c840e8c7 updater\__init__.py
 f1cb64c9f4cc623194b65c0b996d8912 updater\__main__.py
 db9c478639fe41fe99c2b739f18fe98d updater\constants.py
-329e2c0b1bfc9b777b783aa301f40e75 updater\helpers.py
+39d8994f607b8655e811c1df2c4e346f updater\helpers.py
