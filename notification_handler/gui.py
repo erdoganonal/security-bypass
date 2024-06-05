@@ -21,6 +21,9 @@ class GUINotificationHandler(NotificationHandlerBase):
         self.timeout_ms = timeout_ms
         self._temp_timeout_ms: int | None = None
 
+    def ask_yes_no(self, message: str, title: str = "") -> bool:
+        return messagebox.askyesno(title or message, message)
+
     def set_temp_timeout(self, timeout_ms: int) -> None:
         """Set the timeout for the next message, once"""
         self._temp_timeout_ms = timeout_ms

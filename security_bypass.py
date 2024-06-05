@@ -63,12 +63,14 @@ def main() -> None:
         select_window = CLISelectWindowInfo()
         notification_handler = CLINotificationHandler(message_format="{message}")
 
-    check_for_updates(
+    if check_for_updates(
         "https://raw.github.com/erdoganonal/security-bypass/main",
         ".updater.hashes",
         notification_handler.updater_callback,
-        complete_update,
-    )
+        max_retries=5,
+        report_error=False,
+    ):
+        complete_update()
 
     security_bypass = SecurityBypass(select_window, notification_handler)
     security_bypass.start()

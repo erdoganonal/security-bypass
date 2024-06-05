@@ -58,6 +58,7 @@ deps =
     requests
     screeninfo
     tkhelper
+    types-cffi
     types-colorama
     types-psutil
     types-PyAutoGUI

@@ -11,6 +11,9 @@ class CLINotificationHandler(NotificationHandlerBase):
     def __init__(self, message_format: str = "{title}: {message}") -> None:
         self._message_format = message_format
 
+    def ask_yes_no(self, message: str, title: str = "") -> bool:
+        return input(f"{title}: {message} (y/N): ").strip() == "y"
+
     def show(self, message: str, title: str, msg_type: MessageType) -> None:
         if msg_type in (MessageType.ERROR, MessageType.CRITICAL):
             target = sys.stderr

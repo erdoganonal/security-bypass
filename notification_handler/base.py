@@ -43,10 +43,19 @@ class NotificationHandlerBase(abc.ABC):
         """Show an info message to the user"""
         return self.show(message=message, title=title, msg_type=MessageType.CRITICAL)
 
+    @abc.abstractmethod
+    def ask_yes_no(self, message: str, title: str = "") -> bool:
+        """Ask the user a yes or no question"""
+
     def updater_callback(self, message: str, kind: NotifyType) -> bool:
         """Default user notify callback function."""
 
-        if kind != NotifyType.DEBUG:
+        if kind == NotifyType.QUESTION:
+            return self.ask_yes_no(message)
+
+        if kind == NotifyType.DEBUG:
+            pass
+        else:
             self.info(message)
 
         return True
