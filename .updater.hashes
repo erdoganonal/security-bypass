@@ -45,4 +45,4 @@ H-db9c478639fe41fe99c2b739f18fe98d updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-89af0a826156972f5fccaabb2fb2f374 updater\handlers\common.py
 H-1b1045b05382358e08d2e1733c92b414 updater\handlers\generate_hashes_handler.py
-H-37897d2d79167f22c912e13532d16d7f updater\helpers.py
+H-b5ab1fb612c0b93e51bd2f99e2be540e updater\helpers.py

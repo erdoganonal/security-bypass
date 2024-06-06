@@ -172,6 +172,7 @@ class UpdateHelper:
 
         for file, temp_location in self._downloaded_files.items():
             self._notification_manager.notify(f"Replacing {file}...", NotifyType.DEBUG)
+            Path(file).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(temp_location, file)
         self._notification_manager.notify("Updates downloaded successfully. Restarting the app.", NotifyType.INFO)
 
