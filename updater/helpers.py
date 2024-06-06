@@ -70,7 +70,7 @@ class UpdateHelper:
         hash_md5 = hashlib.md5()
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk.replace(b"\r\n", b"\n"))
+                hash_md5.update(chunk.replace(b"\r", b""))
         return hash_md5.hexdigest()
 
     @staticmethod

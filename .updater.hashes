@@ -16,16 +16,16 @@ H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
 H-494caa3b91bc1d2711ad3db5986c458c generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
 H-1f6ee330a6bee68a15ba3ab816aff613 initial_setup.py
-H-ec9cc12fe957f5e28851039223568bb4 installer\password_manager.ico
+H-2e425fc436413933ed3e4e00a6bc1240 installer\password_manager.ico
 H-2c4b2e01513e947f37eae8e981dbb066 installer.py
 H-aa005b4236732172033bd67dcd4e9652 LICENSE
 H-d41d8cd98f00b204e9800998ecf8427e notification_handler\__init__.py
 H-88c2ef8a3a8e23c6d2ca0019725a997e notification_handler\base.py
 H-ff44ff90381fbae2d3026932c4ae5aa0 notification_handler\cli.py
 H-6fde129b9b41d369af1834561c22a1b5 notification_handler\gui.py
-H-bfb1ab385a01800a15c9e3b5d32716c6 password_manager.py
+H-4aa92321798389bbb2b37f2033b34474 password_manager.py
 H-49cebb81a68a785609934c15b27e70f9 requirements.txt
-H-71f05b489b6f5927a81c857cc79ace1f Security Bypass.xml
+H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
 H-b69418b0c0423cb5eb237fddc5512252 security_bypass.py
 H-d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
 H-8182925e31a7e608bf104a136d9970ba select_window_info\__path_fixer__.py
@@ -45,4 +45,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-dc3f4343d4a3b5e8ef0e584be73c618b updater\handlers\common.py
 H-a37fd91a4987dde99083ae77fd5358b3 updater\handlers\generate_hashes_handler.py
-H-62b905d3e987c56eff735606ae371560 updater\helpers.py
+H-ee1c7a3013763f81eb8ba867dad56c7b updater\helpers.py
