@@ -2,11 +2,12 @@
 
 import enum
 import hashlib
-from functools import lru_cache as cache
-from pathlib import Path
 import shutil
 import tempfile
-from typing import Callable, Dict, Generator, List
+from functools import lru_cache as cache
+from pathlib import Path
+from types import TracebackType
+from typing import Callable, Dict, Generator, List, Type
 
 import requests
 
@@ -59,7 +60,7 @@ class UpdateHelper:
     def __enter__(self) -> "UpdateHelper":
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type: Type[BaseException] | None, exc_inst: BaseException | None, exc_tb: TracebackType | None) -> None:
         self._cleanup()
 
     @staticmethod

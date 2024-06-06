@@ -2,8 +2,8 @@
 
 import fnmatch
 import subprocess
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Generator, Iterable, TypeVar
 
 from generate_all import main as generate_all

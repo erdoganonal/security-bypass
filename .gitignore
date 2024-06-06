@@ -149,3 +149,4 @@ ui_generated_*.py
 
 # updater cache
 .updater_remote_raw_url_cache
+.updater_options
