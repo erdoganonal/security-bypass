@@ -6,7 +6,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "env": {"SECURITY_BYPASS_MK":"test"},
+            "env": {"SECURITY_BYPASS_MK":"test", "SECURITY_BYPASS_DEBUG": "1"},
             "justMyCode": true
         },
         {
@@ -15,7 +15,7 @@
             "request": "launch",
             "program": "security_bypass.py",
             "console": "integratedTerminal",
-            "env": {"SECURITY_BYPASS_MK":"test"},
+            "env": {"SECURITY_BYPASS_MK":"test", "SECURITY_BYPASS_DEBUG": "1"},
             "justMyCode": true
         }
     ]

@@ -1,7 +1,9 @@
 """Common function/methods"""
 
+import os
 import subprocess
 import sys
+from functools import cache
 from typing import TYPE_CHECKING, Type
 
 import psutil
@@ -11,11 +13,19 @@ from screeninfo import get_monitors
 from tendo import singleton
 
 from common.exit_codes import ExitCodes
+from settings import DBG_ENV_NAME
 
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
 
 _GLOBAL = {}
+
+
+@cache
+def is_debug_enabled() -> bool:
+    """Return the debug status"""
+
+    return bool(os.getenv(DBG_ENV_NAME, None))
 
 
 def is_windows_locked() -> bool:

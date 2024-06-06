@@ -3,6 +3,7 @@
 import abc
 import enum
 
+from common.tools import is_debug_enabled
 from updater.helpers import NotifyType
 
 
@@ -53,7 +54,7 @@ class NotificationHandlerBase(abc.ABC):
         if kind == NotifyType.QUESTION:
             return self.ask_yes_no(message)
 
-        if kind == NotifyType.DEBUG:
+        if kind == NotifyType.DEBUG and not is_debug_enabled():
             pass
         else:
             self.info(message)

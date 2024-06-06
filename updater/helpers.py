@@ -70,7 +70,7 @@ class UpdateHelper:
         hash_md5 = hashlib.md5()
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
+                hash_md5.update(chunk.replace(b"\r\n", b"\n"))
         return hash_md5.hexdigest()
 
     @staticmethod
@@ -162,7 +162,7 @@ class UpdateHelper:
 
         for file in self._update_list[:]:
             file_replaced = file.replace("\\", "/")
-            self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.INFO)
+            self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.DEBUG)
 
             temp_location = self._tempdir / file
             self.download_single_file(f"{self.raw_remote_url}/{file_replaced}", temp_location)
