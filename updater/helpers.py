@@ -95,11 +95,11 @@ class UpdateHelper:
         hashes: List[str] = response.content.decode("utf-8").splitlines()
 
         hashes_dict = {}
-        for hash_line in hashes[2:]:
-            if not hash_line.strip():
+        for hash_line in hashes:
+            if not hash_line.strip() or not hash_line.startswith("H-"):
                 continue
 
-            md5_hash, path = hash_line.strip().split(" ", 1)
+            md5_hash, path = hash_line.strip().split("H-")[1].split(" ", 1)
             hashes_dict[path] = md5_hash
 
         return hashes_dict
@@ -136,7 +136,6 @@ class UpdateHelper:
                 if report_error:
                     raise e
                 self._notification_manager.notify(f"Failed to check for updates. Retrying[{idx+1}/{max_retries}]", NotifyType.ERROR)
-                print(e)
 
         self._notification_manager.notify("Failed to update... Please try again later.", NotifyType.ERROR)
         return False

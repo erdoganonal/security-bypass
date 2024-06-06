@@ -131,7 +131,7 @@ def generate_updater(paths: Iterable[Path]) -> None:
     for path in sorted(paths):
         md5_hash = UpdateHelper.md5(path)
         verbose(f"Hash for {path.relative_to(top_level)}: {md5_hash}")
-        hashes += md5_hash + " " + str(path.relative_to(top_level)) + "\n"
+        hashes += "H-" + md5_hash + " " + str(path.relative_to(top_level)) + "\n"
 
     verbose()
 
