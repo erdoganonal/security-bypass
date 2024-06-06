@@ -3,6 +3,7 @@
 import fnmatch
 import subprocess
 from pathlib import Path
+import sys
 from typing import Generator, Iterable, TypeVar
 
 from generate_all import main as generate_all
@@ -67,7 +68,7 @@ def _extended(*iterables: Iterable[_T]) -> Generator[_T, None, None]:
 
 def _is_excluded(path: Path) -> bool:
     for excluded_file in EXCLUDED_FILES:
-        if fnmatch.fnmatch(path.name, excluded_file):
+        if fnmatch.fnmatch(path.name, Path(excluded_file).name):
             return True
 
     return path.parts[0] in EXCLUDED_FOLDERS
@@ -95,7 +96,14 @@ except Exception as e:
 
 def get_files_to_archive() -> Generator[Path, None, None]:
     """get list of all files to include in the zip file"""
-    for item in subprocess.check_output("git ls-tree -r main --name-only", text=True).splitlines():
+    try:
+        items = subprocess.check_output("git ls-tree -r main --name-only", text=True).splitlines()
+    except subprocess.CalledProcessError:
+        sys.exit("Error: Not a git repository or no files in the repository.")
+    except FileNotFoundError:
+        sys.exit("Error: Git is not installed.")
+
+    for item in items:
         path = Path(item)
         if _is_excluded(path):
             continue
