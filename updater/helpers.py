@@ -15,6 +15,7 @@ class NotifyType(enum.Enum):
     DEBUG = enum.auto()
     INFO = enum.auto()
     QUESTION = enum.auto()
+    ERROR = enum.auto()
 
 
 def cli_user_notify_callback(message: str, kind: NotifyType) -> bool:
@@ -118,8 +119,10 @@ class UpdateHelper:
             except (requests.exceptions.RequestException,) as e:
                 if report_error:
                     raise e
+                self._notify_user("Failed to check for updates. Retrying...", NotifyType.ERROR)
                 return False
 
+        self._notify_user("Failed to update... Please try again later.", NotifyType.ERROR)
         return False
 
     def _notify_user(self, message: str, kind: NotifyType) -> bool:

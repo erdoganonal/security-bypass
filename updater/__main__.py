@@ -64,7 +64,13 @@ def _get_remote_raw_url() -> str:
 
 
 def _get_files(include: List[str], exclude: List[str]) -> Set[Path]:
-    current_list = subprocess.check_output("git ls-files", text=True).splitlines()
+    try:
+        current_list = subprocess.check_output("git ls-files", text=True).splitlines()
+    except subprocess.CalledProcessError:
+        _error("Not a git repository or no files in the repository.")
+    except FileNotFoundError:
+        _error("Git is not installed.")
+
     _verbose_print(f"Current list of files: {current_list}")
     _verbose_print(f"Include files: {include}")
     _verbose_print(f"Exclude files: {exclude}")
@@ -74,6 +80,11 @@ def _get_files(include: List[str], exclude: List[str]) -> Set[Path]:
         unique.add(Path(file).resolve())
 
     return unique - set(Path(f).resolve() for f in exclude)
+
+
+def _error(message: str = "") -> None:
+    print(f"Error: {message}")
+    sys.exit(1)
 
 
 def _verbose_print(message: str = "") -> None:
