@@ -4,6 +4,8 @@ import enum
 import hashlib
 from functools import lru_cache as cache
 from pathlib import Path
+import shutil
+import tempfile
 from typing import Callable, Dict, Generator, List
 
 import requests
@@ -49,9 +51,16 @@ class UpdateHelper:
     ):
         self.raw_remote_url = raw_remote_url
         self.hash_file_path = hash_file_path
-        self.user_notify_callback = user_notify_callback
         self._update_list: List[str] | None = None
+        self._downloaded_files: Dict[str, Path] = {}
         self._notification_manager = _NotificationManager(user_notify_callback)
+        self._tempdir: Path | None = None
+
+    def __enter__(self) -> "UpdateHelper":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self._cleanup()
 
     @staticmethod
     def md5(path: Path | str) -> str:
@@ -70,6 +79,7 @@ class UpdateHelper:
         response = requests.get(url, stream=True, timeout=100)
         response.raise_for_status()  # Ensure we got an OK response
 
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
@@ -110,25 +120,25 @@ class UpdateHelper:
             if local_hash != remote_hash:
                 yield path
 
+    def _cleanup(self) -> None:
+        if self._tempdir is not None:
+            shutil.rmtree(self._tempdir)
+            self._tempdir = None
+
     def check_for_updates(self, max_retries: int = 5, report_error: bool = True) -> bool | None:
         """Check for updates and notify the user if there are any."""
 
-        for _ in range(max_retries):
+        for idx in range(max_retries):
             try:
                 return self._check_for_updates()
             except (requests.exceptions.RequestException,) as e:
                 if report_error:
                     raise e
-                self._notify_user("Failed to check for updates. Retrying...", NotifyType.ERROR)
-                return False
+                self._notification_manager.notify(f"Failed to check for updates. Retrying[{idx+1}/{max_retries}]", NotifyType.ERROR)
+                print(e)
 
-        self._notify_user("Failed to update... Please try again later.", NotifyType.ERROR)
+        self._notification_manager.notify("Failed to update... Please try again later.", NotifyType.ERROR)
         return False
-
-    def _notify_user(self, message: str, kind: NotifyType) -> bool:
-        if self._update_list is None:
-            return True
-        return self.user_notify_callback(message, kind)
 
     def _check_for_updates(self) -> bool | None:
         self._notification_manager.notify("Checking for updates...", NotifyType.INFO)
@@ -145,15 +155,24 @@ class UpdateHelper:
             self._notification_manager.notify("Update skipped.", NotifyType.INFO)
             return None
 
+        if self._tempdir is None:
+            self._tempdir = Path(tempfile.mkdtemp())
+
         self._notification_manager.notify("Downloading the new files, please wait...", NotifyType.INFO)
 
         for file in self._update_list[:]:
             file_replaced = file.replace("\\", "/")
-            self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.DEBUG)
-            self.download_single_file(f"{self.raw_remote_url}/{file}", Path(file))
+            self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.INFO)
+
+            temp_location = self._tempdir / file
+            self.download_single_file(f"{self.raw_remote_url}/{file_replaced}", temp_location)
 
             self._update_list.remove(file)
+            self._downloaded_files[file] = temp_location
 
+        for file, temp_location in self._downloaded_files.items():
+            self._notification_manager.notify(f"Replacing {file}...", NotifyType.DEBUG)
+            shutil.copy2(temp_location, file)
         self._notification_manager.notify("Updates downloaded successfully. Restarting the app.", NotifyType.INFO)
 
         return True
@@ -168,5 +187,5 @@ def check_for_updates(
 ) -> bool | None:
     """Check for updates and notify the user if there are any."""
 
-    updater = UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback)
-    return updater.check_for_updates(max_retries, report_error)
+    with UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback) as updater:
+        return updater.check_for_updates(max_retries, report_error)

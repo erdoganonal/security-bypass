@@ -39,4 +39,4 @@ f5165e9c6cb4550394efc79d140f249a ui\get_password_dialog.ui
 4f145a98f54f0c6b1e804da9c840e8c7 updater\__init__.py
 8bf2bc1c428060e084174a861e1a0399 updater\__main__.py
 db9c478639fe41fe99c2b739f18fe98d updater\constants.py
-a433b5cfe36556ceeba6713f8c32d406 updater\helpers.py
+dfa9134f0b0d9947fd774a93e46ce7d1 updater\helpers.py
