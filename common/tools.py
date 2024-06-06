@@ -1,8 +1,6 @@
 """Common function/methods"""
 
 import os
-import subprocess
-import sys
 from functools import cache
 from typing import TYPE_CHECKING, Type
 
@@ -14,6 +12,7 @@ from tendo import singleton
 
 from common.exit_codes import ExitCodes
 from settings import DBG_ENV_NAME
+from updater.helpers import restart
 
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
@@ -206,17 +205,6 @@ def get_password_length(window_or_id: Win32Window) -> int:
 
     chars = _extract_text_from_window(window, kind=pywinauto.controls.uia_controls.EditWrapper)
     return len(chars.strip())
-
-
-def restart() -> None:
-    """restart the application"""
-
-    try:
-        with subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}") as process:
-            pass
-    except KeyboardInterrupt:
-        pass
-    sys.exit(process.returncode)
 
 
 def complete_update() -> None:

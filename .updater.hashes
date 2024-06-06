@@ -9,7 +9,7 @@ H-085d193bccb42c5d9fa55a79d2eaade4 common\auto_key_trigger_manager.py
 H-db74f1e8b324ed7062cc14e28f6df234 common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-568a5b08492f47395f3b246180922eb6 common\password_validator.py
-H-aa51135f4feb7919f4a8c0590c266ac1 common\tools.py
+H-967936e08b107c1b7de00628b72686b3 common\tools.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-3a3854823e48f770a75dd543d79441f7 config\config.py
 H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
@@ -45,4 +45,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-dc3f4343d4a3b5e8ef0e584be73c618b updater\handlers\common.py
 H-a37fd91a4987dde99083ae77fd5358b3 updater\handlers\generate_hashes_handler.py
-H-ee1c7a3013763f81eb8ba867dad56c7b updater\helpers.py
+H-d7def306d2eee0808ba272feee07d0db updater\helpers.py

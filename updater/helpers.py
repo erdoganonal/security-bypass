@@ -2,7 +2,10 @@
 
 import enum
 import hashlib
+import os
 import shutil
+import subprocess
+import sys
 import tempfile
 from functools import lru_cache as cache
 from pathlib import Path
@@ -10,6 +13,21 @@ from types import TracebackType
 from typing import Callable, Dict, Generator, List, Type
 
 import requests
+
+_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME = "UPDATER_LOOP_PREVENTION"
+
+
+def restart() -> None:
+    """restart the application"""
+
+    try:
+        with subprocess.Popen(
+            f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME: "1"}
+        ) as process:
+            pass
+    except KeyboardInterrupt:
+        pass
+    sys.exit(process.returncode)
 
 
 class NotifyType(enum.Enum):
@@ -187,6 +205,9 @@ def check_for_updates(
     report_error: bool = True,
 ) -> bool | None:
     """Check for updates and notify the user if there are any."""
+
+    if os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME, None) == "1":
+        return None
 
     with UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback) as updater:
         return updater.check_for_updates(max_retries, report_error)
