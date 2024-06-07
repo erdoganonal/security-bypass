@@ -39,7 +39,7 @@ from updater.helpers import check_for_updates
 
 SLEEP_SECS = 1
 
-TEMP_WARNING_TIMEOUT = 15
+TEMP_WARNING_TIMEOUT = 150
 if GUI:
     TEMP_WARNING_AUTO_CLOSE_MSG = (
         f"\n\nThis message will be deleted after {TEMP_WARNING_TIMEOUT} seconds and the password selection window will be opened."
@@ -174,17 +174,24 @@ class SecurityBypass:
 
         if len(auto_detected) == 1:
             if self._window_data.auto_key_trigger_manager.is_already_triggered(auto_detected[0]):
-                self._set_temp_timeout()
-                self._notification_handler.warning(
-                    "The key has already been automatically sent to the window but it didn't help. "
+                user_response = self._notification_handler.ask_yes_no(
+                    "The key has already been automatically sent to the window but either it didn't help.\n"
                     "This may be due to an incorrect password or a sync problem. "
-                    "Please select the correct key from the list to avoid potential system blockage due to multiple incorrect entries."
-                    + TEMP_WARNING_AUTO_CLOSE_MSG,
+                    "Please select the correct key from the list to avoid potential system blockage due to multiple incorrect entries.\n\n"
+                    f"Another reason might be the same window is detected in {AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n"
+                    "If you expect to see multiple windows, with check can be disabled for "
+                    f"{AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n\n"
+                    "Do you want to disable the check for temporarily?",
                     title="Key Already Sent",
                 )
-                return None
-            self._window_data.auto_key_trigger_manager.add_triggered(auto_detected[0])
+                if user_response:
+                    self._window_data.auto_key_trigger_manager.temp_disable_check(auto_detected[0])
+                else:
+                    return None
+            else:
+                self._window_data.auto_key_trigger_manager.add_triggered(auto_detected[0])
             return auto_detected[0].passkey + ("\n" if auto_detected[0].send_enter else "")
+
         if len(auto_detected) > 1:
             self._set_temp_timeout()
             self._notification_handler.warning(

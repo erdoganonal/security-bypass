@@ -5,7 +5,7 @@ Include: []
 Exclude: ['.updater.hashes', '.vscode\\launch.json', '.vscode\\settings.json', '7zS2.sfx', '7zSD.sfx', 'installer\\Config.txt', 'pyproject.toml', '.gitignore', 'installer\\install.bat', 'create_installer.py']
 
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
-H-085d193bccb42c5d9fa55a79d2eaade4 common\auto_key_trigger_manager.py
+H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
 H-db74f1e8b324ed7062cc14e28f6df234 common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-568a5b08492f47395f3b246180922eb6 common\password_validator.py
@@ -26,7 +26,7 @@ H-6fde129b9b41d369af1834561c22a1b5 notification_handler\gui.py
 H-4aa92321798389bbb2b37f2033b34474 password_manager.py
 H-49cebb81a68a785609934c15b27e70f9 requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-b69418b0c0423cb5eb237fddc5512252 security_bypass.py
+H-bcc00e21f408aac87021551488d5658e security_bypass.py
 H-d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
 H-8182925e31a7e608bf104a136d9970ba select_window_info\__path_fixer__.py
 H-2cd59dd949574d4517e8fffdbe9e6bcf select_window_info\base.py
