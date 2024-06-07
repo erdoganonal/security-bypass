@@ -73,7 +73,7 @@ class UpdateHelper:
         self._update_list: List[str] | None = None
         self._downloaded_files: Dict[str, Path] = {}
         self._notification_manager = _NotificationManager(user_notify_callback)
-        self._tempdir: Path | None = None
+        self._tempdirs: Dict[str, Path] = {}
 
     def __enter__(self) -> "UpdateHelper":
         return self
@@ -140,9 +140,10 @@ class UpdateHelper:
                 yield path
 
     def _cleanup(self) -> None:
-        if self._tempdir is not None:
-            shutil.rmtree(self._tempdir)
-            self._tempdir = None
+        for tempdir in self._tempdirs.values():
+            shutil.rmtree(tempdir)
+
+        self._tempdirs = {}
 
     def check_for_updates(self, max_retries: int = 5, report_error: bool = True) -> bool | None:
         """Check for updates and notify the user if there are any."""
@@ -150,7 +151,7 @@ class UpdateHelper:
         for idx in range(max_retries):
             try:
                 return self._check_for_updates()
-            except (requests.exceptions.RequestException,) as e:
+            except OSError as e:
                 if report_error:
                     raise e
                 self._notification_manager.notify(f"Failed to check for updates. Retrying[{idx+1}/{max_retries}]", NotifyType.ERROR)
@@ -173,8 +174,11 @@ class UpdateHelper:
             self._notification_manager.notify("Update skipped.", NotifyType.INFO)
             return None
 
-        if self._tempdir is None:
-            self._tempdir = Path(tempfile.mkdtemp())
+        try:
+            download_temp_dir = self._tempdirs["download"]
+        except KeyError:
+            self._tempdirs["download"] = Path(tempfile.mkdtemp())
+            download_temp_dir = self._tempdirs["download"]
 
         self._notification_manager.notify("Downloading the new files, please wait...", NotifyType.INFO)
 
@@ -182,19 +186,53 @@ class UpdateHelper:
             file_replaced = file.replace("\\", "/")
             self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.DEBUG)
 
-            temp_location = self._tempdir / file
+            temp_location = download_temp_dir / file
             self.download_single_file(f"{self.raw_remote_url}/{file_replaced}", temp_location)
+
+            self._backup(file)
 
             self._update_list.remove(file)
             self._downloaded_files[file] = temp_location
+
+        try:
+            return self._do_update()
+        except OSError:
+            self._do_rollback()
+            raise
+
+    def _backup(self, file: str) -> None:
+        try:
+            backup_temp_dir = self._tempdirs["backup"]
+        except KeyError:
+            self._tempdirs["backup"] = Path(tempfile.mkdtemp())
+            backup_temp_dir = self._tempdirs["backup"]
+
+        backup_temp_file = backup_temp_dir / file
+
+        backup_temp_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(file, backup_temp_file)
+
+    def _do_update(self) -> bool:
+        temp_location = Path(tempfile.mktemp())
 
         for file, temp_location in self._downloaded_files.items():
             self._notification_manager.notify(f"Replacing {file}...", NotifyType.DEBUG)
             Path(file).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(temp_location, file)
+
         self._notification_manager.notify("Updates downloaded successfully. Restarting the app.", NotifyType.INFO)
 
         return True
+
+    def _do_rollback(self) -> None:
+        try:
+            backup_temp_dir = self._tempdirs["backup"]
+        except KeyError:
+            self._tempdirs["backup"] = Path(tempfile.mkdtemp())
+            backup_temp_dir = self._tempdirs["backup"]
+
+        for file in self._downloaded_files:
+            shutil.copy2((backup_temp_dir / file), file)
 
 
 def check_for_updates(
@@ -206,7 +244,7 @@ def check_for_updates(
 ) -> bool | None:
     """Check for updates and notify the user if there are any."""
 
-    if os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME, None) == "1":
+    if os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME, None):
         return None
 
     with UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback) as updater:
