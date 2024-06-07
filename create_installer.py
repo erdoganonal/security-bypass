@@ -42,10 +42,6 @@ EXCLUDED_FOLDERS = [
 ADDITIONAL = [
     WRAPPER_FILE,
     CURRENT_DIR / "requirements.txt",
-    CURRENT_DIR / "generated" / "ui_generated_add_item_dialog.py",
-    CURRENT_DIR / "generated" / "ui_generated_get_passkey_dialog.py",
-    CURRENT_DIR / "generated" / "ui_generated_get_password_dialog.py",
-    CURRENT_DIR / "generated" / "ui_generated_main.py",
 ]
 
 
