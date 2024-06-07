@@ -38,7 +38,7 @@ H-0ac1c5cd3d83b1fcb8db06d05cb8893b settings.py
 H-19161bc4ac09d9b807da86b1ee33dda6 ui\add_item_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
-H-91e1a02f6b3142153ae814a11da0ea38 ui\password_manager.ui
+H-f1c90c7f5e81d133fa285d1ea5c6d6f1 ui\password_manager.ui
 H-a15e22b7db4a23fc50083c5bff108e1d updater\__init__.py
 H-62936d9991db85ec69d504c2220d7ca0 updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
