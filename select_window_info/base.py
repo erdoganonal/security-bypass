@@ -21,7 +21,7 @@ class SelectWindowInfoBase(abc.ABC):
     """Base class for SelectWindowInfo"""
 
     @abc.abstractmethod
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         """Let user to pick the password from the list"""
 
     @property

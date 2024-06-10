@@ -17,7 +17,7 @@ from config.config import WindowData
 class SupportsSelect(Protocol):
     """a protocol class to let user to pass a parameter with a function or method named select."""
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         """protocol function or method called select"""
 
 
@@ -37,7 +37,11 @@ def main_execute(func_or_method: SupportsSelect) -> None:
     """execute the given function or method with cli arguments"""
 
     hwnd, windows_data = get_params()
-    print(json.dumps(func_or_method.select(hwnd, windows_data)), end="")
+    window_data = func_or_method.select(hwnd, windows_data)
+    to_dump = None
+    if window_data is not None:
+        to_dump = window_data.to_dict()
+    print(json.dumps(to_dump), end="")
 
 
 def dump_params(window_hwnd: int, windows_data: Sequence[WindowData]) -> str:
@@ -47,13 +51,16 @@ def dump_params(window_hwnd: int, windows_data: Sequence[WindowData]) -> str:
     return json.dumps(data).replace('"', '\\"')
 
 
-def thread_execute(file: str, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+def thread_execute(file: str, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
     """allow to run this function in the thread and run the actual file with the subprocess"""
 
     dumped = dump_params(window_hwnd, windows_data)
 
     try:
         data = subprocess.check_output(f'{sys.executable} {file} --data "{dumped}"')
-        return json.loads(data)  # type: ignore[no-any-return]
+        loaded = json.loads(data)
+        if loaded is None:
+            return None
+        return WindowData.from_dict(loaded)
     except subprocess.CalledProcessError:
         return None

@@ -513,6 +513,7 @@ class SignalHandler:
             ("name", self._old_item.window.name, self._manager.ui.entry_name.text()),
             ("auto_key_trigger", self._old_item.window.auto_key_trigger, self._manager.ui.entry_auto_key_trigger.text()),
             ("password", self._old_item.window.passkey, self._manager.ui.entry_password.text()),
+            ("verify_sent", self._old_item.window.verify_sent, self._manager.ui.checkbox_toggle_verification.isChecked()),
         )
 
         for name, old_value, new_value in item_compare_map:
@@ -548,6 +549,7 @@ class SignalHandler:
             (self._manager.ui.entry_auto_key_trigger, True),
             (self._manager.ui.entry_password, True),
             (self._manager.ui.checkbox_toggle_password, False),
+            (self._manager.ui.checkbox_toggle_verification, False),
             (self._manager.ui.button_save, False),
         )
 
@@ -565,6 +567,7 @@ class SignalHandler:
         self._manager.ui.entry_name.setText(window.name)
         self._manager.ui.entry_auto_key_trigger.setText(window.auto_key_trigger)
         self._manager.ui.entry_password.setText(window.passkey)
+        self._manager.ui.checkbox_toggle_verification.setChecked(window.verify_sent)
 
     def add_item_dialog(self) -> None:
         """open a dialog window and get the necessary data for a new item"""
@@ -625,6 +628,7 @@ class SignalHandler:
             window.name = name
             window.auto_key_trigger = auto_key_trigger
             window.passkey = passkey
+            window.verify_sent = self._manager.ui.checkbox_toggle_verification.isChecked()
 
             self._manager.update_window()
 
@@ -642,6 +646,7 @@ class SignalHandler:
             self._manager.ui.entry_auto_key_trigger,
             self._manager.ui.entry_password,
             self._manager.ui.checkbox_toggle_password,
+            self._manager.ui.checkbox_toggle_verification,
             self._manager.ui.button_save,
         )
         self._focus_map.bind(self._manager.ui.frame)
@@ -657,6 +662,7 @@ class SignalHandler:
         self._manager.ui.entry_auto_key_trigger.textChanged.connect(lambda _: self._item_changed())
         self._manager.ui.entry_name.textChanged.connect(lambda _: self._item_changed())
         self._manager.ui.entry_password.textChanged.connect(lambda _: self._item_changed())
+        self._manager.ui.checkbox_toggle_verification.stateChanged.connect(lambda _: self._item_changed())
 
         self._manager.ui.button_save.clicked.connect(self.save_item)
 

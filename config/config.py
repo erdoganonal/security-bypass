@@ -25,6 +25,7 @@ class ConfigDict(TypedDict):
     auto_key_trigger: str
     send_enter: bool
     group: str | None
+    verify_sent: bool
 
 
 # pylint: disable=too-many-instance-attributes
@@ -38,6 +39,7 @@ class WindowData:
     send_enter: bool
     auto_key_trigger: str
     group: str | None = None
+    verify_sent: bool = True
 
     def __hash__(self) -> int:
         return hash((self.title, self.name, self.passkey, self.send_enter, self.auto_key_trigger, self.group))
@@ -67,6 +69,7 @@ class WindowData:
             "send_enter": self.send_enter,
             "auto_key_trigger": self.auto_key_trigger,
             "group": self.group,
+            "verify_sent": self.verify_sent,
         }
 
     @classmethod
@@ -80,6 +83,7 @@ class WindowData:
             send_enter=data["send_enter"],
             auto_key_trigger=data.get("auto_key_trigger", ""),
             group=data["group"],
+            verify_sent=data.get("verify_sent", True),
         )
 
 

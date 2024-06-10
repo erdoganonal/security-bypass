@@ -41,13 +41,13 @@ class _PyQtGUISelectWindowInfoHelper:
 
         self._timer = QtCore.QTimer(self._main_window)
 
-    def get(self, windows_data: Sequence[WindowData]) -> str | None:
+    def get(self, windows_data: Sequence[WindowData]) -> WindowData | None:
         """return the selected value and the send enter value"""
 
         if self._selected_index is None:
             return None
 
-        return windows_data[self._selected_index].passkey + ("\n" if self._send_enter else "")
+        return windows_data[self._selected_index]
 
     def add_item(self, item: str) -> None:
         """add a new item into the list"""
@@ -85,7 +85,7 @@ class _PyQtGUISelectWindowInfoHelper:
         if window:
             window.moveTo(left, top)
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         """Let user to pick the password from the list"""
 
         for window_data in windows_data:
@@ -120,7 +120,7 @@ class PyQtGUISelectWindowInfo(SelectWindowInfoBase):
     def supports_thread(self) -> bool:
         return True
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         if not windows_data:
             return None
 

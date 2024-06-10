@@ -5,6 +5,7 @@ import threading
 import time
 import traceback
 from dataclasses import dataclass, field
+from functools import cache
 from typing import List, NoReturn, Set
 
 import pyautogui
@@ -163,8 +164,13 @@ class SecurityBypass:
             self._window_data.windows = self.__get_windows(show_error=False)
             self._credential_file_modified_time = credential_file_modified_time
 
-    def _auto_detect_passkey(self, window: Win32Window, windows: list[WindowData]) -> str | None:
-        text = extract_text_from_window(window)
+    @staticmethod
+    @cache
+    def _extract_text_from_window_cached(window_hwnd: int) -> str:
+        return extract_text_from_window(window_hwnd)
+
+    def _auto_detect_passkey(self, window_hwnd: int, windows: list[WindowData]) -> WindowData | None:
+        text = self._extract_text_from_window_cached(window_hwnd)
         auto_detected = [
             window_data
             for window_data in windows
@@ -190,7 +196,7 @@ class SecurityBypass:
                     return None
             else:
                 self._window_data.auto_key_trigger_manager.add_triggered(auto_detected[0])
-            return auto_detected[0].passkey + ("\n" if auto_detected[0].send_enter else "")
+            return auto_detected[0]
 
         if len(auto_detected) > 1:
             self._set_temp_timeout()
@@ -213,13 +219,13 @@ class SecurityBypass:
             return
 
         self._window_data.window_hwnd_s.add(window_hwnd)
-        if (passkey := self._auto_detect_passkey(window, windows)) is None:
-            passkey = self._window_selector.select(window_hwnd, windows)
+        if (window_data := self._auto_detect_passkey(window_hwnd, windows)) is None:
+            window_data = self._window_selector.select(window_hwnd, windows)
 
-        if passkey is None:
+        if window_data is None:
             self._window_data.ignored_windows_handler.ignore(window)
         else:
-            self.send_keys(window, passkey)
+            self.send_keys(window, window_data)
             # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
             if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
                 self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
@@ -284,22 +290,20 @@ class SecurityBypass:
         return False
 
     @classmethod
-    def send_keys(cls, window: Win32Window, keys: str) -> None:
+    def send_keys(cls, window: Win32Window, window_data: WindowData) -> None:
         """Send given keys to the given window"""
 
         # backup the current clipboard content
         current_clipboard = pyperclip.paste()
 
-        send_enter = False
-        if keys.endswith("\n"):
-            send_enter = True
-            keys = keys[:-1]
-
         for _ in range(MAX_KEY_SENT_ATTEMPTS):
             cls.focus_window(window)
-            cls._send_keys(keys)
+            cls._send_keys(window_data.passkey)
 
-            if cls._check_sent(window, keys):
+            if not window_data.verify_sent:
+                break
+
+            if cls._check_sent(window, window_data.passkey):
                 # break the loop if the keys are sent successfully
                 break
         else:
@@ -308,7 +312,7 @@ class SecurityBypass:
         # restore the clipboard content
         pyperclip.copy(current_clipboard)
 
-        if send_enter:
+        if window_data.send_enter:
             pyautogui.press("enter")
 
     def filter_windows(self) -> tuple[Win32Window | None, list[WindowData]]:

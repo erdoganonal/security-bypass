@@ -29,16 +29,16 @@ class _GUISelectWindowInfoHelper:
         self._root: tk.Tk | None = None
         self._root, self._send_enter_checkbox, self._listbox = self.configure_window()
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         """show a ui to the user and get the values"""
 
         if self._root is None:
             return None
 
-        window_pin_rel: Dict[str | None, str] = {}
+        window_pin_rel: Dict[str | None, WindowData] = {}
 
         for window_data in windows_data:
-            window_pin_rel[self._listbox.add_row([window_data.name])] = window_data.passkey
+            window_pin_rel[self._listbox.add_row([window_data.name])] = window_data
 
         self._root.wm_overrideredirect(True)
         self._root.wm_attributes("-topmost", True)
@@ -47,7 +47,7 @@ class _GUISelectWindowInfoHelper:
         self._root.mainloop()
 
         try:
-            return window_pin_rel[self._index] + ("\n" if self._send_enter else "")
+            return window_pin_rel[self._index]
         except KeyError:
             return None
 
@@ -111,7 +111,7 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
     def supports_thread(self) -> bool:
         return True
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> str | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
         if not windows_data:
             return None
 
