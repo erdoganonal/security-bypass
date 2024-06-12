@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from functools import lru_cache as cache
 from pathlib import Path
 from types import TracebackType
@@ -15,6 +16,7 @@ from typing import Callable, Dict, Generator, List, Type
 import requests
 
 _UPDATE_LOOP_PREVENTION_ENV_VAR_NAME = "UPDATER_LOOP_PREVENTION"
+_SLEEP_SECS_BETWEEN_RETRIES = 10
 
 
 def restart() -> None:
@@ -154,7 +156,11 @@ class UpdateHelper:
             except OSError as e:
                 if report_error:
                     raise e
-                self._notification_manager.notify(f"Failed to check for updates. Retrying[{idx+1}/{max_retries}]", NotifyType.ERROR)
+                self._notification_manager.notify(
+                    f"Failed to check for updates. Will retry in {_SLEEP_SECS_BETWEEN_RETRIES} secs[{idx+1}/{max_retries}]",
+                    NotifyType.ERROR,
+                )
+                time.sleep(_SLEEP_SECS_BETWEEN_RETRIES)
 
         self._notification_manager.notify("Failed to update... Please try again later.", NotifyType.ERROR)
         return False
