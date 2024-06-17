@@ -9,7 +9,7 @@ H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
 H-db74f1e8b324ed7062cc14e28f6df234 common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-967936e08b107c1b7de00628b72686b3 common\tools.py
+H-9f215b207258d0a5f10e957c838c658a common\tools.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-20ceefe33333d43e6dee7ddddf2d5fc5 config\config.py
 H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
@@ -54,7 +54,7 @@ H-cfe39b4a91d17d1848ecfd2d8e2b6b66 select_window_info\cli.py
 H-91da6833798a9a466753b96fe32f5502 select_window_info\gui.py
 H-5819699064849fe4f252485c93c7be8b select_window_info\multithread_support.py
 H-e79b07a2e94430113ce24b80b089660a select_window_info\pyqt_gui.py
-H-c30703756f63c8a610faa6caf935beea settings.py
+H-6fb92db7721deb49fa2a8ebc5a56c39f settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui

@@ -11,7 +11,7 @@ from screeninfo import get_monitors
 from tendo import singleton
 
 from common.exit_codes import ExitCodes
-from settings import DBG_ENV_NAME
+from settings import DBG_ENV_NAME, WRAPPER_FILE
 from updater.helpers import restart
 
 if TYPE_CHECKING:
@@ -215,4 +215,29 @@ def complete_update() -> None:
     except KeyError:
         pass
 
+    generate_wrapper_file()
+
     restart()
+
+
+def generate_wrapper_file() -> None:
+    """generate the wrapper file"""
+
+    content = '''"""wrapper for the main application to catch unhandled exceptions"""
+
+try:
+    import time
+    import traceback
+    from security_bypass import main
+
+    main()
+except Exception as e:
+    traceback.print_exception(e)
+    with open("error.log", "a+", encoding="utf-8") as error_fd:
+        error_fd.write(f"{time.time()} - {e}\n")
+
+    raise SystemExit(1) from e
+'''
+
+    with open(WRAPPER_FILE, "w", encoding="utf-8") as wrapper_fd:
+        wrapper_fd.write(content)

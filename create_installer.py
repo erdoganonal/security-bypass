@@ -6,14 +6,14 @@ import sys
 from pathlib import Path
 from typing import Generator, Iterable, TypeVar
 
+from common.tools import generate_wrapper_file
 from generate_all import main as generate_all
 from installer import Installer, InstallerData
+from settings import CURRENT_DIR, WRAPPER_FILE
 from updater.constants import UPDATER_FILE_NAME
 
-CURRENT_DIR = Path(__file__).parent
 INSTALLER_DIR = CURRENT_DIR / "installer"
 
-WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
 
 CONFIG_FILE = INSTALLER_DIR / "Config.txt"
 INSTALLER_SCRIPT = INSTALLER_DIR / "install.bat"
@@ -68,29 +68,6 @@ def _is_excluded(path: Path) -> bool:
             return True
 
     return path.parts[0] in EXCLUDED_FOLDERS
-
-
-def generate_wrapper_file() -> None:
-    """generate the wrapper file"""
-
-    content = '''"""wrapper for the main application to catch unhandled exceptions"""
-
-try:
-    import time
-    import traceback
-    from security_bypass import main
-
-    main()
-except Exception as e:
-    traceback.print_exception(e)
-    with open("error.log", "a+", encoding="utf-8") as error_fd:
-        error_fd.write(f"{time.time()} - {e}\n")
-
-    raise SystemExit(1) from e
-'''
-
-    with open(WRAPPER_FILE, "w", encoding="utf-8") as wrapper_fd:
-        wrapper_fd.write(content)
 
 
 def get_files_to_archive() -> Generator[Path, None, None]:

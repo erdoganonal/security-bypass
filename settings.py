@@ -2,8 +2,11 @@
 
 from pathlib import Path
 
+CURRENT_DIR = Path(__file__).parent
 CONFIG_PATH = Path("~").expanduser() / ".security_bypass"
 CREDENTIALS_FILE = CONFIG_PATH / ".credentials"
+
+WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
 
 VERSION = "1.1.0"
 
