@@ -19,7 +19,7 @@ H-dd2d8e81afba819f3613990d84ca41cc generated\ui_generated_add_item_dialog.py
 H-ad4ee90e7393169a379ebf04627633a7 generated\ui_generated_get_passkey_dialog.py
 H-dc473d166b683e8eccc85cbaad386c05 generated\ui_generated_get_password_dialog.py
 H-24e99e4d2ffb9232a473eac7b0f5a51d generated\ui_generated_import_config_dialog.py
-H-6b1894c159a5019b79fbe7bd3351b5a8 generated\ui_generated_main.py
+H-d3a123f17fdca54d6defa55e5fb272b0 generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-6499d863c9c0e038e76320b3d6ee9ce7 helpers\ui_helpers\altered.py
@@ -59,7 +59,7 @@ H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
 H-3c8907007449d23b6679ff8ef0a7598b ui\import_config_dialog.ui
-H-16fb1496aeca99fe6392cbc69c239dac ui\password_manager.ui
+H-a92adccb205ca15c93ab90161503ab32 ui\password_manager.ui
 H-a15e22b7db4a23fc50083c5bff108e1d updater\__init__.py
 H-62936d9991db85ec69d504c2220d7ca0 updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py

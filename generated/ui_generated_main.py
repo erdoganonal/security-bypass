@@ -153,6 +153,7 @@ class Ui_MainWindow(object):
         self.button_save.setText(_translate("MainWindow", "Save"))
         self.button_add_item.setText(_translate("MainWindow", "+"))
         self.button_delete_item.setText(_translate("MainWindow", "-"))
+        self.button_delete_item.setShortcut(_translate("MainWindow", "Del"))
         self.menu_configurations.setTitle(_translate("MainWindow", "Configurations"))
         self.menu_settings.setTitle(_translate("MainWindow", "Settings"))
         self.menu_help.setTitle(_translate("MainWindow", "Help"))
