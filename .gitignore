@@ -147,3 +147,6 @@ cython_debug/
 # updater cache
 .updater_remote_raw_url_cache
 .updater_options
+
+# .credentials
+*.credentials

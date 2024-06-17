@@ -4,36 +4,20 @@
 
 import sys
 import warnings
-from typing import Any, Dict, List, Sequence, TypedDict
+from typing import Any
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 from common.exit_codes import ExitCodes
-from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
-from common.tools import check_single_instance, split_long_string
+from common.tools import check_single_instance
 from config.config import Config, ConfigManager, WindowData
 from config.config_key_manager import check_config_file, validate_and_get_mk
-from generated.ui_generated_add_item_dialog import Ui_AddItemWidget  # type: ignore[attr-defined]
-from generated.ui_generated_get_password_dialog import Ui_GetPasswordDialog  # type: ignore[attr-defined]
 from generated.ui_generated_main import Ui_MainWindow  # type: ignore[attr-defined]
+from helpers.ui_helpers.altered import QStandardPasskeyItem
+from helpers.ui_helpers.pm.handlers.signal_handler import SignalHandler
 from notification_handler.gui import GUINotificationHandler
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-
-# pylint: disable=too-few-public-methods
-class QStandardPasskeyItem(QtGui.QStandardItem):
-    """customized q-item for window config"""
-
-    def __init__(self, text: str, window: WindowData | None) -> None:
-        super().__init__(text)
-        self.window = window
-
-    @classmethod
-    def clone_from(cls, item: "QStandardPasskeyItem") -> "QStandardPasskeyItem":
-        """clone a QStandardPasskeyItem and return as a new item"""
-
-        return cls(text=item.text(), window=item.window)
 
 
 class Hooks:
@@ -41,7 +25,6 @@ class Hooks:
 
     def __init__(self, manager: "PasswordManagerUI") -> None:
         self._manager = manager
-        self.i = 0
 
     def drag_move_event_hook(self, event: QtGui.QDragMoveEvent) -> None:
         """event for drag and drop items."""
@@ -145,6 +128,10 @@ class PasswordManagerUI:
 
         self._config_mgr.change_master_key(new.encode())
 
+    def get_config(self) -> Config:
+        """return the config object"""
+        return self._config
+
     def add_item(self, window: WindowData, __save: bool = True) -> None:
         """add a new item in the tree"""
 
@@ -243,6 +230,21 @@ class PasswordManagerUI:
         self._config_mgr.save_config(self._config)
         self._refresh()
 
+    def rerender(self, key: bytes, config: Config) -> None:
+        """re-render the widgets"""
+
+        self.model.clear()
+        self._config_mgr = ConfigManager(key=key)
+        self._config = config
+
+        for group_name, windows in self._config.group().items():
+            if group_name is not None:
+                item = QStandardPasskeyItem(group_name, window=None)
+                self.model.appendRow(item)
+
+            for window in windows:
+                self.add_item(window, False)
+
     def render(self) -> None:
         """render the widgets"""
 
@@ -271,438 +273,6 @@ class PasswordManagerUI:
 
         main_window.show()
         sys.exit(app.exec())
-
-
-class Notification:
-    """show a notification to the user"""
-
-    @staticmethod
-    def show_message(
-        widget: QtWidgets.QWidget, message: str, title: str, *, info: str | None = None, icon: QtWidgets.QMessageBox.Icon
-    ) -> None:
-        """show a notification message to the user. the icon changes the message type"""
-
-        error_message = QtWidgets.QMessageBox(widget)
-        error_message.setIcon(icon)
-        error_message.setText(message)
-        if info:
-            error_message.setInformativeText(info)
-        error_message.setWindowTitle(title)
-        error_message.show()
-
-    @classmethod
-    def show_error(cls, widget: QtWidgets.QWidget, message: str, title: str, *, info: str | None = None) -> None:
-        """show an error message"""
-        cls.show_message(widget=widget, message=message, title=title, info=info, icon=QtWidgets.QMessageBox.Icon.Critical)
-
-
-class AddItemDialog:
-    """a dialog widget to get user input for adding a new item"""
-
-    class Data(TypedDict):
-        """the return data of AddItemDialog"""
-
-        group: str | None
-        name: str
-        title: str
-        send_enter: bool
-
-    def __init__(self, groups: List[str]) -> None:
-        self._groups = groups
-
-        self._wrapper_widget = QtWidgets.QWidget()
-        self._wrapper_widget.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
-
-        self._ui = Ui_AddItemWidget()
-        self._ui.setupUi(self._wrapper_widget)
-
-        self._data: AddItemDialog.Data | None = None
-
-    def setup(self) -> None:
-        """setup the dialog"""
-
-        self._wrapper_widget.setWindowTitle("Add New Item")
-
-        self._ui.dropdown_group.addItem("No group")
-        self._ui.dropdown_group.addItems(self._groups)
-        self._ui.dropdown_group.addItem("Create new...")
-
-        italic_font = QtGui.QFont("Times", italic=True)
-        self._ui.dropdown_group.setItemData(0, italic_font, QtCore.Qt.ItemDataRole.FontRole)
-        self._ui.dropdown_group.setItemData(len(self._groups) + 1, italic_font, QtCore.Qt.ItemDataRole.FontRole)
-
-    def get_data(self, selected: str | None = None) -> Data | None:
-        """show the add item dialog and return the data if OK clicked."""
-
-        self.setup()
-        index = self._ui.dropdown_group.findText(selected)
-        if index != -1:
-            self._ui.dropdown_group.setCurrentIndex(index)
-
-        self.loop()
-
-        return self._data
-
-    def _cancel(self) -> None:
-        self._data = None
-        self._wrapper_widget.destroyed.emit()
-
-    def _get_new_group_name(self) -> str | None:
-        group, ok = QtWidgets.QInputDialog.getText(self._wrapper_widget, "New Group Name", "Enter the new group name:")
-        if not ok:
-            return None
-
-        index = self._ui.dropdown_group.findText(group)
-        if index == -1:
-            return group
-
-        Notification.show_error(self._wrapper_widget, "The group name is already exists.", "The Group Already Exists")
-        self._ui.dropdown_group.setCurrentIndex(index)
-
-        return None
-
-    def _save(self) -> None:
-        current_index = self._ui.dropdown_group.currentIndex()
-        if current_index == 0:
-            group = None
-        elif current_index == len(self._groups) + 1:
-            group = self._get_new_group_name()
-            if group is None:
-                return
-        else:
-            group = self._ui.dropdown_group.currentText()
-
-        title = self._ui.entry_title.text()
-        name = self._ui.entry_name.text()
-        for value, value_str in ((title, "title"), (name, "name")):
-            if not value:
-                Notification.show_error(self._wrapper_widget, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
-                return
-
-        self._data = AddItemDialog.Data(group=group, name=name, title=title, send_enter=True)
-
-        self._wrapper_widget.destroyed.emit()
-
-    def loop(self) -> None:
-        """create an event loop and wait until window closes"""
-        self._wrapper_widget.show()
-
-        loop = QtCore.QEventLoop()
-
-        self._wrapper_widget.destroyed.connect(loop.quit)
-        self._ui.button_cancel.clicked.connect(self._cancel)
-        self._ui.button_ok.clicked.connect(self._save)
-
-        loop.exec()
-
-
-class PasswordDialog(QtWidgets.QWidget):
-    """opens a dialog and waits for user input"""
-
-    def __init__(self, parent: QtWidgets.QWidget | None = None, flags: QtCore.Qt.WindowType | None = None) -> None:
-        if flags is not None:
-            super().__init__(parent, flags)
-        else:
-            super().__init__(parent)
-
-        self._loop = QtCore.QEventLoop()
-        self._get_password_dialog = Ui_GetPasswordDialog()
-        self._password: str | None = None
-
-    @staticmethod
-    def _check_password(password: str) -> bool:
-        return PASSWORD_SCHEMA.validate(password)  # type: ignore[no-any-return]
-
-    @staticmethod
-    def _get_password_hint(max_length: int | None = 100) -> str:
-        hint = get_schema_rules(PASSWORD_SCHEMA)
-        if max_length is None or len(hint) < max_length:
-            return hint
-
-        return split_long_string(hint, max_length)
-
-    def accept(self) -> None:
-        """this function is called when OK button is pressed"""
-
-        password = self._get_password_dialog.entry_password.text()
-        password_again = self._get_password_dialog.entry_password_again.text()
-
-        if password != password_again:
-            Notification.show_error(self, "the passwords did not match", "Password did not match")
-        elif self._check_password(password):
-            self._password = password
-            self._loop.quit()
-        else:
-            Notification.show_error(self, "the passwords did not met the requirements", "Password did not met the requirements")
-
-    # pylint: disable=invalid-name
-    def closeEvent(self, a0: QtGui.QCloseEvent | None) -> None:
-        """closeEvent"""
-        super().closeEvent(a0)
-        self._loop.quit()
-
-    def reject(self) -> None:
-        """this function is called when Cancel button is pressed"""
-        self._password = None
-        self._loop.quit()
-
-    def get_password(self) -> str | None:
-        """open the dialog and return the user entered password"""
-
-        self.loop()
-        return self._password
-
-    def loop(self) -> None:
-        """show the dialog an wait until the user closes it"""
-
-        self.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
-        self._get_password_dialog.setupUi(self)
-        self._get_password_dialog.label_password_hint.setText(self._get_password_hint(70))
-        self.show()
-
-        self._loop.exec()
-
-
-class SignalHandler:
-    """signal handlers"""
-
-    def __init__(self, manager: PasswordManagerUI) -> None:
-        self._manager = manager
-        self._old_item: QStandardPasskeyItem | None = None
-
-        self._focus_map = FocusMap()
-
-    def get_current_item(self, index: QtCore.QModelIndex | None = None) -> QStandardPasskeyItem:
-        """return the window config for given index"""
-
-        if index is None:
-            try:
-                index = self._manager.ui.tree.selectedIndexes()[0]
-            except IndexError as err:
-                raise ValueError("no item is selected") from err
-
-        item = self._manager.model.itemFromIndex(index)
-        if item is None:
-            raise ValueError("cannot retrieve the current item")
-        if isinstance(item, QStandardPasskeyItem):
-            return item
-        raise TypeError("The item type is not QStandardPasskeyItem")
-
-    def toggle_password(self) -> None:
-        """when the show password checkbutton clicked, show/hide the password"""
-
-        if self._manager.ui.checkbox_toggle_password.isChecked():
-            self._manager.ui.entry_password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
-        else:
-            self._manager.ui.entry_password.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-
-    def set_controller_visibility(self, index: QtCore.QModelIndex) -> None:
-        """change the visibility of the add/remove buttons"""
-
-        parent = index.parent().data()
-        current = index.data()
-
-        self._manager.ui.button_delete_item.setEnabled(bool(parent or current))
-
-    def _get_first_unsaved(self) -> str | None:
-        if self._old_item is None or self._old_item.window is None:
-            return None
-
-        item_compare_map = (
-            ("title", self._old_item.window.title, self._manager.ui.entry_title.text()),
-            ("name", self._old_item.window.name, self._manager.ui.entry_name.text()),
-            ("auto_key_trigger", self._old_item.window.auto_key_trigger, self._manager.ui.entry_auto_key_trigger.text()),
-            ("password", self._old_item.window.passkey, self._manager.ui.entry_password.text()),
-            ("verify_sent", self._old_item.window.verify_sent, self._manager.ui.checkbox_toggle_verification.isChecked()),
-        )
-
-        for name, old_value, new_value in item_compare_map:
-            if new_value != old_value:
-                return name
-
-        return None
-
-    def load_window_config(self, index: QtCore.QModelIndex) -> None:
-        """load the config widget based on selected item"""
-
-        current_item = self.get_current_item(index)
-
-        if self._old_item is current_item and current_item.text() == self._manager.ui.entry_name.text():
-            # ignore the click if the item and it's title remained the same
-            return
-
-        unsaved = self._get_first_unsaved()
-        if unsaved is not None and self._old_item is not current_item:
-            question = QtWidgets.QMessageBox.question(
-                self._manager.ui.tree, "Are you sure?", f"The {unsaved} has been changed and not saved. Are you sure to discard?"
-            )
-            if question != QtWidgets.QMessageBox.StandardButton.Yes:
-                self._manager.ui.tree.setCurrentIndex(self._manager.model.indexFromItem(self._old_item))
-                return
-
-        self._old_item = current_item
-        window = current_item.window
-
-        items = (
-            (self._manager.ui.entry_title, True),
-            (self._manager.ui.entry_name, True),
-            (self._manager.ui.entry_auto_key_trigger, True),
-            (self._manager.ui.entry_password, True),
-            (self._manager.ui.checkbox_toggle_password, False),
-            (self._manager.ui.checkbox_toggle_verification, False),
-            (self._manager.ui.button_save, False),
-        )
-
-        if window is None:
-            for item, set_text in items:
-                item.setDisabled(True)
-                if set_text:
-                    item.setText("")
-            return
-
-        for item, _ in items:
-            item.setDisabled(False)
-
-        self._manager.ui.entry_title.setText(window.title)
-        self._manager.ui.entry_name.setText(window.name)
-        self._manager.ui.entry_auto_key_trigger.setText(window.auto_key_trigger)
-        self._manager.ui.entry_password.setText(window.passkey)
-        self._manager.ui.checkbox_toggle_verification.setChecked(window.verify_sent)
-
-    def add_item_dialog(self) -> None:
-        """open a dialog window and get the necessary data for a new item"""
-
-        root = self._manager.model.invisibleRootItem()
-        if root is None:
-            return
-
-        groups = []
-        for row in range(root.rowCount()):
-            child = root.child(row)
-            if child and isinstance(child, QStandardPasskeyItem) and child.window is None:
-                groups.append(child.text())
-
-        try:
-            item = self.get_current_item()
-            parent = item.parent()
-            if parent is None:
-                selected_group = item.text() if item.window is None else None
-            else:
-                selected_group = parent.text()
-        except ValueError:
-            selected_group = None
-
-        data = AddItemDialog(groups).get_data(selected_group)
-        if data is not None:
-            self._manager.add_item(WindowData(**data, auto_key_trigger="", passkey=""))
-
-    def delete_item(self) -> None:
-        """delete the selected item from the tree"""
-        current_item = self.get_current_item()
-
-        self._manager.remove_item(current_item)
-
-    def change_master_key_dialog(self) -> None:
-        """open a dialog window and ask user to enter a new master key"""
-
-        password = PasswordDialog().get_password()
-        if password is not None:
-            self._manager.change_master_key(password)
-
-    def save_item(self) -> None:
-        """save all configuration for given item"""
-
-        title = self._manager.ui.entry_title.text()
-        name = self._manager.ui.entry_name.text()
-        auto_key_trigger = self._manager.ui.entry_auto_key_trigger.text()
-        passkey = self._manager.ui.entry_password.text()
-
-        for value, value_str in ((title, "title"), (name, "name")):
-            if not value:
-                Notification.show_error(self._manager.ui.tree, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
-                return
-
-        window = self.get_current_item().window
-        if window:
-            window.title = title
-            window.name = name
-            window.auto_key_trigger = auto_key_trigger
-            window.passkey = passkey
-            window.verify_sent = self._manager.ui.checkbox_toggle_verification.isChecked()
-
-            self._manager.update_window()
-
-        self._item_changed()
-
-    def _item_changed(self) -> None:
-        self._manager.ui.button_save.setEnabled(self._get_first_unsaved() is not None)
-
-    def bind(self) -> None:
-        """bind signals"""
-
-        self._focus_map.add(
-            self._manager.ui.entry_title,
-            self._manager.ui.entry_name,
-            self._manager.ui.entry_auto_key_trigger,
-            self._manager.ui.entry_password,
-            self._manager.ui.checkbox_toggle_password,
-            self._manager.ui.checkbox_toggle_verification,
-            self._manager.ui.button_save,
-        )
-        self._focus_map.bind(self._manager.ui.frame)
-
-        self._manager.ui.checkbox_toggle_password.stateChanged.connect(self.toggle_password)
-        self._manager.ui.tree.clicked.connect(self.set_controller_visibility)
-        self._manager.ui.tree.clicked.connect(self.load_window_config)
-
-        self._manager.ui.button_add_item.clicked.connect(self.add_item_dialog)
-        self._manager.ui.button_delete_item.clicked.connect(self.delete_item)
-
-        self._manager.ui.entry_title.textChanged.connect(lambda _: self._item_changed())
-        self._manager.ui.entry_auto_key_trigger.textChanged.connect(lambda _: self._item_changed())
-        self._manager.ui.entry_name.textChanged.connect(lambda _: self._item_changed())
-        self._manager.ui.entry_password.textChanged.connect(lambda _: self._item_changed())
-        self._manager.ui.checkbox_toggle_verification.stateChanged.connect(lambda _: self._item_changed())
-
-        self._manager.ui.button_save.clicked.connect(self.save_item)
-
-        self._manager.ui.button_change_master_key.clicked.connect(self.change_master_key_dialog)
-
-
-class FocusMap:
-    """map of which item to focus next based on current item"""
-
-    def __init__(self, focus_order: Sequence[QtWidgets.QWidget] | None = None) -> None:
-        self.focus_order_map: Dict[QtWidgets.QWidget, QtWidgets.QWidget] = {}
-        if focus_order is not None:
-            self.add(*focus_order)
-
-    def next_tab(self) -> None:
-        """when the tab is pressed, focus the next item based on current one"""
-
-        focus_widget = QtWidgets.QApplication.focusWidget()
-        if focus_widget is None:
-            return
-
-        try:
-            self.focus_order_map[focus_widget].setFocus()
-        except KeyError:
-            pass
-
-    def add(self, *focus_order: QtWidgets.QWidget) -> None:
-        """add new focus map group"""
-
-        for idx, focus in enumerate(focus_order):
-            try:
-                self.focus_order_map[focus] = focus_order[idx + 1]
-            except IndexError:
-                self.focus_order_map[focus] = focus_order[0]
-
-    def bind(self, widget: QtWidgets.QWidget) -> None:
-        """bind the tab key"""
-
-        shortcut = QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Tab), widget)
-        shortcut.activated.connect(self.next_tab)
 
 
 if __name__ == "__main__":

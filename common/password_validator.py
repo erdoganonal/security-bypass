@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 
 from password_validator import PasswordValidator, lib  # type: ignore[import-untyped]
 
+from common.tools import split_long_string
 from settings import DEBUG
 
 PASSWORD_SCHEMA = PasswordValidator()
@@ -93,3 +94,13 @@ def get_schema_rules(schema: PasswordValidator = PASSWORD_SCHEMA) -> str:
         message += _make_message(disallowed) + " is allowed."
 
     return message or "There is no special requirement for password."
+
+
+def get_password_hint(max_length: int | None = 100) -> str:
+    """return the password hint with the given max length for each line"""
+
+    hint = get_schema_rules(PASSWORD_SCHEMA)
+    if max_length is None or len(hint) < max_length:
+        return hint
+
+    return split_long_string(hint, max_length)
