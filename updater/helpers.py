@@ -216,7 +216,10 @@ class UpdateHelper:
         backup_temp_file = backup_temp_dir / file
 
         backup_temp_file.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(file, backup_temp_file)
+        try:
+            shutil.copy2(file, backup_temp_file)
+        except FileNotFoundError:
+            pass
 
     def _do_update(self) -> bool:
         temp_location = Path(tempfile.mktemp())
@@ -238,7 +241,10 @@ class UpdateHelper:
             backup_temp_dir = self._tempdirs["backup"]
 
         for file in self._downloaded_files:
-            shutil.copy2((backup_temp_dir / file), file)
+            try:
+                shutil.copy2((backup_temp_dir / file), file)
+            except FileNotFoundError:
+                pass
 
 
 def check_for_updates(

@@ -76,12 +76,15 @@ def generate_wrapper_file() -> None:
     content = '''"""wrapper for the main application to catch unhandled exceptions"""
 
 try:
+    import time
+    import traceback
     from security_bypass import main
 
     main()
 except Exception as e:
+    traceback.print_exception(e)
     with open("error.log", "a+", encoding="utf-8") as error_fd:
-        error_fd.write(str(e))
+        error_fd.write(f"{time.time()} - {e}\n")
 
     raise SystemExit(1) from e
 '''
