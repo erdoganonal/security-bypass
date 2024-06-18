@@ -234,7 +234,7 @@ try:
 except Exception as e:
     traceback.print_exception(e)
     with open("error.log", "a+", encoding="utf-8") as error_fd:
-        error_fd.write(f"{time.time()} - {e}\n")
+        error_fd.write(f"{time.time()} - {e}\\n")
 
     raise SystemExit(1) from e
 '''
