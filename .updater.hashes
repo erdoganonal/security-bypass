@@ -9,7 +9,7 @@ H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
 H-db74f1e8b324ed7062cc14e28f6df234 common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-9f215b207258d0a5f10e957c838c658a common\tools.py
+H-b4f930669906bacddd73cf3c6e896a31 common\tools.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-20ceefe33333d43e6dee7ddddf2d5fc5 config\config.py
 H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
@@ -28,7 +28,7 @@ H-c6a6cb59bae6c5f363ce7dad8904d444 helpers\ui_helpers\notification.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\__init__,py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\dialogs\__init__.py
 H-24b475bc9af519a5be57fbf1d248c5bf helpers\ui_helpers\pm\dialogs\add_item.py
-H-6febc96431f4d10d1e8806a7f6c5a0c0 helpers\ui_helpers\pm\dialogs\dialog_base.py
+H-6921e5c7b2b852e0358c6e631c18688c helpers\ui_helpers\pm\dialogs\dialog_base.py
 H-6092ba7d92774755752e7b2caad371ed helpers\ui_helpers\pm\dialogs\import_config.py
 H-14f4a084e7d1f9a5d542ba0212a09e3e helpers\ui_helpers\pm\dialogs\password.py
 H-18b5f2877ea7d39dbe8357696457192c helpers\ui_helpers\pm\focus_map.py

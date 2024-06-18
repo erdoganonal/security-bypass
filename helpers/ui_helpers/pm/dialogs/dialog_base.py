@@ -6,7 +6,7 @@
 import abc
 from typing import Any, Generic, Protocol, Type, TypeVar
 
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 
 # pylint: disable=too-few-public-methods
@@ -15,6 +15,10 @@ class SupportsSetupUi(Protocol):
 
     def setupUi(self, widget: QtWidgets.QWidget) -> None:
         """protocol function or method called setupUi"""
+
+    @property
+    def buttonBox(self) -> QtWidgets.QDialogButtonBox:
+        """protocol property called buttonBox"""
 
 
 T = TypeVar("T", bound=Any)
@@ -58,6 +62,15 @@ class DialogBase(Generic[T, T1], abc.ABC):
     def accept(self) -> None:
         """this function is called when OK button is pressed"""
 
+    def _connect_button_box(self) -> None:
+        button_ok = self._ui.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        if button_ok:
+            button_ok.setShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Return))
+
+        button_cancel = self._ui.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
+        if button_cancel:
+            button_cancel.setShortcut(QtGui.QKeySequence(QtCore.Qt.Key.Key_Escape))
+
     def close(self) -> None:
         """close the dialog"""
         self._wrapper_widget.destroyed.emit()
@@ -73,6 +86,7 @@ class DialogBase(Generic[T, T1], abc.ABC):
 
     def get(self) -> T | None:
         """return the data of the dialog"""
+        self._connect_button_box()
         self.configure()
         self.loop()
         return self._data
