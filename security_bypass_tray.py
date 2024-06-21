@@ -52,7 +52,7 @@ class SecurityBypassTray:
         self.tray_icon.show()
 
         if config.auto_update:
-            self._action_manager.check_for_updates()
+            self._action_manager.check_for_updates(auto=True)
 
         if config.auto_start:
             self._action_manager.start()
@@ -158,7 +158,7 @@ class ActionManager:
             icon=QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
         )
 
-    def check_for_updates(self) -> None:
+    def check_for_updates(self, auto: bool = False) -> None:
         """Check for updates."""
 
         if check_for_updates(
@@ -172,6 +172,8 @@ class ActionManager:
                 complete_update()
             except SystemExit:
                 pass
+        elif not auto:
+            self._tray.state_update(TITLE, "No updates available", STATE_READY)
 
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""
