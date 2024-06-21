@@ -167,11 +167,10 @@ class ActionManager:
             self._args[1].updater_callback,
             max_retries=5,
             report_error=False,
+            force_check=not auto,
         ):
-            try:
-                complete_update()
-            except SystemExit:
-                pass
+            self.quit_application()
+            complete_update()
         elif not auto:
             self._tray.state_update(TITLE, "No updates available", STATE_READY)
 

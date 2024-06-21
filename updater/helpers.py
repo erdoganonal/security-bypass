@@ -23,13 +23,11 @@ def restart() -> None:
     """restart the application"""
 
     try:
-        with subprocess.Popen(
-            f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME: "1"}
-        ) as process:
-            pass
+        # pylint: disable=consider-using-with
+        subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME: "1"})
     except KeyboardInterrupt:
         pass
-    sys.exit(process.returncode)
+    sys.exit(0)
 
 
 class NotifyType(enum.Enum):
@@ -247,16 +245,18 @@ class UpdateHelper:
                 pass
 
 
+# pylint: disable=too-many-arguments
 def check_for_updates(
     raw_remote_url: str,
     hash_file_path: str,
     user_notify_callback: Callable[[str, NotifyType], bool] = cli_user_notify_callback,
     max_retries: int = 5,
     report_error: bool = True,
+    force_check: bool = False,
 ) -> bool | None:
     """Check for updates and notify the user if there are any."""
 
-    if os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME, None):
+    if not force_check and os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME):
         return None
 
     with UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback) as updater:
