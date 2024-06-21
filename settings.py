@@ -7,6 +7,11 @@ CONFIG_PATH = Path("~").expanduser() / ".security_bypass"
 CREDENTIALS_FILE = CONFIG_PATH / ".credentials"
 
 WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
+TOOL_CONFIG_FILE = CONFIG_PATH / ".config.json"
+
+DATA_DIR = CURRENT_DIR / "data"
+
+SECURITY_BYPASS_ICON = DATA_DIR / "security_bypass.ico"
 
 VERSION = "1.1.0"
 

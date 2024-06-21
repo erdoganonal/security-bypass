@@ -18,3 +18,14 @@ class ExitCodes(enum.IntEnum):
         """same as sys.exit but gives the exit code"""
 
         sys.exit(self.value)
+
+    @classmethod
+    def get_name(cls, code: "int | str | None | ExitCodes") -> str:
+        """return the name of the given code"""
+        if isinstance(code, ExitCodes):
+            return code.name
+
+        if not isinstance(code, int):
+            return cls.UNKNOWN.name
+
+        return cls(code).name

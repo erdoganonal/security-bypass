@@ -1,0 +1,80 @@
+"""Module for managing configuration files."""
+
+import json
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+@dataclass
+class Config:
+    """Configuration data class."""
+
+    auto_start: bool
+    auto_update: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the data to a dictionary."""
+        return {
+            "auto_start": self.auto_start,
+            "auto_update": self.auto_update,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "Config":
+        """Create an instance from a dictionary."""
+        return cls(
+            auto_start=data["auto_start"],
+            auto_update=data["auto_update"],
+        )
+
+
+class ConfigManager:
+    """Manager for configuration files."""
+
+    _CONFIG: Config | None = None
+
+    @staticmethod
+    def save(file_path: str | Path, data: Config) -> None:
+        """
+        Save data to a JSON file.
+
+        :param file_path: Path to the JSON file.
+        :param data: Data to be saved.
+        """
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data.to_dict(), f, indent=4)
+
+    @classmethod
+    def partial_save(cls, file_path: str | Path, **kwargs: Any) -> None:
+        """
+        Partially save data to a JSON file.
+
+        :param file_path: Path to the JSON file.
+        :param kwargs: Data to be saved.
+        """
+        config = cls.load(file_path)
+        for key, value in kwargs.items():
+            setattr(config, key, value)
+        cls.save(file_path, config)
+
+    @classmethod
+    def load(cls, file_path: str | Path) -> Config:
+        """
+        Load data from a JSON file.
+
+        :param file_path: Path to the JSON file.
+        :return: Data loaded from the file.
+        """
+        if cls._CONFIG is not None:
+            return cls._CONFIG
+
+        if not Path(file_path).exists():
+            cls._CONFIG = Config(auto_start=True, auto_update=True)
+            return cls._CONFIG
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            config_dict = json.load(f)
+
+        cls._CONFIG = Config.from_dict(config_dict)
+        return cls._CONFIG

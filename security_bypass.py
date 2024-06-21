@@ -51,6 +51,24 @@ else:
 
 def main() -> None:
     """starts from here"""
+    select_window, notification_handler = get_security_bypass_params()
+
+    if check_for_updates(
+        "https://raw.github.com/erdoganonal/security-bypass/main",
+        ".updater.hashes",
+        notification_handler.updater_callback,
+        max_retries=5,
+        report_error=False,
+    ):
+        complete_update()
+
+    security_bypass = SecurityBypass(select_window, notification_handler)
+    security_bypass.start()
+
+
+def get_security_bypass_params() -> tuple[SelectWindowInfoBase, NotificationHandlerBase]:
+    """Get the parameters for the SecurityBypass class"""
+
     notification_handler: NotificationHandlerBase
     select_window: SelectWindowInfoBase
 
@@ -64,17 +82,7 @@ def main() -> None:
         select_window = CLISelectWindowInfo()
         notification_handler = CLINotificationHandler(message_format="{message}")
 
-    if check_for_updates(
-        "https://raw.github.com/erdoganonal/security-bypass/main",
-        ".updater.hashes",
-        notification_handler.updater_callback,
-        max_retries=5,
-        report_error=False,
-    ):
-        complete_update()
-
-    security_bypass = SecurityBypass(select_window, notification_handler)
-    security_bypass.start()
+    return select_window, notification_handler
 
 
 @dataclass
@@ -262,6 +270,15 @@ class SecurityBypass:
             self._exit(ExitCodes.UNKNOWN)
 
         self._notification_handler.info("The application has been terminated!")
+
+    def stop(self) -> None:
+        """stop the window listener"""
+        self._loop = False
+
+    @property
+    def is_running(self) -> bool:
+        """Check if the window listener is running"""
+        return self._loop
 
     @classmethod
     def focus_window(cls, window: Win32Window) -> None:

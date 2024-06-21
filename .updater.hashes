@@ -6,13 +6,14 @@ Exclude: ['.updater.hashes', '.vscode\\launch.json', '.vscode\\settings.json', '
 
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
-H-db74f1e8b324ed7062cc14e28f6df234 common\exit_codes.py
+H-0e1269995957568bc0a7032ec2c5259b common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-b4f930669906bacddd73cf3c6e896a31 common\tools.py
+H-4a2c970c945697678bc6ef249ef898e1 common\tools.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-20ceefe33333d43e6dee7ddddf2d5fc5 config\config.py
 H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
+H-6f25c5025be8639e3a20e0585ed052fb data\security_bypass.ico
 H-83ba6cb6b44da8730dc3cded8b63298b generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
 H-dd2d8e81afba819f3613990d84ca41cc generated\ui_generated_add_item_dialog.py
@@ -21,6 +22,7 @@ H-dc473d166b683e8eccc85cbaad386c05 generated\ui_generated_get_password_dialog.py
 H-24e99e4d2ffb9232a473eac7b0f5a51d generated\ui_generated_import_config_dialog.py
 H-d3a123f17fdca54d6defa55e5fb272b0 generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
+H-ba51e1cf9bc7a7eebed0a32d580d9bc9 helpers\config_manager.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-6499d863c9c0e038e76320b3d6ee9ce7 helpers\ui_helpers\altered.py
 H-54ed4893f84c99c3c2cfb73ff14ca85d helpers\ui_helpers\constants.py
@@ -43,10 +45,12 @@ H-d41d8cd98f00b204e9800998ecf8427e notification_handler\__init__.py
 H-88c2ef8a3a8e23c6d2ca0019725a997e notification_handler\base.py
 H-ff44ff90381fbae2d3026932c4ae5aa0 notification_handler\cli.py
 H-6fde129b9b41d369af1834561c22a1b5 notification_handler\gui.py
+H-0d01389eb0fce597c432368552e728c2 notification_handler\tray.py
 H-208161773c38885a4576b7d47ee52015 password_manager.py
 H-49cebb81a68a785609934c15b27e70f9 requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-bf6f5baa39b64db1718a117404b59cc5 security_bypass.py
+H-0765391f9627a9b7037a639dc9f41b68 security_bypass.py
+H-384ec2e4f3582afe851fa31eeed09eac security_bypass_tray.py
 H-d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
 H-8182925e31a7e608bf104a136d9970ba select_window_info\__path_fixer__.py
 H-dd43635d6d28cb15709284a4430d531b select_window_info\base.py
@@ -54,7 +58,7 @@ H-cfe39b4a91d17d1848ecfd2d8e2b6b66 select_window_info\cli.py
 H-91da6833798a9a466753b96fe32f5502 select_window_info\gui.py
 H-5819699064849fe4f252485c93c7be8b select_window_info\multithread_support.py
 H-e79b07a2e94430113ce24b80b089660a select_window_info\pyqt_gui.py
-H-6fb92db7721deb49fa2a8ebc5a56c39f settings.py
+H-4ebdc3964e1203cdbc628eddc1586cc4 settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
@@ -66,4 +70,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-dc3f4343d4a3b5e8ef0e584be73c618b updater\handlers\common.py
 H-a37fd91a4987dde99083ae77fd5358b3 updater\handlers\generate_hashes_handler.py
-H-41baa3012e423b4b5a9991de3d8ff437 updater\helpers.py
+H-358f112244e24784fb989bb7e4dacbb5 updater\helpers.py

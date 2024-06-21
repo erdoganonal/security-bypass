@@ -166,13 +166,13 @@ class UpdateHelper:
         return False
 
     def _check_for_updates(self) -> bool | None:
-        self._notification_manager.notify("Checking for updates...", NotifyType.INFO)
+        self._notification_manager.notify("Checking for updates...", NotifyType.DEBUG)
 
         if self._update_list is None:
             self._update_list = list(self.get_update_list(f"{self.raw_remote_url}/{self.hash_file_path}"))
 
         if not self._update_list:
-            self._notification_manager.notify("No updates available.", NotifyType.INFO)
+            self._notification_manager.notify("No updates available.", NotifyType.DEBUG)
             return None
 
         if not self._notification_manager.notify("An update available. Do you want to update?", NotifyType.QUESTION):
@@ -186,7 +186,7 @@ class UpdateHelper:
             self._tempdirs["download"] = Path(tempfile.mkdtemp())
             download_temp_dir = self._tempdirs["download"]
 
-        self._notification_manager.notify("Downloading the new files, please wait...", NotifyType.INFO)
+        self._notification_manager.notify("Downloading the new files, please wait...", NotifyType.DEBUG)
 
         for file in self._update_list[:]:
             file_replaced = file.replace("\\", "/")

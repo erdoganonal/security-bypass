@@ -225,10 +225,11 @@ def generate_wrapper_file() -> None:
 
     content = '''"""wrapper for the main application to catch unhandled exceptions"""
 
+import time
+import traceback
+
 try:
-    import time
-    import traceback
-    from security_bypass import main
+    from security_bypass_tray import main
 
     main()
 except Exception as e:
