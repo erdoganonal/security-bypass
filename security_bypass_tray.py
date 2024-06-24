@@ -78,13 +78,14 @@ class SecurityBypassTray:
         self,
         title: str,
         message: str,
-        hover_text: str,
+        hover_text: str | None = None,
         icon: QtWidgets.QSystemTrayIcon.MessageIcon = QtWidgets.QSystemTrayIcon.MessageIcon.Information,
     ) -> None:
         """Show a toast notification with the given title and message."""
 
         self.tray_icon.showMessage(title, message, msecs=3, icon=icon)
-        self.tray_icon.setToolTip(hover_text)
+        if hover_text is not None:
+            self.tray_icon.setToolTip(hover_text)
 
 
 class ActionManager:
@@ -122,7 +123,7 @@ class ActionManager:
                 return
 
         if self._instance.is_running:
-            self._tray.state_update(TITLE, "Already running", STATE_RUNNING)
+            self._tray.state_update(TITLE, "Already running")
             return
 
         def _start_wrapper() -> None:
@@ -172,7 +173,7 @@ class ActionManager:
             self.quit_application()
             complete_update()
         elif not auto:
-            self._tray.state_update(TITLE, "No updates available", STATE_READY)
+            self._tray.state_update(TITLE, "No updates available")
 
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""
