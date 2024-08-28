@@ -40,4 +40,4 @@ six==1.16.0
 tendo==0.3.0
 texttable==1.7.0
 tkhelper==2.1.1
-urllib3==2.2.1
+urllib3==2.2.2
