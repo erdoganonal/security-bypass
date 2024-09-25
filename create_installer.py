@@ -34,6 +34,7 @@ EXCLUDED_FILES = [
 ]
 
 EXCLUDED_FOLDERS = [
+    ".github",
     ".vscode",
     ".gitignore",
     "tests",
