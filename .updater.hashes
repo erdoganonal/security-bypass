@@ -4,6 +4,7 @@ With the following saved options:
 Include: []
 Exclude: ['.updater.hashes', '.vscode\\launch.json', '.vscode\\settings.json', '7zS2.sfx', '7zSD.sfx', 'installer\\Config.txt', 'pyproject.toml', '.gitignore', 'installer\\install.bat', 'create_installer.py']
 
+H-3393fea48fdaa1c4e2751fa1102552c2 .updater_options
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
 H-0e1269995957568bc0a7032ec2c5259b common\exit_codes.py
@@ -16,13 +17,13 @@ H-c15870d882bddc59bedd895491f0b13d config\config_key_manager.py
 H-6f25c5025be8639e3a20e0585ed052fb data\security_bypass.ico
 H-83ba6cb6b44da8730dc3cded8b63298b generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
-H-dd2d8e81afba819f3613990d84ca41cc generated\ui_generated_add_item_dialog.py
-H-ad4ee90e7393169a379ebf04627633a7 generated\ui_generated_get_passkey_dialog.py
-H-dc473d166b683e8eccc85cbaad386c05 generated\ui_generated_get_password_dialog.py
-H-24e99e4d2ffb9232a473eac7b0f5a51d generated\ui_generated_import_config_dialog.py
-H-d3a123f17fdca54d6defa55e5fb272b0 generated\ui_generated_main.py
+H-9436bf442eddbce36060cedecab6ee60 generated\ui_generated_add_item_dialog.py
+H-99aef8473cbdefad56724a64d361668e generated\ui_generated_get_passkey_dialog.py
+H-f0e0e5b72f94bf600f316eebf18dce73 generated\ui_generated_get_password_dialog.py
+H-d11b1261b4bd6592005b8351cbc43ebb generated\ui_generated_import_config_dialog.py
+H-583766c760dba9b46fedef8d805bea2d generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
-H-ba51e1cf9bc7a7eebed0a32d580d9bc9 helpers\config_manager.py
+H-1b962d9037f85e83d504f24650b9df5b helpers\config_manager.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-6499d863c9c0e038e76320b3d6ee9ce7 helpers\ui_helpers\altered.py
 H-54ed4893f84c99c3c2cfb73ff14ca85d helpers\ui_helpers\constants.py
@@ -42,15 +43,15 @@ H-2e425fc436413933ed3e4e00a6bc1240 installer\password_manager.ico
 H-2c4b2e01513e947f37eae8e981dbb066 installer.py
 H-aa005b4236732172033bd67dcd4e9652 LICENSE
 H-d41d8cd98f00b204e9800998ecf8427e notification_handler\__init__.py
-H-88c2ef8a3a8e23c6d2ca0019725a997e notification_handler\base.py
+H-ade94fa9d1873685736c2ab40a42cecd notification_handler\base.py
 H-ff44ff90381fbae2d3026932c4ae5aa0 notification_handler\cli.py
 H-6fde129b9b41d369af1834561c22a1b5 notification_handler\gui.py
 H-0d01389eb0fce597c432368552e728c2 notification_handler\tray.py
 H-208161773c38885a4576b7d47ee52015 password_manager.py
-H-49cebb81a68a785609934c15b27e70f9 requirements.txt
+H-14fd5334dc46bc3f40319bc0d1331c0e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-0765391f9627a9b7037a639dc9f41b68 security_bypass.py
-H-a34d2bb34740dc98068af2edb3495059 security_bypass_tray.py
+H-f2064faf4e64373fc038c0f8b63d1e64 security_bypass.py
+H-ffc2e7c8450df9a3e3b97ee4df4c4165 security_bypass_tray.py
 H-d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
 H-8182925e31a7e608bf104a136d9970ba select_window_info\__path_fixer__.py
 H-dd43635d6d28cb15709284a4430d531b select_window_info\base.py
@@ -65,9 +66,9 @@ H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
 H-3c8907007449d23b6679ff8ef0a7598b ui\import_config_dialog.ui
 H-a92adccb205ca15c93ab90161503ab32 ui\password_manager.ui
 H-a15e22b7db4a23fc50083c5bff108e1d updater\__init__.py
-H-62936d9991db85ec69d504c2220d7ca0 updater\__main__.py
+H-fccf731426945974ab5282c92a7ad398 updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
-H-dc3f4343d4a3b5e8ef0e584be73c618b updater\handlers\common.py
+H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-a37fd91a4987dde99083ae77fd5358b3 updater\handlers\generate_hashes_handler.py
 H-039a3e11df62fe5712f928eec112ad94 updater\helpers.py

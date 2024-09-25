@@ -54,8 +54,8 @@ class NotificationHandlerBase(abc.ABC):
         if kind == NotifyType.QUESTION:
             return self.ask_yes_no(message)
 
-        if kind == NotifyType.DEBUG and not is_debug_enabled():
-            pass
+        if kind == NotifyType.DEBUG and is_debug_enabled():
+            self.debug(message)
         else:
             self.info(message)
 

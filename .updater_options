@@ -1,0 +1,4 @@
+{
+    "include": [],
+    "exclude": [".updater.hashes", ".vscode\\launch.json", ".vscode\\settings.json", "7zS2.sfx", "7zSD.sfx", "installer\\Config.txt", "pyproject.toml", ".gitignore", "installer\\install.bat", "create_installer.py"]
+}

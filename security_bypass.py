@@ -27,6 +27,7 @@ from common.tools import (
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
+from helpers.config_manager import ConfigManager as ToolConfigManager
 from notification_handler.base import NotificationHandlerBase
 from notification_handler.cli import CLINotificationHandler
 from notification_handler.gui import GUINotificationHandler
@@ -188,16 +189,20 @@ class SecurityBypass:
 
         if len(auto_detected) == 1:
             if self._window_data.auto_key_trigger_manager.is_already_triggered(auto_detected[0]):
-                user_response = self._notification_handler.ask_yes_no(
-                    "The key has already been automatically sent to the window but either it didn't help.\n"
-                    "This may be due to an incorrect password or a sync problem. "
-                    "Please select the correct key from the list to avoid potential system blockage due to multiple incorrect entries.\n\n"
-                    f"Another reason might be the same window is detected in {AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n"
-                    "If you expect to see multiple windows, with check can be disabled for "
-                    f"{AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n\n"
-                    "Do you want to disable the check for temporarily?",
-                    title="Key Already Sent",
-                )
+                if ToolConfigManager.get_config().repeated_window_protection:
+                    user_response = True
+                else:
+                    user_response = self._notification_handler.ask_yes_no(
+                        "The key has already been automatically sent to the window but either it didn't help.\n"
+                        "This may be due to an incorrect password or a sync problem. "
+                        "Please select the correct key from the list to avoid "
+                        "potential system blockage due to multiple incorrect entries.\n\n"
+                        f"Another reason might be the same window is detected in {AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n"
+                        "If you expect to see multiple windows, with check can be disabled for "
+                        f"{AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n\n"
+                        "Do you want to disable the check for temporarily?",
+                        title="Key Already Sent",
+                    )
                 if user_response:
                     self._window_data.auto_key_trigger_manager.temp_disable_check(auto_detected[0])
                 else:

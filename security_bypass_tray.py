@@ -2,6 +2,7 @@
 
 # pylint: disable=c-extension-no-member
 
+import subprocess
 import sys
 import threading
 from typing import Callable, Tuple
@@ -44,6 +45,11 @@ class SecurityBypassTray:
         self.add_action(None)
         self.add_action(("Check for updates", self._action_manager.check_for_updates, None))
         self.add_action(("Check updates on startup", self._action_manager.toggle_check_for_updates, config.auto_update))
+        self.add_action(None)
+        self.add_action(("Password Manager", self._action_manager.open_password_manager, None))
+        self.add_action(
+            ("Repeated Window Protection", self._action_manager.set_repeated_window_protection, config.repeated_window_protection)
+        )
         self.add_action(None)
         self.add_action(("Quit", self._action_manager.quit_application, None))
 
@@ -104,26 +110,38 @@ class ActionManager:
         """Toggle the check for updates feature."""
         ConfigManager.partial_save(TOOL_CONFIG_FILE, auto_update=checked)
 
-    def start(self) -> None:
-        """Start the instance."""
+    def set_repeated_window_protection(self, checked: bool) -> None:
+        """Toggle the repeated window protection feature."""
+        ConfigManager.partial_save(TOOL_CONFIG_FILE, repeated_window_protection=checked)
 
-        self._tray.state_update(TITLE, "Starting...", STATE_PENDING)
-
+    def _get_instance(self) -> SecurityBypass | None:
         if self._instance is None:
             try:
-                self._instance = SecurityBypass(*self._args)
+                instance = SecurityBypass(*self._args)
             except SystemExit as error:
-                self._instance = None
                 self._tray.state_update(
                     TITLE,
                     "Failed to start",
                     STATE_ERROR.format(code=ExitCodes.get_name(error.code)),
                     icon=QtWidgets.QSystemTrayIcon.MessageIcon.Critical,
                 )
-                return
+                return None
+        else:
+            instance = self._instance
+
+        return instance
+
+    def start(self) -> None:
+        """Start the instance."""
+
+        self._tray.state_update(TITLE, "Starting...", STATE_PENDING)
+
+        self._instance = self._get_instance()
+        if self._instance is None:
+            return
 
         if self._instance.is_running:
-            self._tray.state_update(TITLE, "Already running")
+            self._tray.state_update(TITLE, "Already running", STATE_RUNNING)
             return
 
         def _start_wrapper() -> None:
@@ -174,6 +192,11 @@ class ActionManager:
             complete_update()
         elif not auto:
             self._tray.state_update(TITLE, "No updates available")
+
+    def open_password_manager(self) -> None:
+        """Open the password manager."""
+        # pylint: disable=consider-using-with
+        subprocess.Popen([sys.executable, "password_manager.py"])
 
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""

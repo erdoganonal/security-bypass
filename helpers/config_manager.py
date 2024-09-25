@@ -12,12 +12,14 @@ class Config:
 
     auto_start: bool
     auto_update: bool
+    repeated_window_protection: bool
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the data to a dictionary."""
         return {
             "auto_start": self.auto_start,
             "auto_update": self.auto_update,
+            "repeated_window_protection": self.repeated_window_protection,
         }
 
     @classmethod
@@ -26,6 +28,7 @@ class Config:
         return cls(
             auto_start=data["auto_start"],
             auto_update=data["auto_update"],
+            repeated_window_protection=data.get("repeated_window_protection", True),
         )
 
 
@@ -70,11 +73,19 @@ class ConfigManager:
             return cls._CONFIG
 
         if not Path(file_path).exists():
-            cls._CONFIG = Config(auto_start=True, auto_update=True)
+            cls._CONFIG = Config(auto_start=True, auto_update=True, repeated_window_protection=True)
             return cls._CONFIG
 
         with open(file_path, "r", encoding="utf-8") as f:
             config_dict = json.load(f)
 
         cls._CONFIG = Config.from_dict(config_dict)
+        return cls._CONFIG
+
+    @classmethod
+    def get_config(cls) -> Config:
+        """Get the configuration data."""
+        if cls._CONFIG is None:
+            raise ValueError("Configuration data is not loaded.")
+
         return cls._CONFIG

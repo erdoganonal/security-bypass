@@ -45,8 +45,8 @@ def _parse_args() -> argparse.Namespace:
     subparsers.add_parser(_COMMAND_SHOW_REMOTE)
 
     show_update_parser = subparsers.add_parser(_COMMAND_SHOW_UPDATE_LIST)
-    show_update_parser.add_argument("hash_file_url", help="URL of the hash file")
-    show_update_parser.add_argument("hash_file_name", help="Name of the hash file")
+    show_update_parser.add_argument("-n", "--hash-file-name", help="Name of the hash file", required=True)
+    show_update_parser.add_argument("-u", "--hash-file-url", help="URL of the hash file", default=get_remote_raw_url())
 
     parser.add_argument("-v", "--verbose", action="store_true", help="increase output verbosity")
 

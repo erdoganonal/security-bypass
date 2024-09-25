@@ -28,7 +28,7 @@ def get_remote_raw_url() -> str:
             default_branch = line.split(":")[1].strip()
             break
 
-    *_, user, repo = remote_url.split("/")
+    *_, user, repo = remote_url.replace(".git", "").split("/")
     remote_raw_url = f"https://raw.github.com/{user}/{repo}/{default_branch}"
     with open(_REMOTE_RAW_URL_CACHE_PATH, "w", encoding="utf-8") as cache_fd:
         cache_fd.write(remote_raw_url)
