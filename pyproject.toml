@@ -51,7 +51,7 @@ deps =
     pyautogui
     pywinauto
     pycryptodome
-    pylint
+    pylint==3.2.6
     pyreadline
     pywin32
     pyqt6
