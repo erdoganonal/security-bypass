@@ -27,3 +27,14 @@ jobs:
 
     - name: Run
       run: tox
+
+    - name: Check Modified Files
+      run: |
+        git status --porcelain | findstr .
+        if ($LASTEXITCODE -eq 0) {
+          echo "There are modified files."
+          exit 1
+        }
+
+        echo "Clean working tree."
+        exit 0
