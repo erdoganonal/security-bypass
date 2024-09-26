@@ -1,0 +1,40 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Print Python version
+      run: python --version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install tox
+
+    - name: Run
+      run: tox
+
+    - name: Check Modified Files
+      run: |
+        git status --porcelain | findstr .
+        if ($LASTEXITCODE -eq 0) {
+          echo "There are modified files."
+          exit 1
+        }
+
+        echo "Clean working tree."
+        exit 0
