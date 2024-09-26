@@ -16,6 +16,9 @@ jobs:
       with:
         python-version: '3.12'
 
+    - name: Print git status
+      run: git status
+
     - name: Print Python version
       run: python --version
 
@@ -32,9 +35,13 @@ jobs:
       run: |
         git status --porcelain | findstr .
         if ($LASTEXITCODE -eq 0) {
-          echo "There are modified files."
+          echo "There are modified files.`n"
+          git status
           exit 1
         }
 
         echo "Clean working tree."
         exit 0
+
+    - name: Create installer
+      run: python create_installer.py
