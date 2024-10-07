@@ -18,7 +18,7 @@ def main() -> None:
     GLOBALS["verbose"] = args.verbose
 
     if args.command == _COMMAND_GENERATE_HASHES:
-        handle_generate_hashes(args)
+        handle_generate_hashes()
     elif args.command == _COMMAND_SHOW_REMOTE:
         print(get_remote_raw_url())
     elif args.command == _COMMAND_SHOW_UPDATE_LIST:
@@ -34,8 +34,6 @@ def _parse_args() -> argparse.Namespace:
 
     subparsers = parser.add_subparsers(dest="command")
     generate_parser = subparsers.add_parser(_COMMAND_GENERATE_HASHES)
-    generate_parser.add_argument("-i", "--include", default=[], nargs=argparse.ONE_OR_MORE, help="file to generate hashes for")
-    generate_parser.add_argument("-e", "--exclude", default=[], nargs=argparse.ONE_OR_MORE, help="file to exclude from generating hashes")
 
     generate_parser.add_argument("-s", "--save", action="store_true", help="saved passed options to a file")
     generate_parser.add_argument("-S", "--show", action="store_true", help="show the saved options")
