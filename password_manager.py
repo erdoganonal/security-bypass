@@ -266,6 +266,7 @@ class PasswordManagerUI:
         """start the loop"""
 
         app = QtWidgets.QApplication([])
+        app.setStyle("windowsvista")
         main_window = QtWidgets.QMainWindow()
 
         self.ui.setupUi(main_window)

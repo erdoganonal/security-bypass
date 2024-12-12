@@ -18,7 +18,7 @@ H-9436bf442eddbce36060cedecab6ee60 generated\ui_generated_add_item_dialog.py
 H-99aef8473cbdefad56724a64d361668e generated\ui_generated_get_passkey_dialog.py
 H-f0e0e5b72f94bf600f316eebf18dce73 generated\ui_generated_get_password_dialog.py
 H-d11b1261b4bd6592005b8351cbc43ebb generated\ui_generated_import_config_dialog.py
-H-583766c760dba9b46fedef8d805bea2d generated\ui_generated_main.py
+H-ec44f32fba14442888268f7a4c333b83 generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
 H-1b962d9037f85e83d504f24650b9df5b helpers\config_manager.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
@@ -44,7 +44,7 @@ H-ade94fa9d1873685736c2ab40a42cecd notification_handler\base.py
 H-ff44ff90381fbae2d3026932c4ae5aa0 notification_handler\cli.py
 H-6fde129b9b41d369af1834561c22a1b5 notification_handler\gui.py
 H-0d01389eb0fce597c432368552e728c2 notification_handler\tray.py
-H-208161773c38885a4576b7d47ee52015 password_manager.py
+H-89abb14f9e16b106c821f3c569f64910 password_manager.py
 H-14fd5334dc46bc3f40319bc0d1331c0e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
 H-61810e30e30d83b53d01ddd1746eaa9a security_bypass.py
@@ -61,7 +61,7 @@ H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
 H-3c8907007449d23b6679ff8ef0a7598b ui\import_config_dialog.ui
-H-a92adccb205ca15c93ab90161503ab32 ui\password_manager.ui
+H-7897494885d12090df410392ab28c70e ui\password_manager.ui
 H-a15e22b7db4a23fc50083c5bff108e1d updater\__init__.py
 H-88214d63304379d04b237e9a18e38b35 updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
