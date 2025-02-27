@@ -72,9 +72,20 @@ class MenuActionHandler:
         """open a dialog window and ask user to enter a new master key"""
 
         password = PasswordDialog().get()
-        if password is not None:
-            self._manager.change_master_key(password)
+        if password is None:
+            return
+
+        if self._manager.change_master_key(password):
             Notification.show_info(self._manager.ui.tree, "The master key changed successfully", "Master Key Changed")
+        else:
+            Notification.show_warning(
+                self._manager.ui.tree,
+                "The master key changed successfully",
+                "Master Key Changed",
+                info="But, failed to inform the SecurityBypass.\n"
+                "Please check if the SecurityBypass is running.\n"
+                "A restart may be required to apply the changes.",
+            )
 
     def show_version(self) -> None:
         """show the version of the application"""
