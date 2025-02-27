@@ -24,6 +24,7 @@ from common.tools import (
     get_window_hwnd,
     is_windows_locked,
 )
+from communication import data_sharing
 from config import ConfigManager
 from config.config import WindowData
 from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
@@ -106,6 +107,9 @@ class SecurityBypass:
 
         self._credential_file_modified_time = 0.0
         self._window_data = _WindowData(windows=self.__get_windows())
+
+    def _on_master_key_change(self, data: bytes) -> None:
+        self.__key = data
 
     def _exit(self, exit_code: ExitCodes) -> NoReturn:
         self._loop = False
@@ -251,6 +255,8 @@ class SecurityBypass:
 
         self._notification_handler.debug("The application has been started.")
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
+        data_sharing.add_callback(self._on_master_key_change)
+        threading.Thread(target=data_sharing.start_server, daemon=True).start()
 
         while self._loop:
             if ASK_PASSWORD_ON_LOCK:

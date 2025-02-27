@@ -13,6 +13,7 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
+from communication import data_sharing
 from settings import CONFIG_PATH, CREDENTIALS_FILE, DFT_ENCODING
 
 
@@ -228,9 +229,13 @@ class ConfigManager:
 
         return data[:-padding]  # remove the padding
 
-    def change_master_key(self, new_key: bytes, filename: str | Path = CREDENTIALS_FILE) -> None:
+    def change_master_key(self, new_key: bytes, filename: str | Path = CREDENTIALS_FILE) -> bool:
         """Changes the master key with given key"""
+
+        result = data_sharing.send_data(new_key)
 
         file_content = self.decrypt_file(filename)
         self.__key = new_key
         self.encrypt_file(filename, file_content)
+
+        return result

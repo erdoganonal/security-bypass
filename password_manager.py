@@ -123,10 +123,10 @@ class PasswordManagerUI:
 
             self._notification_handler.info("The credentials file created.")
 
-    def change_master_key(self, new: str) -> None:
+    def change_master_key(self, new: str) -> bool:
         """change the master key"""
 
-        self._config_mgr.change_master_key(new.encode())
+        return self._config_mgr.change_master_key(new.encode())
 
     def get_config(self) -> Config:
         """return the config object"""
