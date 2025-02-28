@@ -174,6 +174,7 @@ class SecurityBypass:
     def _reload_if_required(self) -> None:
         credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
         if credential_file_modified_time != self._credential_file_modified_time:
+            ToolConfigManager.load()
             self._window_data.windows = self.__get_windows(show_error=False)
             self._credential_file_modified_time = credential_file_modified_time
 

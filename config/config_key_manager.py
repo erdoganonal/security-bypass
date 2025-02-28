@@ -34,7 +34,7 @@ def get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes 
 def validate_and_get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes:
     """Call the get_mk and validate"""
 
-    cfg = ConfigManager.get_config()
+    cfg = ConfigManager.get_config(force_reload=True)
     mk: bytes | None = None
     if cfg.auth_method == AuthMethod.PASSWORD:
         mk = get_mk(prompt=prompt, which=which)

@@ -3,7 +3,7 @@ python -m updater generate-hashes
 H-788e27a89651eb1e64e21d895ae782fb admin.bat
 H-d41d8cd98f00b204e9800998ecf8427e authentication\__init__.py
 H-0c977a7b0aac3e3d91c810ce707bb5b9 authentication\__main__.py
-H-e712b13344bd9bb9cf7cc7a0f9b2f064 authentication\fingerprint.py
+H-7976be54d284b43afca62114b253ff38 authentication\fingerprint.py
 H-51c72bb0c1118f575c2d20815dc865b4 authentication\methods.py
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
@@ -15,7 +15,7 @@ H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ac399dcded8c2dbad1e496227a96aa7a communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-a0dc77d551d162712918f3658a566c59 config\config.py
-H-23c44e9e4aa5dbeed51067a86187abcc config\config_key_manager.py
+H-86b77a3ede124c22b86977397d376f92 config\config_key_manager.py
 H-6f25c5025be8639e3a20e0585ed052fb data\security_bypass.ico
 H-d41d8cd98f00b204e9800998ecf8427e exclusion\__init__.py
 H-d7c86464ae68a4463cd62f849314c5eb exclusion\manager.py
@@ -28,7 +28,7 @@ H-f0e0e5b72f94bf600f316eebf18dce73 generated\ui_generated_get_password_dialog.py
 H-d11b1261b4bd6592005b8351cbc43ebb generated\ui_generated_import_config_dialog.py
 H-73e239ec61fd84a6a07f81ba50bb4c8e generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
-H-324594bc4152aaa9771afc60b53a078c helpers\config_manager.py
+H-c207594b88acd4a97f5617214cbbd7a6 helpers\config_manager.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-6499d863c9c0e038e76320b3d6ee9ce7 helpers\ui_helpers\altered.py
 H-b70b8337d67e70a317773b0c5c407c49 helpers\ui_helpers\constants.py
@@ -56,7 +56,7 @@ H-586ce2aeafe08d851f05db98f337af9e notification_handler\tray.py
 H-ac6cc5111564b17f32e45f4852900fcb password_manager.py
 H-14fd5334dc46bc3f40319bc0d1331c0e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-28380980fb01ec1e8e6a178cf46f2230 security_bypass.py
+H-49bb048b45533cff997bc3c43da8267b security_bypass.py
 H-d9f9d073e1722f0b7568af93214fa1ce security_bypass_tray.py
 H-d41d8cd98f00b204e9800998ecf8427e select_window_info\__init__.py
 H-8182925e31a7e608bf104a136d9970ba select_window_info\__path_fixer__.py

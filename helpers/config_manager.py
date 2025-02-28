@@ -75,8 +75,6 @@ class ConfigManager:
         :param file_path: Path to the JSON file.
         :return: Data loaded from the file.
         """
-        if cls._CONFIG is not None:
-            return cls._CONFIG
 
         if not Path(file_path).exists():
             cls._CONFIG = Config(auto_start=True, auto_update=True, repeated_window_protection=True, auth_method=AuthMethod.PASSWORD)
@@ -89,9 +87,9 @@ class ConfigManager:
         return cls._CONFIG
 
     @classmethod
-    def get_config(cls) -> Config:
+    def get_config(cls, force_reload: bool = False) -> Config:
         """Get the configuration data."""
-        if cls._CONFIG is None:
+        if cls._CONFIG is None or force_reload:
             return cls.load()
 
         return cls._CONFIG
