@@ -41,10 +41,10 @@ envlist =
 
 [testenv]
 deps =
-    black
+    black==25.1.0
     colorama
     isort
-    mypy
+    mypy==1.15.0
     password_validator
     psutil
     py7zr

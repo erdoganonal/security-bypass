@@ -1,5 +1,5 @@
 """Allows you to save passwords and let you to bypass the windows security windows
- by entering the passwords automatically"""
+by entering the passwords automatically"""
 
 import threading
 import time
