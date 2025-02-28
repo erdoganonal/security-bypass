@@ -10,7 +10,6 @@ from settings import WRAPPER_FILE
 from updater.constants import UPDATER_FILE_NAME
 
 EXCLUDED_FILES = [
-    "*.bat",
     "*.txt",
     "*.toml",
     "*.zip",
@@ -18,6 +17,7 @@ EXCLUDED_FILES = [
     ".gitignore",
     ".updater_options",
     "create_installer.py",
+    "install.bat",
     WRAPPER_FILE.name,
     UPDATER_FILE_NAME,
 ]
