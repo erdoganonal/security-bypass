@@ -1,4 +1,4 @@
-"""helper class for supporting parallel executions. Normally, neither 
+"""helper class for supporting parallel executions. Normally, neither
 tkinter nor PyQt are supporting the applications that are run in a thread.
 Desired behavior might cause some problems during runtime. This module is
 a helper file to create a subprocess to call the desired functions.
