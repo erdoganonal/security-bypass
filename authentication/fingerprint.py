@@ -10,6 +10,7 @@ import sys
 import threading
 from ctypes import Structure, c_ubyte, c_ulong, windll
 from ctypes.wintypes import DWORD, HANDLE
+from pathlib import Path
 from typing import TypedDict
 
 # Load Windows Biometric Framework (WBF)
@@ -162,8 +163,11 @@ def request_admin_get_fingerprint_result() -> FingerprintResult:
 
     threading.Thread(target=wait_connection, daemon=True).start()
 
+    exe_path = Path(sys.executable)
+    exe_path = exe_path.parent / "python.exe"
+
     subprocess.check_output(
-        [os.getcwd() + r"\admin.bat", os.getcwd(), sys.executable, str(server_socket.getsockname()[1])],
+        [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), str(server_socket.getsockname()[1])],
     )
 
     if result is None:

@@ -3,7 +3,7 @@ python -m updater generate-hashes
 H-788e27a89651eb1e64e21d895ae782fb admin.bat
 H-d41d8cd98f00b204e9800998ecf8427e authentication\__init__.py
 H-0c977a7b0aac3e3d91c810ce707bb5b9 authentication\__main__.py
-H-fc496ed9f04d127f7f133f3273ee92c1 authentication\fingerprint.py
+H-e712b13344bd9bb9cf7cc7a0f9b2f064 authentication\fingerprint.py
 H-51c72bb0c1118f575c2d20815dc865b4 authentication\methods.py
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
