@@ -255,8 +255,10 @@ class SecurityBypass:
 
         self._notification_handler.debug("The application has been started.")
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
-        data_sharing.add_callback(self._on_master_key_change)
-        threading.Thread(target=data_sharing.start_server, daemon=True).start()
+
+        key_tracker = data_sharing.Informer(data_sharing.KEY_TRACKER_PORT)
+        key_tracker.add_callback(self._on_master_key_change)
+        key_tracker.start_server()
 
         while self._loop:
             if ASK_PASSWORD_ON_LOCK:

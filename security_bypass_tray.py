@@ -37,7 +37,7 @@ class SecurityBypassTray:
         self.menu = QtWidgets.QMenu()
 
         self._action_manager = ActionManager(self)
-        config = ConfigManager.load(TOOL_CONFIG_FILE)
+        config = ConfigManager.get_config()
 
         self.add_action(("Start", self._action_manager.start, None))
         self.add_action(("Stop", self._action_manager.stop, None))
@@ -162,7 +162,7 @@ class ActionManager:
         self._tray.state_update(TITLE, "Started", STATE_RUNNING)
         threading.Thread(target=_start_wrapper).start()
 
-    def stop(self) -> None:
+    def stop(self, before_quit: bool = False) -> None:
         """Stop the instance."""
 
         if self._instance is None:
@@ -170,12 +170,13 @@ class ActionManager:
 
         self._instance.stop()
         self._instance = None
-        self._tray.state_update(
-            TITLE,
-            "Stopped",
-            STATE_STOPPED,
-            icon=QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
-        )
+        if not before_quit:
+            self._tray.state_update(
+                TITLE,
+                "Stopped",
+                STATE_STOPPED,
+                icon=QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
+            )
 
     def check_for_updates(self, auto: bool = False) -> None:
         """Check for updates."""
@@ -201,7 +202,7 @@ class ActionManager:
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""
 
-        self.stop()
+        self.stop(before_quit=True)
 
         self._tray.state_update(TITLE, "Exiting...", STATE_STOPPED)
         QtWidgets.QApplication.quit()
