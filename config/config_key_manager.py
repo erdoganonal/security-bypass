@@ -8,7 +8,9 @@ from tkinter import ttk
 
 from tkhelper.widgets import update_and_center
 
+from authentication import fingerprint
 from common.tools import InplaceInt
+from helpers.config_manager import AuthMethod, ConfigManager
 from settings import CREDENTIALS_FILE, DFT_ENCODING, MK_ENV_NAME, MK_REQUEST_PARAM
 
 NOT_SET = 0
@@ -32,7 +34,13 @@ def get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes 
 def validate_and_get_mk(prompt: str | None = None, which: InplaceInt | None = None) -> bytes:
     """Call the get_mk and validate"""
 
-    mk = get_mk(prompt=prompt, which=which)
+    cfg = ConfigManager.get_config()
+    mk: bytes | None = None
+    if cfg.auth_method == AuthMethod.PASSWORD:
+        mk = get_mk(prompt=prompt, which=which)
+    elif cfg.auth_method == AuthMethod.FINGERPRINT:
+        mk = get_fingerprint_hash_bytes()
+
     if mk:
         return mk
 
@@ -121,3 +129,13 @@ def get_mk_ui(prompt: str | None = None, which: InplaceInt | None = None) -> byt
             which.set(FROM_UI)
         return mk.encode(DFT_ENCODING)
     return None
+
+
+def get_fingerprint_hash_bytes() -> bytes | None:
+    """Get the fingerprint hash bytes from the user"""
+
+    fingerprint_result = fingerprint.get_fingerprint_result()
+    if fingerprint_result["error"]:
+        return None
+
+    return fingerprint_result["hash"].encode(DFT_ENCODING)

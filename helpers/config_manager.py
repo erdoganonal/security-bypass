@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from authentication.methods import AuthMethod
+from settings import TOOL_CONFIG_FILE
+
 
 @dataclass
 class Config:
@@ -13,6 +16,7 @@ class Config:
     auto_start: bool
     auto_update: bool
     repeated_window_protection: bool
+    auth_method: AuthMethod
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the data to a dictionary."""
@@ -20,6 +24,7 @@ class Config:
             "auto_start": self.auto_start,
             "auto_update": self.auto_update,
             "repeated_window_protection": self.repeated_window_protection,
+            "auth_method": self.auth_method.value,
         }
 
     @classmethod
@@ -29,6 +34,7 @@ class Config:
             auto_start=data["auto_start"],
             auto_update=data["auto_update"],
             repeated_window_protection=data.get("repeated_window_protection", True),
+            auth_method=AuthMethod(data.get("auth_method", AuthMethod.PASSWORD.value)),
         )
 
 
@@ -62,7 +68,7 @@ class ConfigManager:
         cls.save(file_path, config)
 
     @classmethod
-    def load(cls, file_path: str | Path) -> Config:
+    def load(cls, file_path: str | Path = TOOL_CONFIG_FILE) -> Config:
         """
         Load data from a JSON file.
 
@@ -73,7 +79,7 @@ class ConfigManager:
             return cls._CONFIG
 
         if not Path(file_path).exists():
-            cls._CONFIG = Config(auto_start=True, auto_update=True, repeated_window_protection=True)
+            cls._CONFIG = Config(auto_start=True, auto_update=True, repeated_window_protection=True, auth_method=AuthMethod.PASSWORD)
             return cls._CONFIG
 
         with open(file_path, "r", encoding="utf-8") as f:
@@ -86,6 +92,6 @@ class ConfigManager:
     def get_config(cls) -> Config:
         """Get the configuration data."""
         if cls._CONFIG is None:
-            raise ValueError("Configuration data is not loaded.")
+            return cls.load()
 
         return cls._CONFIG

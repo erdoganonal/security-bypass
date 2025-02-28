@@ -17,6 +17,15 @@
             "console": "integratedTerminal",
             "env": {"SECURITY_BYPASS_MK":"test", "SECURITY_BYPASS_DEBUG": "1"},
             "justMyCode": true
+        },
+        {
+            "name": "Python: Security Bypass Tray",
+            "type": "python",
+            "request": "launch",
+            "program": "security_bypass_tray.py",
+            "console": "integratedTerminal",
+            "env": {"SECURITY_BYPASS_DEBUG": "1"},
+            "justMyCode": true
         }
     ]
 }

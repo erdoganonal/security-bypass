@@ -232,7 +232,7 @@ class ConfigManager:
     def change_master_key(self, new_key: bytes, filename: str | Path = CREDENTIALS_FILE) -> bool:
         """Changes the master key with given key"""
 
-        result = data_sharing.send_data(new_key)
+        result = data_sharing.Informer.send_data(new_key, data_sharing.KEY_TRACKER_PORT)
 
         file_content = self.decrypt_file(filename)
         self.__key = new_key
