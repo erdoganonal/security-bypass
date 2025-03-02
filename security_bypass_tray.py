@@ -180,19 +180,23 @@ class ActionManager:
 
     def check_for_updates(self, auto: bool = False) -> None:
         """Check for updates."""
-
-        if check_for_updates(
+        has_updates = check_for_updates(
             "https://raw.github.com/erdoganonal/security-bypass/main",
             ".updater.hashes",
             self._args[1].updater_callback,
             max_retries=5,
             report_error=False,
             force_check=not auto,
-        ):
+        )
+
+        if has_updates:
             self.quit_application()
             complete_update()
         elif not auto:
-            self._tray.state_update(TITLE, "No updates available")
+            if has_updates is None:
+                self._tray.state_update(TITLE, "Update skipped")
+            else:
+                self._tray.state_update(TITLE, "No updates available")
 
     def open_password_manager(self) -> None:
         """Open the password manager."""

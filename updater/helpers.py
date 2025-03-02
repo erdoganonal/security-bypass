@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import dataclass
 from functools import lru_cache as cache
 from pathlib import Path
 from types import TracebackType
@@ -30,6 +31,14 @@ def restart() -> None:
     sys.exit(0)
 
 
+class ModifyType(enum.Enum):
+    """Modification type."""
+
+    ADD = "A"
+    REMOVE = "D"
+    MODIFY = "M"
+
+
 class NotifyType(enum.Enum):
     """Notification type."""
 
@@ -47,6 +56,14 @@ def cli_user_notify_callback(message: str, kind: NotifyType) -> bool:
     elif kind == NotifyType.QUESTION:
         return input(f"{message} (y/N): ").strip() == "y"
     return True
+
+
+@dataclass
+class ModifiedFile:
+    """Modified file dataclass."""
+
+    path: str
+    kind: ModifyType
 
 
 class _NotificationManager:
@@ -118,26 +135,26 @@ class UpdateHelper:
                 continue
 
             md5_hash, path = hash_line.strip().split("H-")[1].split(" ", 1)
-            hashes_dict[path] = md5_hash
+            hashes_dict[md5_hash] = path
 
         return hashes_dict
 
     @classmethod
-    def get_update_list(cls, hash_file_url: str) -> Generator[str, None, None]:
+    def get_update_list(cls, hash_file_url: str) -> Generator[ModifiedFile, None, None]:
         """Return the list of files that need to be updated."""
 
         remote_hashes = cls.get_remote_hashes(hash_file_url)
 
-        for path, remote_hash in remote_hashes.items():
+        for remote_hash, path in remote_hashes.items():
             try:
                 local_hash = cls.md5(path)
             except FileNotFoundError:
                 # it is a new file
-                yield path
+                yield ModifiedFile(path, ModifyType.ADD)
                 continue
 
             if local_hash != remote_hash:
-                yield path
+                yield ModifiedFile(path, ModifyType.MODIFY)
 
     def _cleanup(self) -> None:
         for tempdir in self._tempdirs.values():
@@ -167,7 +184,7 @@ class UpdateHelper:
         self._notification_manager.notify("Checking for updates...", NotifyType.DEBUG)
 
         if self._update_list is None:
-            self._update_list = list(self.get_update_list(f"{self.raw_remote_url}/{self.hash_file_path}"))
+            self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{self.raw_remote_url}/{self.hash_file_path}")]
 
         if not self._update_list:
             self._notification_manager.notify("No updates available.", NotifyType.DEBUG)
