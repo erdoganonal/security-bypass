@@ -11,6 +11,7 @@ UI_PY_MAP = {
     "ui/get_passkey_dialog.ui": "generated/ui_generated_get_passkey_dialog.py",
     "ui/import_config_dialog.ui": "generated/ui_generated_import_config_dialog.py",
     "ui/get_auth_method_dialog.ui": "generated/ui_generated_auth_method_dialog.py",
+    "ui/background_authenticator.ui": "generated/ui_generated_background_authenticator.py",
 }
 
 GENERATED = Path("generated")

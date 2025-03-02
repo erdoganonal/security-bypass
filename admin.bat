@@ -5,11 +5,11 @@
     @goto :EOF
 )
 cd %1
-call %2 -m authentication %3
+start /B %2 -m authentication %3
 @goto :EOF
 @end @ELSE
 var ShA = new ActiveXObject("Shell.Application");
-var cmd = "cmd.exe /c \"" + WScript.ScriptFullName + "\"";
+var cmd = "/c \"" + WScript.ScriptFullName + "\"";
 for (var i = 0; i < WScript.Arguments.length; i++) {
     cmd += " " + WScript.Arguments(i);
 }

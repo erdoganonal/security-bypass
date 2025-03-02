@@ -2,7 +2,9 @@
 
 # pylint: disable=c-extension-no-member
 
-from PyQt6 import QtGui
+from ctypes import windll
+
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from config.config import WindowData
 
@@ -20,3 +22,20 @@ class QStandardPasskeyItem(QtGui.QStandardItem):
         """clone a QStandardPasskeyItem and return as a new item"""
 
         return cls(text=item.text(), window=item.window)
+
+
+class AlwaysOnTopWindow(QtWidgets.QMainWindow):
+    """Window that stays on top of all other windows"""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self._bring_to_front)
+        self.timer.start(100)  # Check every second
+
+    def _bring_to_front(self) -> None:
+        if int(self.winId()) != windll.user32.GetForegroundWindow():
+            self.showMinimized()
+            self.showNormal()

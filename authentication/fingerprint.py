@@ -1,4 +1,4 @@
-"""Fingerprint module for capturing fingerprint data and generating a consistent SHA-256 hash."""
+"""Fingerprint authentication module."""
 
 import ctypes
 import hashlib
@@ -12,6 +12,9 @@ from ctypes import Structure, c_ubyte, c_ulong, windll
 from ctypes.wintypes import DWORD, HANDLE
 from pathlib import Path
 from typing import TypedDict
+
+from common.tools import is_debug_enabled
+from helpers.ui_helpers.background_authenticator import BackgroundAuthenticatorBase, BgWindowData
 
 # Load Windows Biometric Framework (WBF)
 winbio = windll.Winbio
@@ -78,22 +81,40 @@ def get_fingerprint_result() -> FingerprintResult:
     return fingerprint_result
 
 
+class FingerprintBGAuthenticator(BackgroundAuthenticatorBase):
+    """Fingerprint background authenticator UI."""
+
+    def get_window_data(self) -> BgWindowData:
+        return {
+            "window_title": "Fingerprint Authenticator",
+            "title": "Place your finger",
+            "info": "Ensure your finger covers the entire sensor.\n\
+Please scan the same finger used during encryption.",
+            "icon_path": os.path.abspath("ui/resources/fingerprint.ico"),
+        }
+
+
 def _get_fingerprint_result() -> FingerprintResult:
+    fingerprint_bg_auth = FingerprintBGAuthenticator()
+
+    result = FingerprintResult(hash="", error="", error_code=0)
+    threading.Thread(target=__get_fingerprint_result, args=(fingerprint_bg_auth, result), daemon=True).start()
+
+    fingerprint_bg_auth.show()
+
+    return result
+
+
+def __get_fingerprint_result(fingerprint_ui: FingerprintBGAuthenticator, result: FingerprintResult) -> None:
     """Captures fingerprint data and returns a consistent SHA-256 hash."""
 
-    fingerprint_result: FingerprintResult = {
-        "hash": "",
-        "error": "",
-        "error_code": 0,
-    }
-
     try:
-        fingerprint_result["hash"] = _get_fingerprint_hash()
+        result["hash"] = _get_fingerprint_hash()
     except FingerprintException as e:
-        fingerprint_result["error"] = e.message
-        fingerprint_result["error_code"] = e.error_code
+        result["error"] = e.message
+        result["error_code"] = e.error_code
 
-    return fingerprint_result
+    fingerprint_ui.thread_quit()
 
 
 def _get_fingerprint_hash() -> str:
@@ -112,8 +133,6 @@ def _get_fingerprint_hash() -> str:
 
     if result != 0:
         raise FingerprintException("Failed to open fingerprint session.", result)
-
-    print("Place your finger on the scanner...")
 
     # Capture fingerprint
     identity = _WinbioIdentity()
@@ -164,10 +183,14 @@ def request_admin_get_fingerprint_result() -> FingerprintResult:
     threading.Thread(target=wait_connection, daemon=True).start()
 
     exe_path = Path(sys.executable)
-    exe_path = exe_path.parent / "python.exe"
+    if is_debug_enabled():
+        exe_path = exe_path.parent / "python.exe"
+    else:
+        exe_path = exe_path.parent / "pythonw.exe"
 
     subprocess.check_output(
         [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), str(server_socket.getsockname()[1])],
+        creationflags=subprocess.CREATE_NO_WINDOW,
     )
 
     if result is None:
@@ -181,7 +204,7 @@ def request_admin_get_fingerprint_result() -> FingerprintResult:
 
 def main() -> None:
     """Main function to get the fingerprint result and print it."""
-    print(get_fingerprint_result())
+    get_fingerprint_result()
 
 
 if __name__ == "__main__":
