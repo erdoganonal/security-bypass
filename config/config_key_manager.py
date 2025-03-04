@@ -134,8 +134,12 @@ def get_mk_ui(prompt: str | None = None, which: InplaceInt | None = None) -> byt
 def get_fingerprint_hash_bytes() -> bytes | None:
     """Get the fingerprint hash bytes from the user"""
 
-    fingerprint_result = fingerprint.get_fingerprint_result()
-    if fingerprint_result["error"]:
-        return None
+    while True:
+        fingerprint_result = fingerprint.get_fingerprint_result()
+        if fingerprint_result["error_code"] == 0:
+            # return the hash if there is no error
+            return fingerprint_result["hash"].encode(DFT_ENCODING)
 
-    return fingerprint_result["hash"].encode(DFT_ENCODING)
+        if fingerprint_result["error_code"] == -1:
+            # special error code. user canceled the operation
+            return None

@@ -41,6 +41,7 @@ class SecurityBypassTray:
 
         self.add_action(("Start", self._action_manager.start, None))
         self.add_action(("Stop", self._action_manager.stop, None))
+        self.add_action(("Status", lambda: None, None))
         self.add_action(("Auto start on startup", self._action_manager.toggle_auto_start, config.auto_start))
         self.add_action(None)
         self.add_action(("Check for updates", self._action_manager.check_for_updates, None))
@@ -160,6 +161,11 @@ class ActionManager:
                 )
 
         self._tray.state_update(TITLE, "Started", STATE_RUNNING)
+        try:
+            status_action = next(filter(lambda action: action.text().startswith("Status"), self._tray.menu.actions()))
+            status_action.setText("Status: Running")
+        except StopIteration:
+            pass
         threading.Thread(target=_start_wrapper).start()
 
     def stop(self, before_quit: bool = False) -> None:
@@ -177,6 +183,11 @@ class ActionManager:
                 STATE_STOPPED,
                 icon=QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
             )
+        try:
+            status_action = next(filter(lambda action: action.text().startswith("Status"), self._tray.menu.actions()))
+            status_action.setText("Status: Stopped")
+        except StopIteration:
+            pass
 
     def check_for_updates(self, auto: bool = False) -> None:
         """Check for updates."""
