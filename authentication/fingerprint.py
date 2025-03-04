@@ -41,6 +41,16 @@ class FingerprintResult(TypedDict):
     error: str
     error_code: int
 
+    @staticmethod
+    def get_default() -> "FingerprintResult":
+        """Get the default fingerprint result."""
+
+        return {
+            "hash": "",
+            "error": "Fingerprint scan canceled by user. Please try again.",
+            "error_code": -1,
+        }
+
 
 class FingerprintException(Exception):
     """Fingerprint exception class."""
@@ -97,7 +107,7 @@ Please scan the same finger used during encryption.",
 def _get_fingerprint_result() -> FingerprintResult:
     fingerprint_bg_auth = FingerprintBGAuthenticator()
 
-    result = FingerprintResult(hash="", error="", error_code=0)
+    result = FingerprintResult.get_default()
     threading.Thread(target=__get_fingerprint_result, args=(fingerprint_bg_auth, result), daemon=True).start()
 
     fingerprint_bg_auth.show()
@@ -110,6 +120,8 @@ def __get_fingerprint_result(fingerprint_ui: FingerprintBGAuthenticator, result:
 
     try:
         result["hash"] = _get_fingerprint_hash()
+        result["error"] = ""
+        result["error_code"] = 0
     except FingerprintException as e:
         result["error"] = e.message
         result["error_code"] = e.error_code
@@ -194,11 +206,7 @@ def request_admin_get_fingerprint_result() -> FingerprintResult:
     )
 
     if result is None:
-        return {
-            "hash": "",
-            "error": "Fingerprint scan canceled by user. Please try again.",
-            "error_code": -1,
-        }
+        return FingerprintResult.get_default()
     return json.loads(result)  # type: ignore[no-any-return]
 
 

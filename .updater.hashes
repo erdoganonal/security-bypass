@@ -3,7 +3,7 @@ python -m updater generate-hashes
 H-a3ba4c79ccdb9b4b5fa46e904e8ed32b admin.bat
 H-d41d8cd98f00b204e9800998ecf8427e authentication\__init__.py
 H-0c977a7b0aac3e3d91c810ce707bb5b9 authentication\__main__.py
-H-ee3c251621acccc43cd03cb3811ff198 authentication\fingerprint.py
+H-45e51ebee736e1025915dd71026bda90 authentication\fingerprint.py
 H-51c72bb0c1118f575c2d20815dc865b4 authentication\methods.py
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
@@ -15,7 +15,7 @@ H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-9b8358280aa045887fc6cb94b658c344 communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
 H-a0dc77d551d162712918f3658a566c59 config\config.py
-H-86b77a3ede124c22b86977397d376f92 config\config_key_manager.py
+H-fc19607aeeed2f18f1ff47c09e842806 config\config_key_manager.py
 H-6f25c5025be8639e3a20e0585ed052fb data\security_bypass.ico
 H-d41d8cd98f00b204e9800998ecf8427e exclusion\__init__.py
 H-d7c86464ae68a4463cd62f849314c5eb exclusion\manager.py
@@ -23,6 +23,7 @@ H-e1e6f013f4b173f5a0219c197ff11336 generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
 H-9436bf442eddbce36060cedecab6ee60 generated\ui_generated_add_item_dialog.py
 H-3e1f9afa56b3b8326534d5991ef14e0d generated\ui_generated_auth_method_dialog.py
+H-51f7af6ac394d3b7b8c00b5638657564 generated\ui_generated_background_authenticator.py
 H-99aef8473cbdefad56724a64d361668e generated\ui_generated_get_passkey_dialog.py
 H-f0e0e5b72f94bf600f316eebf18dce73 generated\ui_generated_get_password_dialog.py
 H-d11b1261b4bd6592005b8351cbc43ebb generated\ui_generated_import_config_dialog.py
@@ -31,6 +32,7 @@ H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
 H-c207594b88acd4a97f5617214cbbd7a6 helpers\config_manager.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-66dd1a2b0db0835fedc72b40fd760ad7 helpers\ui_helpers\altered.py
+H-38db30f9157b85cf1ad2b8b12d2be3c1 helpers\ui_helpers\background_authenticator.py
 H-b70b8337d67e70a317773b0c5c407c49 helpers\ui_helpers\constants.py
 H-7c6b62850407c9c983b7401d40650252 helpers\ui_helpers\notification.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\__init__,py
@@ -67,11 +69,13 @@ H-9ae10359fac7300febebeb601f30e47f select_window_info\multithread_support.py
 H-e79b07a2e94430113ce24b80b089660a select_window_info\pyqt_gui.py
 H-4ebdc3964e1203cdbc628eddc1586cc4 settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
+H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui
 H-c765f6b636a42d7bc276e97fd3de7988 ui\get_auth_method_dialog.ui
 H-51c64d01b0de665fc90ede1963edbdd7 ui\get_passkey_dialog.ui
 H-7432f1685ec7d25281f148c2dba71122 ui\get_password_dialog.ui
 H-3c8907007449d23b6679ff8ef0a7598b ui\import_config_dialog.ui
 H-979a01286da80df9364f1ec6cee5770a ui\password_manager.ui
+H-991831e6d4e7617564f868cbef7b3e02 ui\resources\fingerprint.ico
 H-a15e22b7db4a23fc50083c5bff108e1d updater\__init__.py
 H-fb321681d0384c367ce5ffeaff13e56d updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
