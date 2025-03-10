@@ -4,11 +4,10 @@
 
 from typing import Type
 
-from authentication.methods import AuthMethod
 from generated.ui_generated_auth_method_dialog import Ui_GetAuthMethodDialog  # type: ignore[attr-defined]
-from helpers.config_manager import ConfigManager
+from handlers.authentication.methods import AuthMethod
 from helpers.ui_helpers.pm.dialogs.dialog_base import DialogBase, SupportsSetupUi
-from settings import TOOL_CONFIG_FILE
+from helpers.user_preferences import UserPreferencesAccessor
 
 
 class AuthMethodDialog(DialogBase[AuthMethod, Ui_GetAuthMethodDialog]):
@@ -16,7 +15,7 @@ class AuthMethodDialog(DialogBase[AuthMethod, Ui_GetAuthMethodDialog]):
 
     def __init__(self, current_method_name: str | None = None) -> None:
         super().__init__()
-        self._current_method_name = current_method_name or ConfigManager.get_config().auth_method.value
+        self._current_method_name = current_method_name or UserPreferencesAccessor.get().auth_method.value
 
     @property
     def skeleton(self) -> Type[SupportsSetupUi]:
@@ -33,13 +32,18 @@ class AuthMethodDialog(DialogBase[AuthMethod, Ui_GetAuthMethodDialog]):
                 self._data = method
                 break
 
-        if self._data == ConfigManager.get_config().auth_method:
+        if self._data == UserPreferencesAccessor.get().auth_method:
             self._data = None
 
         self.close()
 
     def configure(self) -> None:
         for method in AuthMethod:
+            if method == AuthMethod.FACE_RECOGNITION:
+                # Face recognition is not supported by windows yet.
+                # https://learn.microsoft.com/en-us/windows/win32/secbiomet/winbio-biometric-type-constants
+                # Only WINBIO_TYPE_FINGERPRINT is currently supported.
+                continue
             self._ui.comboBox.addItem(method.value)
 
         self._ui.comboBox.setCurrentText(self._current_method_name)

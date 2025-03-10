@@ -2,29 +2,38 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "env": {"SECURITY_BYPASS_MK":"test", "SECURITY_BYPASS_DEBUG": "1"},
+            "env": {"SECURITY_BYPASS_AUTHENTICATION_KEY":"test", "SECURITY_BYPASS_DEBUG": "1", "SECURITY_BYPASS_SKIP_UPDATE": "1"},
             "justMyCode": true
         },
         {
             "name": "Python: Security Bypass",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "security_bypass.py",
             "console": "integratedTerminal",
-            "env": {"SECURITY_BYPASS_MK":"test", "SECURITY_BYPASS_DEBUG": "1"},
+            "env": {"SECURITY_BYPASS_AUTHENTICATION_KEY":"test", "SECURITY_BYPASS_DEBUG": "1", "SECURITY_BYPASS_SKIP_UPDATE": "1"},
             "justMyCode": true
         },
         {
+            "name": "Python: Password Manager",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "password_manager.py",
+            "console": "integratedTerminal",
+            "env": {"SECURITY_BYPASS_AUTHENTICATION_KEY":"test", "SECURITY_BYPASS_DEBUG": "1", "SECURITY_BYPASS_SKIP_UPDATE": "1"},
+            "justMyCode": false
+        },
+        {
             "name": "Python: Security Bypass Tray",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "security_bypass_tray.py",
             "console": "integratedTerminal",
-            "env": {"SECURITY_BYPASS_DEBUG": "1"},
+            "env": {"SECURITY_BYPASS_AUTHENTICATION_KEY":"test", "SECURITY_BYPASS_DEBUG": "1", "SECURITY_BYPASS_SKIP_UPDATE": "1"},
             "justMyCode": true
         }
     ]

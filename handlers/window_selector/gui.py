@@ -15,12 +15,12 @@ except ImportError:
 
 from common.tools import focus_window, get_position, get_window_by_hwnd
 from config.config import WindowData
-from select_window_info.base import SelectWindowInfoBase
-from select_window_info.multithread_support import main_execute, thread_execute
+from handlers.window_selector.base import WindowSelectorInterface
+from handlers.window_selector.multithread_support import main_execute, thread_execute
 
 
-class _GUISelectWindowInfoHelper:
-    """helper class for GUISelectWindowInfo"""
+class _WindowSelectorGUIHelper:
+    """helper class for WindowSelectorGUI"""
 
     def __init__(self) -> None:
         self._index: str | None = None
@@ -77,8 +77,12 @@ class _GUISelectWindowInfoHelper:
         if self._root is None:
             return
 
-        self._index = self._listbox.tree.selection()[0]
-        self._send_enter = self._send_enter_checkbox.get()
+        try:
+            self._index = self._listbox.tree.selection()[0]
+        except IndexError:
+            self._index = None
+        else:
+            self._send_enter = self._send_enter_checkbox.get()
 
         self._root.destroy()
         self._root = None
@@ -104,7 +108,7 @@ class _GUISelectWindowInfoHelper:
         self._root.after(500, lambda: self.__update_loop(window))
 
 
-class GUISelectWindowInfo(SelectWindowInfoBase):
+class WindowSelectorGUI(WindowSelectorInterface):
     """Select the window by using tkinter GUI"""
 
     @property
@@ -117,8 +121,8 @@ class GUISelectWindowInfo(SelectWindowInfoBase):
 
         if self.supports_thread:
             return thread_execute(__file__, window_hwnd, windows_data)
-        return _GUISelectWindowInfoHelper().select(window_hwnd, windows_data)
+        return _WindowSelectorGUIHelper().select(window_hwnd, windows_data)
 
 
 if __name__ == "__main__":
-    main_execute(_GUISelectWindowInfoHelper())
+    main_execute(_WindowSelectorGUIHelper())

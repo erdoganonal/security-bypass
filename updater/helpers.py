@@ -2,10 +2,7 @@
 
 import enum
 import hashlib
-import os
 import shutil
-import subprocess
-import sys
 import tempfile
 import time
 from dataclasses import dataclass
@@ -16,19 +13,12 @@ from typing import Callable, Dict, Generator, List, Type
 
 import requests
 
-_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME = "UPDATER_LOOP_PREVENTION"
+from common.tools import check_update_loop_guard_enabled
+from handlers.notification.base import NotificationController, NotifyType
+from package_builder.registry import PBId, PBRegistry
+from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE
+
 _SLEEP_SECS_BETWEEN_RETRIES = 10
-
-
-def restart() -> None:
-    """restart the application"""
-
-    try:
-        # pylint: disable=consider-using-with
-        subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME: "1"})
-    except KeyboardInterrupt:
-        pass
-    sys.exit(0)
 
 
 class ModifyType(enum.Enum):
@@ -37,15 +27,6 @@ class ModifyType(enum.Enum):
     ADD = "A"
     REMOVE = "D"
     MODIFY = "M"
-
-
-class NotifyType(enum.Enum):
-    """Notification type."""
-
-    DEBUG = enum.auto()
-    INFO = enum.auto()
-    QUESTION = enum.auto()
-    ERROR = enum.auto()
 
 
 def cli_user_notify_callback(message: str, kind: NotifyType) -> bool:
@@ -82,11 +63,7 @@ class _NotificationManager:
 class UpdateHelper:
     """Helper class for updating the application."""
 
-    def __init__(
-        self, raw_remote_url: str, hash_file_path: str, user_notify_callback: Callable[[str, NotifyType], bool] = cli_user_notify_callback
-    ):
-        self.raw_remote_url = raw_remote_url
-        self.hash_file_path = hash_file_path
+    def __init__(self, user_notify_callback: Callable[[str, NotifyType], bool] = cli_user_notify_callback):
         self._update_list: List[str] | None = None
         self._downloaded_files: Dict[str, Path] = {}
         self._notification_manager = _NotificationManager(user_notify_callback)
@@ -184,7 +161,7 @@ class UpdateHelper:
         self._notification_manager.notify("Checking for updates...", NotifyType.DEBUG)
 
         if self._update_list is None:
-            self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{self.raw_remote_url}/{self.hash_file_path}")]
+            self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}")]
 
         if not self._update_list:
             self._notification_manager.notify("No updates available.", NotifyType.DEBUG)
@@ -205,10 +182,10 @@ class UpdateHelper:
 
         for file in self._update_list[:]:
             file_replaced = file.replace("\\", "/")
-            self._notification_manager.notify(f"downloading: {self.raw_remote_url}/{file_replaced}", NotifyType.DEBUG)
+            self._notification_manager.notify(f"downloading: {RAW_REMOTE_URL}/{file_replaced}", NotifyType.DEBUG)
 
             temp_location = download_temp_dir / file
-            self.download_single_file(f"{self.raw_remote_url}/{file_replaced}", temp_location)
+            self.download_single_file(f"{RAW_REMOTE_URL}/{file_replaced}", temp_location)
 
             self._backup(file)
 
@@ -262,19 +239,22 @@ class UpdateHelper:
                 pass
 
 
-# pylint: disable=too-many-arguments
 def check_for_updates(
-    raw_remote_url: str,
-    hash_file_path: str,
-    user_notify_callback: Callable[[str, NotifyType], bool] = cli_user_notify_callback,
+    user_notify_callback: Callable[[str, NotifyType], bool] | None = None,
     max_retries: int = 5,
     report_error: bool = True,
     force_check: bool = False,
 ) -> bool | None:
     """Check for updates and notify the user if there are any."""
 
-    if not force_check and os.getenv(_UPDATE_LOOP_PREVENTION_ENV_VAR_NAME):
+    if not force_check and check_update_loop_guard_enabled():
         return None
 
-    with UpdateHelper(raw_remote_url, hash_file_path, user_notify_callback) as updater:
+    if user_notify_callback is None:
+        try:
+            user_notify_callback = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).updater_callback
+        except KeyError:
+            user_notify_callback = cli_user_notify_callback
+
+    with UpdateHelper(user_notify_callback) as updater:
         return updater.check_for_updates(max_retries, report_error)

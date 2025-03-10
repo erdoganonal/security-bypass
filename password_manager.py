@@ -3,21 +3,25 @@
 # pylint: disable=c-extension-no-member
 
 import sys
-import warnings
 from typing import Any
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
+from common import exceptions
 from common.exit_codes import ExitCodes
-from common.tools import check_single_instance
+from common.tools import check_config_file, check_single_instance, restart_as_admin
 from config.config import Config, ConfigManager, WindowData
-from config.config_key_manager import check_config_file, validate_and_get_mk
 from generated.ui_generated_main import Ui_MainWindow  # type: ignore[attr-defined]
+from handlers.authentication.base import AuthenticationController
+from handlers.notification.base import NotificationController
+from handlers.notification.gui import NotificationGUI
+from handlers.window_selector.base import WindowSelectorController
+from handlers.window_selector.pyqt_gui import WindowSelectorPyQtGUI
 from helpers.ui_helpers.altered import QStandardPasskeyItem
 from helpers.ui_helpers.pm.handlers.signal_handler import SignalHandler
-from notification_handler.gui import GUINotificationHandler
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+from helpers.user_preferences import UserPreferencesAccessor
+from logger import initialize as logger_initialize
+from package_builder.registry import PBId, PBRegistry
 
 
 class Hooks:
@@ -63,7 +67,7 @@ class PasswordManagerUI:
     """a UI to manage the passwords"""
 
     def __init__(self) -> None:
-        self._notification_handler = GUINotificationHandler()
+        self._notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
 
         self._config_mgr: ConfigManager
         self._config: Config
@@ -104,24 +108,24 @@ class PasswordManagerUI:
         self._handler.load_window_config(self.ui.tree.currentIndex())
 
     def _get_config_manager(self) -> None:
+        key = PBRegistry.get_typed(PBId.AUTHENTICATION_HANDLER, AuthenticationController).get_master_key()
+
+        self._config_mgr = ConfigManager(key=key)
+
         try:
             check_config_file()
-
-            self._config_mgr = ConfigManager(key=validate_and_get_mk())
-            self._config = self._config_mgr.get_config()
-        except ValueError:
-            self._notification_handler.error("Cannot load configurations. The Master Key is wrong.")
-            ExitCodes.WRONG_MASTER_KEY.exit()
-        except KeyError as err:
-            self._notification_handler.error(err.args[0])
-            ExitCodes.EMPTY_MASTER_KEY.exit()
-        except FileNotFoundError:
+        except exceptions.ConfigFileNotFoundError:
             # Initial usage, create an empty config file
-            self._config_mgr = ConfigManager(key=validate_and_get_mk(prompt="Please enter a Master Key to encrypt your passkeys."))
             self._config = Config([])
             self._config_mgr.save_config(self._config)
 
-            self._notification_handler.info("The credentials file created.")
+            self._notification_controller.info("The credentials file created.")
+
+        try:
+            self._config = self._config_mgr.get_config()
+        except ValueError:
+            self._notification_controller.error("Cannot load configurations. The Master Key is wrong.")
+            ExitCodes.WRONG_MASTER_KEY.exit()
 
     def change_master_key(self, new: str) -> bool:
         """change the master key"""
@@ -277,6 +281,22 @@ class PasswordManagerUI:
 
 
 if __name__ == "__main__":
+    logger_initialize()
     check_single_instance()
 
-    PasswordManagerUI().loop()
+    USER_PREFERENCES = UserPreferencesAccessor.get()
+    if USER_PREFERENCES.auth_method.is_admin_rights_required:
+        restart_as_admin()
+
+    PBRegistry.register(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))
+    PBRegistry.register(PBId.SELECT_WINDOW, WindowSelectorController(WindowSelectorPyQtGUI()))
+    PBRegistry.register(PBId.AUTHENTICATION_HANDLER, AuthenticationController(USER_PREFERENCES.auth_method))
+    PBRegistry.check_all_registered()
+
+    try:
+        PasswordManagerUI().loop()
+    except exceptions.ToolError as e:
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).error(e.message, title="Error occurred.")
+        e.exit()
+
+    ExitCodes.SUCCESS.exit()

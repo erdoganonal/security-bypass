@@ -6,16 +6,17 @@ from typing import TYPE_CHECKING
 
 from PyQt6 import QtWidgets
 
-from authentication import fingerprint
-from authentication.methods import AuthMethod
+from common.tools import is_user_admin, restart_as_admin
 from config.config import ConfigManager
-from helpers.config_manager import ConfigManager as ToolConfigManager
+from handlers.authentication import face_recognition, fingerprint
+from handlers.authentication.methods import AuthMethod
 from helpers.ui_helpers.constants import TITLE_PASSWORD_MANAGER as TITLE
 from helpers.ui_helpers.notification import Notification
 from helpers.ui_helpers.pm.dialogs.auth_method import AuthMethodDialog
 from helpers.ui_helpers.pm.dialogs.import_config import ImportConfigDialog
 from helpers.ui_helpers.pm.dialogs.password import PasswordDialog
-from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, TOOL_CONFIG_FILE, VERSION
+from helpers.user_preferences import UserPreferencesAccessor
+from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, USER_PREFERENCES_FILE, VERSION
 
 if TYPE_CHECKING:
     from password_manager import PasswordManagerUI
@@ -72,40 +73,43 @@ class MenuActionHandler:
 
         Notification.show_info(self._manager.ui.tree, "The configuration exported successfully", "Export Successful")
 
+    def _handle_admin_request(self, auth_method: AuthMethod) -> None:
+        """Ask user to restart the application"""
+        if Notification.ask_yes_no(
+            self._manager.ui.tree,
+            f"Admin privileges are required to read the {auth_method.value}.",
+            "Admin Privileges Required",
+            info="Do you want to restart the application?",
+        ):
+            if qt_instance := QtWidgets.QApplication.instance():
+                qt_instance.quit()
+            restart_as_admin()
+
     def change_master_key_dialog(self, auth_method: AuthMethod | None = None) -> None:
         """open a dialog window and ask user to enter a new master key"""
 
-        auth_method = auth_method or ToolConfigManager.get_config().auth_method
+        auth_method = auth_method or UserPreferencesAccessor.get().auth_method
 
         password: str | None = None
-        if auth_method == AuthMethod.PASSWORD:
-            password = PasswordDialog().get()
-        elif auth_method == AuthMethod.FINGERPRINT:
-            if not Notification.ask_yes_no(
-                self._manager.ui.tree,
-                "Admin privileges are required to read the fingerprint.",
-                "Admin Privileges Required",
-                info="Do you want to continue?",
-            ):
-                self.change_auth_method_dialog(auth_method.value)
-                return
-            result = fingerprint.get_fingerprint_result()
+        if auth_method is not None:
+            if auth_method.is_admin_rights_required and not is_user_admin():
+                self._handle_admin_request(auth_method)
+
+            result = auth_method.get_auth_result()
             if result["error_code"] != 0:
                 Notification.show_error(
                     self._manager.ui.tree,
                     result["error"],
-                    "Fingerprint Error",
+                    f"{auth_method.value} Error",
                     info=f"Error Code: {result['error_code']}",
                 )
                 return
             password = result["hash"]
-        else:
-            raise ValueError(f"Unknown auth method: {auth_method}")
 
         if password is None:
             return
 
-        ToolConfigManager.partial_save(TOOL_CONFIG_FILE, auth_method=auth_method)
+        UserPreferencesAccessor.partial_save(USER_PREFERENCES_FILE, auth_method=auth_method)
 
         if self._manager.change_master_key(password):
             Notification.show_info(self._manager.ui.tree, "The master key changed successfully", "Master Key Changed")

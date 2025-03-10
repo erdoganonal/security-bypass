@@ -1,7 +1,11 @@
 """Common function/methods"""
 
+import ctypes
 import os
+import subprocess
+import sys
 from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING, Type
 
 import psutil
@@ -10,9 +14,10 @@ from pygetwindow import Win32Window  # type: ignore[import-untyped]
 from screeninfo import get_monitors
 from tendo import singleton
 
+from common.exceptions import ConfigFileNotFoundError
 from common.exit_codes import ExitCodes
-from settings import DBG_ENV_NAME, WRAPPER_FILE
-from updater.helpers import restart
+from logger import logger
+from settings import CREDENTIALS_FILE, ENV_NAME_DEBUG, ENV_NAME_SKIP_UPDATE, WRAPPER_FILE
 
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
@@ -24,7 +29,7 @@ _GLOBAL = {}
 def is_debug_enabled() -> bool:
     """Return the debug status"""
 
-    return bool(os.getenv(DBG_ENV_NAME, None))
+    return bool(os.getenv(ENV_NAME_DEBUG, None))
 
 
 def is_windows_locked() -> bool:
@@ -34,36 +39,6 @@ def is_windows_locked() -> bool:
         if proc.name() == "LogonUI.exe":
             return True
     return False
-
-
-class InplaceInt:
-    """an integer that the value of it can be changed(mutable)"""
-
-    def __init__(self, value: int = 0) -> None:
-        self._value = value
-
-    def get(self) -> int:
-        """return the value of this instance"""
-
-        return self._value
-
-    def set(self, value: int = 0) -> None:
-        """set the value to given one"""
-
-        self._value = value
-
-    def get_and_increment(self, by: int = 0) -> int:
-        """return the value and increment by given value"""
-
-        value = self._value
-        self._value += by
-        return value
-
-    def increment_and_get(self, by: int = 0) -> int:
-        """increment by given value and return"""
-
-        self._value += by
-        return self._value
 
 
 def split_long_string(input_string: str, max_length: int) -> str:
@@ -105,7 +80,17 @@ def check_single_instance() -> None:
     try:
         _GLOBAL["singleton"] = singleton.SingleInstance()  # type: ignore[no-untyped-call]
     except singleton.SingleInstanceException:
+        logger.error("Another instance is already running.")
         ExitCodes.ALREADY_RUNNING.exit()
+
+
+def reset_single_instance() -> None:
+    """Reset the single instance"""
+
+    try:
+        del _GLOBAL["singleton"]
+    except KeyError:
+        pass
 
 
 def get_window_by_hwnd(hwnd: int) -> Win32Window | None:
@@ -242,3 +227,63 @@ except Exception as e:
 
     with open(WRAPPER_FILE, "w", encoding="utf-8") as wrapper_fd:
         wrapper_fd.write(content)
+
+
+def restart() -> None:
+    """restart the application"""
+
+    try:
+        # pylint: disable=consider-using-with
+        subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {ENV_NAME_SKIP_UPDATE: "1"})
+    except KeyboardInterrupt:
+        pass
+
+    ExitCodes.SUCCESS.exit()
+
+
+def check_update_loop_guard_enabled() -> bool:
+    """Check if the update loop guard is enabled"""
+
+    return bool(os.getenv(ENV_NAME_SKIP_UPDATE, None))
+
+
+def is_user_admin() -> bool:
+    """Check if the user has administrative privileges."""
+
+    return ctypes.windll.shell32.IsUserAnAdmin() != 0  # type: ignore[no-any-return]
+
+
+def restart_as_admin() -> None:
+    """restart the application as admin"""
+
+    if is_user_admin():
+        return
+
+    exe_path = Path(sys.executable)
+    if is_debug_enabled():
+        exe_path = exe_path.parent / "python.exe"
+    else:
+        exe_path = exe_path.parent / "pythonw.exe"
+    exe_path = exe_path.parent / "pythonw.exe"
+
+    logger.warning("Restarting as admin: %s", exe_path)
+    logger.debug("Command: %s %s %s %s", os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0])
+
+    reset_single_instance()
+
+    try:
+        subprocess.check_output(
+            [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0]],
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(e.output)
+        ExitCodes.RESTARTED_AS_ADMIN.exit()
+
+    ExitCodes.SUCCESS.exit()
+
+
+def check_config_file() -> None:
+    """Check if the config file exists"""
+    if not CREDENTIALS_FILE.exists():
+        raise ConfigFileNotFoundError("The credentials file does not exist. Use 'password_manager.py' to create it.")

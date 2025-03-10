@@ -5,7 +5,7 @@
     @goto :EOF
 )
 cd %1
-start /B %2 -m authentication %3
+start /B %2 %3
 @goto :EOF
 @end @ELSE
 var ShA = new ActiveXObject("Shell.Application");

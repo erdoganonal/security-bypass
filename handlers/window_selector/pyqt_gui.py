@@ -1,6 +1,7 @@
 """show an dialog popup to the user and let them pick a password"""
 
 # pylint: disable=c-extension-no-member
+import os
 from typing import Sequence
 
 from pygetwindow import PyGetWindowException, Win32Window  # type: ignore[import-untyped]
@@ -15,11 +16,16 @@ except ImportError:
 from common.tools import focus_window, get_position, get_window_by_hwnd
 from config.config import WindowData
 from generated.ui_generated_get_passkey_dialog import Ui_PasskeyDialog  # type: ignore[attr-defined]
-from select_window_info.base import SelectWindowInfoBase
-from select_window_info.multithread_support import main_execute, thread_execute
+from handlers.window_selector.base import WindowSelectorInterface
+from handlers.window_selector.multithread_support import main_execute, thread_execute
+
+# to get rid of the warning:
+# qt.qpa.window: SetProcessDpiAwarenessContext() failed: The operation completed successfully.
+# below line is added
+os.environ["QT_LOGGING_RULES"] = "qt.qpa.window=false"
 
 
-class _PyQtGUISelectWindowInfoHelper:
+class _WindowSelectorPyQtGUIHelper:
     """Select the window by using PyQt GUI"""
 
     def __init__(self) -> None:
@@ -113,7 +119,7 @@ class _PyQtGUISelectWindowInfoHelper:
         self._app.exec()
 
 
-class PyQtGUISelectWindowInfo(SelectWindowInfoBase):
+class WindowSelectorPyQtGUI(WindowSelectorInterface):
     """Select the window by using PyQt GUI"""
 
     @property
@@ -125,9 +131,9 @@ class PyQtGUISelectWindowInfo(SelectWindowInfoBase):
             return None
 
         # even if the operation runs in main thread, the pyqt gui acts strangely.
-        # to overcome this, there is no direct call for _PyQtGUISelectWindowInfoHelper.select
+        # to overcome this, there is no direct call for _WindowSelectorPyQtGUIHelper.select
         return thread_execute(__file__, window_hwnd, windows_data)
 
 
 if __name__ == "__main__":
-    main_execute(_PyQtGUISelectWindowInfoHelper())
+    main_execute(_WindowSelectorPyQtGUIHelper())

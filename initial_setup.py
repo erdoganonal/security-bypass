@@ -7,7 +7,7 @@ from getpass import getpass
 from pathlib import Path
 from typing import NoReturn, overload
 
-from settings import DFT_ENCODING, MK_ENV_NAME
+from settings import DFT_ENCODING, ENV_NAME_AUTH_KEY
 
 try:
     import win32api
@@ -15,9 +15,8 @@ try:
 
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
-    from common.tools import restart
+    from common.tools import check_config_file, restart
     from config.config import Config, ConfigManager
-    from config.config_key_manager import check_config_file
 except ImportError:
     RESTART = True
 else:
@@ -281,7 +280,7 @@ def initial_setup() -> None:
     InputOutputHelper.info("\nan empty configuration file has been created.\n")
 
     create_pw_manager_link()
-    subprocess.check_output(f"{sys.executable} password_manager.py", env=os.environ | {MK_ENV_NAME: key})
+    subprocess.check_output(f"{sys.executable} password_manager.py", env=os.environ | {ENV_NAME_AUTH_KEY: key})
 
 
 def rollback() -> None:
