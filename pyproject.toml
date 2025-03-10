@@ -13,7 +13,7 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 dynamic = ["dependencies"]
 
 [tool.setuptools]
-packages = ["config", "select_window_info", "notification_handler", "common"]
+packages = ["common", "communication", "config", "exclusion", "generated", "handlers", "helpers", "updater"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }

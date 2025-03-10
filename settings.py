@@ -3,11 +3,11 @@
 from pathlib import Path
 
 CURRENT_DIR = Path(__file__).parent
-CONFIG_PATH = Path("~").expanduser() / ".security_bypass"
+CONFIG_PATH = Path("~").expanduser() / ".security_bypass_dev"
 CREDENTIALS_FILE = CONFIG_PATH / ".credentials"
 
 WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
-TOOL_CONFIG_FILE = CONFIG_PATH / ".config.json"
+USER_PREFERENCES_FILE = CONFIG_PATH / ".config.json"
 
 DATA_DIR = CURRENT_DIR / "data"
 
@@ -16,20 +16,19 @@ SECURITY_BYPASS_ICON = DATA_DIR / "security_bypass.ico"
 VERSION = "1.1.0"
 
 DFT_ENCODING = "utf-8"
-MK_REQUEST_PARAM = "--mk-cli-request"
-MK_ENV_NAME = "SECURITY_BYPASS_MK"
-DBG_ENV_NAME = "SECURITY_BYPASS_DEBUG"
-
-GUI = True
+ENV_NAME_AUTH_KEY = "SECURITY_BYPASS_AUTHENTICATION_KEY"
+ENV_NAME_DEBUG = "SECURITY_BYPASS_DEBUG"
+ENV_NAME_SKIP_UPDATE = "SECURITY_BYPASS_SKIP_UPDATE"
 
 MIN_SLEEP_SECS_AFTER_KEY_SENT = 3
 MAX_KEY_SENT_ATTEMPTS = 10
 
 ASK_PASSWORD_ON_LOCK = False
 
-PYQT_UI = True
-
 DEBUG = True
+
+RAW_REMOTE_URL = "https://raw.github.com/erdoganonal/security-bypass/main"
+UPDATER_HASH_FILE = ".updater.hashes"
 
 ABOUT_MESSAGE = """Password Manager - Security Bypass
 Developed by Erdoğan Önal

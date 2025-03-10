@@ -51,13 +51,13 @@ class WindowData:
 
         try:
             self.title_pattern = re.compile(self.title)
-        except TypeError:
+        except (TypeError, re.error):
             pass
 
         try:
             if self.auto_key_trigger:
                 self.auto_key_trigger_pattern = re.compile(self.auto_key_trigger)
-        except TypeError:
+        except (TypeError, re.error):
             pass
 
     def to_dict(self) -> ConfigDict:

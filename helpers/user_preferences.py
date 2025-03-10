@@ -5,18 +5,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from authentication.methods import AuthMethod
-from settings import TOOL_CONFIG_FILE
+from handlers.authentication.methods import AuthMethod
+from settings import USER_PREFERENCES_FILE
 
 
 @dataclass
-class Config:
-    """Configuration data class."""
+class UserPreferences:
+    """UserPreferences data class."""
 
-    auto_start: bool
-    auto_update: bool
-    repeated_window_protection: bool
-    auth_method: AuthMethod
+    auto_start: bool = True
+    auto_update: bool = True
+    repeated_window_protection: bool = True
+    auth_method: AuthMethod = AuthMethod.PASSWORD
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the data to a dictionary."""
@@ -28,7 +28,7 @@ class Config:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Config":
+    def from_dict(cls, data: dict[str, Any]) -> "UserPreferences":
         """Create an instance from a dictionary."""
         return cls(
             auto_start=data["auto_start"],
@@ -38,13 +38,13 @@ class Config:
         )
 
 
-class ConfigManager:
-    """Manager for configuration files."""
+class UserPreferencesAccessor:
+    """Accessor for configuration files."""
 
-    _CONFIG: Config | None = None
+    _USER_PREFERENCES: UserPreferences | None = None
 
     @staticmethod
-    def save(file_path: str | Path, data: Config) -> None:
+    def save(file_path: str | Path, data: UserPreferences) -> None:
         """
         Save data to a JSON file.
 
@@ -68,7 +68,7 @@ class ConfigManager:
         cls.save(file_path, config)
 
     @classmethod
-    def load(cls, file_path: str | Path = TOOL_CONFIG_FILE) -> Config:
+    def load(cls, file_path: str | Path = USER_PREFERENCES_FILE) -> UserPreferences:
         """
         Load data from a JSON file.
 
@@ -77,19 +77,19 @@ class ConfigManager:
         """
 
         if not Path(file_path).exists():
-            cls._CONFIG = Config(auto_start=True, auto_update=True, repeated_window_protection=True, auth_method=AuthMethod.PASSWORD)
-            return cls._CONFIG
+            cls._USER_PREFERENCES = UserPreferences()
+            return cls._USER_PREFERENCES
 
         with open(file_path, "r", encoding="utf-8") as f:
             config_dict = json.load(f)
 
-        cls._CONFIG = Config.from_dict(config_dict)
-        return cls._CONFIG
+        cls._USER_PREFERENCES = UserPreferences.from_dict(config_dict)
+        return cls._USER_PREFERENCES
 
     @classmethod
-    def get_config(cls, force_reload: bool = False) -> Config:
+    def get(cls, force_reload: bool = False) -> UserPreferences:
         """Get the configuration data."""
-        if cls._CONFIG is None or force_reload:
+        if cls._USER_PREFERENCES is None or force_reload:
             return cls.load()
 
-        return cls._CONFIG
+        return cls._USER_PREFERENCES

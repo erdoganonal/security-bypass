@@ -12,84 +12,73 @@ import pyautogui
 import pyperclip  # type: ignore[import-untyped]
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
+from common import exceptions
 from common.auto_key_trigger_manager import AutoKeyTriggerManager
 from common.exit_codes import ExitCodes
 from common.ignored_window_handler import IgnoredWindowsHandler
 from common.tools import (
-    InplaceInt,
+    check_config_file,
     check_single_instance,
     complete_update,
     extract_text_from_window,
     get_password_length,
     get_window_hwnd,
     is_windows_locked,
+    restart_as_admin,
 )
 from communication import data_sharing
 from config import ConfigManager
 from config.config import WindowData
-from config.config_key_manager import FROM_ENV, NOT_SET, check_config_file, validate_and_get_mk
-from helpers.config_manager import ConfigManager as ToolConfigManager
-from notification_handler.base import NotificationHandlerBase
-from notification_handler.cli import CLINotificationHandler
-from notification_handler.gui import GUINotificationHandler
-from password_manager import __name__ as pwd_manager_name
-from select_window_info.base import SelectWindowInfoBase
-from select_window_info.cli import CLISelectWindowInfo
-from select_window_info.gui import GUISelectWindowInfo
-from select_window_info.pyqt_gui import PyQtGUISelectWindowInfo
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, GUI, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT, PYQT_UI
+from handlers.authentication.base import AuthenticationController
+from handlers.notification.base import NotificationController
+from handlers.notification.gui import NotificationGUI
+from handlers.window_selector.base import WindowSelectorController
+from handlers.window_selector.pyqt_gui import WindowSelectorPyQtGUI
+from helpers.user_preferences import UserPreferencesAccessor
+from logger import initialize as logger_initialize
+from logger import logger
+from package_builder.registry import PBId, PBRegistry
+from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT
 from updater.helpers import check_for_updates
 
 SLEEP_SECS = 1
 
 TEMP_WARNING_TIMEOUT = 150
-if GUI:
-    TEMP_WARNING_AUTO_CLOSE_MSG = (
-        f"\n\nThis message will be deleted after {TEMP_WARNING_TIMEOUT} seconds and the password selection window will be opened."
-    )
-else:
-    TEMP_WARNING_AUTO_CLOSE_MSG = ""
+TEMP_WARNING_AUTO_CLOSE_MSG = (
+    f"\n\nThis message will be deleted after {TEMP_WARNING_TIMEOUT} seconds and the password selection window will be opened."
+)
 
 
 def main() -> None:
     """starts from here"""
-    select_window, notification_handler = get_security_bypass_params()
+    logger_initialize()
 
-    if check_for_updates(
-        "https://raw.github.com/erdoganonal/security-bypass/main",
-        ".updater.hashes",
-        notification_handler.updater_callback,
-        max_retries=5,
-        report_error=False,
-    ):
+    user_preferences = UserPreferencesAccessor.get()
+    if user_preferences.auth_method.is_admin_rights_required:
+        restart_as_admin()
+
+    PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))
+    PBRegistry.register_safe(PBId.SELECT_WINDOW, WindowSelectorController(WindowSelectorPyQtGUI()))
+    PBRegistry.register_safe(PBId.AUTHENTICATION_HANDLER, AuthenticationController(user_preferences.auth_method))
+
+    PBRegistry.check_all_registered()
+
+    if check_for_updates(report_error=False):
         complete_update()
 
-    security_bypass = SecurityBypass(select_window, notification_handler)
-    security_bypass.start()
+    security_bypass = SecurityBypass()
+    try:
+        security_bypass.start()
+    except exceptions.ToolError as e:
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).error(e.message, title="Error occurred.")
+        e.exit()
 
-
-def get_security_bypass_params() -> tuple[SelectWindowInfoBase, NotificationHandlerBase]:
-    """Get the parameters for the SecurityBypass class"""
-
-    notification_handler: NotificationHandlerBase
-    select_window: SelectWindowInfoBase
-
-    if GUI:
-        notification_handler = GUINotificationHandler()
-        if PYQT_UI:
-            select_window = PyQtGUISelectWindowInfo()
-        else:
-            select_window = GUISelectWindowInfo()
-    else:
-        select_window = CLISelectWindowInfo()
-        notification_handler = CLINotificationHandler(message_format="{message}")
-
-    return select_window, notification_handler
+    ExitCodes.SUCCESS.exit()
 
 
 @dataclass
 class _WindowData:
-    windows: List[WindowData]
+    windows: List[WindowData] = field(default_factory=list)
     window_hwnd_s: Set[int] = field(default_factory=set)
     ignored_windows_handler: IgnoredWindowsHandler = field(default_factory=IgnoredWindowsHandler)
     auto_key_trigger_manager: AutoKeyTriggerManager = field(default_factory=AutoKeyTriggerManager)
@@ -99,51 +88,50 @@ class SecurityBypass:
     """Allows you to save passwords and let you to bypass the windows security windows
     by entering the passwords automatically"""
 
-    def __init__(self, select_window: SelectWindowInfoBase, notification_handler: NotificationHandlerBase) -> None:
-        self._loop = False
-        self._window_selector = select_window
-        self._notification_handler = notification_handler
+    def __init__(self) -> None:
+        self._is_running = False
         self.__key: bytes | None = None
 
         self._credential_file_modified_time = 0.0
-        self._window_data = _WindowData(windows=self.__get_windows())
+        self._window_data = _WindowData()
+
+        key_tracker = data_sharing.Informer(data_sharing.KEY_TRACKER_PORT)
+        key_tracker.add_callback(self._on_master_key_change)
+        key_tracker.start_server()
 
     def _on_master_key_change(self, data: bytes) -> None:
         self.__key = data
+        logger.info("Master key has been changed.")
 
     def _exit(self, exit_code: ExitCodes) -> NoReturn:
-        self._loop = False
+        logger.debug("Exiting the application.")
+        self._is_running = False
         exit_code.exit()
 
     def _set_temp_timeout(self) -> None:
-        if isinstance(self._notification_handler, GUINotificationHandler):
-            self._notification_handler.set_temp_timeout(TEMP_WARNING_TIMEOUT * 1000)
+        notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
+        if isinstance(notification_controller, NotificationGUI):
+            notification_controller.set_temp_timeout(TEMP_WARNING_TIMEOUT * 1000)
 
-    def __get_windows(self, show_error: bool = True) -> List[WindowData]:
-        which = InplaceInt()
+    def _load_config(self) -> None:
+        logger.debug("Loading the config file.")
+        check_config_file()
 
-        while True:
-            try:
-                which.set(NOT_SET)
-                self.__key = self.__key or validate_and_get_mk(which=which)
-                check_config_file()
-                return ConfigManager(key=self.__key).get_config().windows
-            except ValueError:
-                self.__key = None
-                if show_error:
-                    self._notification_handler.critical("Cannot load configurations. The Master Key is wrong.")
-                if which.get() == FROM_ENV:
-                    # if the passkey is coming from the environment variable, and it was wrong;
-                    # do not try to get it. It goes endless loop, otherwise.
-                    self._exit(ExitCodes.WRONG_MASTER_KEY)
-                show_error = True
-                continue
-            except KeyError as err:
-                self._notification_handler.error(err.args[0])
-                self._exit(ExitCodes.EMPTY_MASTER_KEY)
-            except FileNotFoundError:
-                self._notification_handler.error(f"The credentials file does not exist. Use '{pwd_manager_name}' to create it.")
-                self._exit(ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST)
+        self.__key = self.__key or PBRegistry.get_typed(PBId.AUTHENTICATION_HANDLER, AuthenticationController).get_master_key()
+
+        if not self.__key:
+            raise exceptions.EmptyMasterKeyError("The master key is empty.")
+
+        if not isinstance(self.__key, bytes):
+            raise exceptions.WrongMasterKeyFormat(f"The master key's type invalid. Expected 'bytes' got '{self.__key.__class__.__name__}'.")
+
+        try:
+            self._window_data.windows = ConfigManager(key=self.__key).get_config().windows
+        except ValueError as exc:
+            raise exceptions.WrongMasterKeyError("The master key is incorrect.") from exc
+
+        self._credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
+        logger.info("Config file has been loaded successfully.")
 
     def _sleep(self, secs: int = 0) -> None:
         if secs == 0:
@@ -152,7 +140,7 @@ class SecurityBypass:
             raise ValueError("Time travel did not invent yet!")
 
         sleep_secs = 0
-        while sleep_secs < secs and self._loop:
+        while sleep_secs < secs and self._is_running:
             sleep_secs += 1
             time.sleep(1)
 
@@ -163,20 +151,28 @@ class SecurityBypass:
         while is_windows_locked():
             time.sleep(1)
 
-        self._notification_handler.warning("Windows is locked. The password must be provided.")
-        self._window_data.windows = self.__get_windows()
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Windows is locked. Authentication is required.")
+        self._load_config()
 
     def _reload_config_in_bg(self) -> None:
-        while self._loop:
+        while self._is_running:
             self._reload_if_required()
             time.sleep(1)
 
     def _reload_if_required(self) -> None:
         credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
         if credential_file_modified_time != self._credential_file_modified_time:
-            ToolConfigManager.load()
-            self._window_data.windows = self.__get_windows(show_error=False)
+            logger.debug("Config file has been modified. Reloading the config.")
+            UserPreferencesAccessor.load()
+            try:
+                self._load_config()
+            except exceptions.WrongMasterKeyError:
+                # this case should not happen. In case if happens for some reason,
+                # let's try to reload the config again in next cycle of background loader.
+                logger.error("Master key is incorrect. Trying to reload the config in the next cycle.")
+                return
             self._credential_file_modified_time = credential_file_modified_time
+            logger.info("Config file has been reloaded successfully.")
 
     @staticmethod
     @cache
@@ -192,10 +188,12 @@ class SecurityBypass:
             or (window_data.auto_key_trigger and window_data.auto_key_trigger in text)
         ]
 
+        notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
+
         if len(auto_detected) == 1:
             if self._window_data.auto_key_trigger_manager.is_already_triggered(auto_detected[0]):
-                if ToolConfigManager.get_config().repeated_window_protection:
-                    user_response = self._notification_handler.ask_yes_no(
+                if UserPreferencesAccessor.get().repeated_window_protection:
+                    user_response = notification_controller.ask_yes_no(
                         "The key has already been automatically sent to the window but either it didn't help.\n"
                         "This may be due to an incorrect password or a sync problem. "
                         "Please select the correct key from the list to avoid "
@@ -219,7 +217,7 @@ class SecurityBypass:
 
         if len(auto_detected) > 1:
             self._set_temp_timeout()
-            self._notification_handler.warning(
+            notification_controller.warning(
                 f"Multiple windows are detected for matching pattern {text}. Please select one manually." + TEMP_WARNING_AUTO_CLOSE_MSG,
                 title="Multiple Windows Detected",
             )
@@ -239,7 +237,7 @@ class SecurityBypass:
 
         self._window_data.window_hwnd_s.add(window_hwnd)
         if (window_data := self._auto_detect_passkey(window_hwnd, windows)) is None:
-            window_data = self._window_selector.select(window_hwnd, windows)
+            window_data = PBRegistry.get_typed(PBId.SELECT_WINDOW, WindowSelectorController).select(window_hwnd, windows)
 
         if window_data is None:
             self._window_data.ignored_windows_handler.ignore(window)
@@ -252,20 +250,16 @@ class SecurityBypass:
         self._window_data.window_hwnd_s.remove(window_hwnd)
 
     def _start(self) -> None:
-        self._loop = True
+        self._is_running = True
 
-        self._notification_handler.debug("The application has been started.")
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).debug("The application has been started.")
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
 
-        key_tracker = data_sharing.Informer(data_sharing.KEY_TRACKER_PORT)
-        key_tracker.add_callback(self._on_master_key_change)
-        key_tracker.start_server()
-
-        while self._loop:
+        while self._is_running:
             if ASK_PASSWORD_ON_LOCK:
                 self._handle_windows_lock()
 
-            if self._window_selector.supports_thread:
+            if PBRegistry.get_typed(PBId.SELECT_WINDOW, WindowSelectorController).supports_thread:
                 threading.Thread(target=self._select, daemon=True).start()
             else:
                 self._select()
@@ -273,27 +267,31 @@ class SecurityBypass:
             self._sleep()
 
     def start(self) -> None:
-        """start the window listener"""
+        """start the window listener in the background"""
+        self._load_config()
+
+        notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
+
         try:
             self._start()
         except KeyboardInterrupt:
-            self._notification_handler.warning("An interrupt detected. Terminating the app..")
+            notification_controller.warning("An interrupt detected. Terminating the app..")
         except Exception:  # pylint: disable=broad-exception-caught
             if DEBUG:
-                self._notification_handler.error(f"Unknown exception:: {traceback.format_exc()}", title="Unknown exception occurred.")
+                notification_controller.error(f"Unknown exception:: {traceback.format_exc()}", title="Unknown exception occurred.")
                 raise
             self._exit(ExitCodes.UNKNOWN)
 
-        self._notification_handler.info("The application has been terminated!")
+        notification_controller.info("The application has been stopped!")
 
     def stop(self) -> None:
         """stop the window listener"""
-        self._loop = False
+        self._is_running = False
 
     @property
     def is_running(self) -> bool:
         """Check if the window listener is running"""
-        return self._loop
+        return self._is_running
 
     @classmethod
     def focus_window(cls, window: Win32Window) -> None:

@@ -1,13 +1,12 @@
 """Select the window by using cli"""
 
-import sys
 from typing import Sequence
 
 from config.config import WindowData
-from select_window_info.base import SelectWindowInfoBase
+from handlers.window_selector.base import WindowSelectorInterface
 
 
-class CLISelectWindowInfo(SelectWindowInfoBase):
+class WindowSelectorCLI(WindowSelectorInterface):
     """Select the window by using cli"""
 
     @property
@@ -28,4 +27,4 @@ class CLISelectWindowInfo(SelectWindowInfoBase):
         try:
             return window_pin_rel[input("Select the password/pin from the list: ")]
         except KeyError:
-            sys.exit("Invalid pin/password name")
+            return None
