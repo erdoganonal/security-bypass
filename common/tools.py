@@ -253,7 +253,7 @@ def is_user_admin() -> bool:
     return ctypes.windll.shell32.IsUserAnAdmin() != 0  # type: ignore[no-any-return]
 
 
-def restart_as_admin() -> None:
+def restart_as_admin(*params: str) -> None:
     """restart the application as admin"""
 
     if is_user_admin():
@@ -267,13 +267,13 @@ def restart_as_admin() -> None:
     exe_path = exe_path.parent / "pythonw.exe"
 
     logger.warning("Restarting as admin: %s", exe_path)
-    logger.debug("Command: %s %s %s %s", os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0])
+    logger.debug("Command: %s %s %s %s %s", os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0], " ".join(params))
 
     reset_single_instance()
 
     try:
         subprocess.check_output(
-            [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0]],
+            [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0]] + list(params),
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
     except subprocess.CalledProcessError as e:
