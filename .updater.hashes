@@ -76,7 +76,7 @@ H-14fd5334dc46bc3f40319bc0d1331c0e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
 H-9d27c8cebe8891a6667ec927a73638c9 security_bypass.py
 H-c05ed6fe76ae801c8db3ad80737f51a8 security_bypass_tray.py
-H-61d52c1778056d820f813802f295884e settings.py
+H-18350007f112d0131f9bb499eac6637f settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui
 H-c765f6b636a42d7bc276e97fd3de7988 ui\get_auth_method_dialog.ui
