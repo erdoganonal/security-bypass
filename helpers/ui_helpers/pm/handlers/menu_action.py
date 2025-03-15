@@ -2,9 +2,10 @@
 
 # pylint: disable=c-extension-no-member
 
+import sys
 from typing import TYPE_CHECKING
 
-from PyQt6 import QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from common.tools import is_user_admin, restart_as_admin
 from config.config import ConfigManager
@@ -16,10 +17,13 @@ from helpers.ui_helpers.pm.dialogs.auth_method import AuthMethodDialog
 from helpers.ui_helpers.pm.dialogs.import_config import ImportConfigDialog
 from helpers.ui_helpers.pm.dialogs.password import PasswordDialog
 from helpers.user_preferences import UserPreferencesAccessor
+from logger import logger
 from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, USER_PREFERENCES_FILE, VERSION
 
 if TYPE_CHECKING:
     from password_manager import PasswordManagerUI
+
+CLI_ARG_AUTH_METHOD = "--auth-method"
 
 
 class MenuActionHandler:
@@ -83,7 +87,7 @@ class MenuActionHandler:
         ):
             if qt_instance := QtWidgets.QApplication.instance():
                 qt_instance.quit()
-            restart_as_admin()
+            restart_as_admin(f"{CLI_ARG_AUTH_METHOD} {auth_method.value}")
 
     def change_master_key_dialog(self, auth_method: AuthMethod | None = None) -> None:
         """open a dialog window and ask user to enter a new master key"""
@@ -152,3 +156,24 @@ class MenuActionHandler:
         # Help
         self._manager.ui.action_version.triggered.connect(self.show_version)
         self._manager.ui.action_about.triggered.connect(self.show_about)
+
+        self._bind_auth_method_change_request_after_restart()
+
+    def _bind_auth_method_change_request_after_restart(self) -> None:
+        """Bind the authentication method change request after restart"""
+
+        try:
+            auth_method_index = sys.argv.index(CLI_ARG_AUTH_METHOD)
+        except ValueError:
+            return
+
+        try:
+            auth_method = AuthMethod(sys.argv[auth_method_index + 1])
+        except (ValueError, IndexError) as error:
+            logger.critical("Invalid authentication method: %s", error)
+            return
+
+        open_change_auth_method_dialog_timer = QtCore.QTimer(QtWidgets.QApplication.instance())
+        open_change_auth_method_dialog_timer.setSingleShot(True)
+        open_change_auth_method_dialog_timer.timeout.connect(lambda: self.change_master_key_dialog(auth_method))
+        open_change_auth_method_dialog_timer.start(100)

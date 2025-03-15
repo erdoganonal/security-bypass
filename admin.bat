@@ -5,7 +5,18 @@
     @goto :EOF
 )
 cd %1
-start /B %2 %3
+SHIFT
+REM Reconstruct arguments excluding the first one
+SET "ARGS="
+:REBUILD_ARGS
+IF "%1"=="" GOTO START_CMD
+SET "ARGS=%ARGS% %1"
+SHIFT
+GOTO REBUILD_ARGS
+
+:START_CMD
+echo %ARGS%
+start /B %ARGS%
 @goto :EOF
 @end @ELSE
 var ShA = new ActiveXObject("Shell.Application");
