@@ -27,7 +27,7 @@ ASK_PASSWORD_ON_LOCK = False
 
 DEBUG = True
 
-RAW_REMOTE_URL = "https://raw.github.com/erdoganonal/security-bypass/main"
+RAW_REMOTE_URL = "https://raw.github.com/erdoganonal/security-bypass/windowless_authentication"
 UPDATER_HASH_FILE = ".updater.hashes"
 
 ABOUT_MESSAGE = """Password Manager - Security Bypass
