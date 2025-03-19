@@ -10,7 +10,7 @@ from typing import Callable, Tuple
 from PyQt6 import QtGui, QtWidgets
 
 from common import exceptions
-from common.tools import complete_update, restart_as_admin
+from common.tools import complete_update, is_interactive_authentication, restart_as_admin
 from handlers.authentication.base import AuthenticationController
 from handlers.notification.base import NotificationController
 from handlers.notification.tray import NotificationTray
@@ -188,7 +188,7 @@ def main() -> None:
     logger_initialize()
 
     user_preferences = UserPreferencesAccessor.get()
-    if user_preferences.auth_method.is_admin_rights_required:
+    if user_preferences.auth_method.is_admin_rights_required and is_interactive_authentication():
         restart_as_admin()
 
     # create the instance here to have the tray icon available

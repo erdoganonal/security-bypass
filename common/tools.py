@@ -17,7 +17,7 @@ from tendo import singleton
 from common.exceptions import ConfigFileNotFoundError
 from common.exit_codes import ExitCodes
 from logger import logger
-from settings import CREDENTIALS_FILE, ENV_NAME_DEBUG, ENV_NAME_SKIP_UPDATE, WRAPPER_FILE
+from settings import CREDENTIALS_FILE, ENV_NAME_AUTH_KEY, ENV_NAME_DEBUG, ENV_NAME_SKIP_UPDATE, WRAPPER_FILE
 
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
@@ -287,3 +287,9 @@ def check_config_file() -> None:
     """Check if the config file exists"""
     if not CREDENTIALS_FILE.exists():
         raise ConfigFileNotFoundError("The credentials file does not exist. Use 'password_manager.py' to create it.")
+
+
+def is_interactive_authentication() -> bool:
+    """Check if the key is coming from environment variable or not"""
+
+    return os.getenv(ENV_NAME_AUTH_KEY, None) is None

@@ -252,7 +252,7 @@ class SecurityBypass:
     def _start(self) -> None:
         self._is_running = True
 
-        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).debug("The application has been started.")
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).info("The application has been started.")
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
 
         while self._is_running:
