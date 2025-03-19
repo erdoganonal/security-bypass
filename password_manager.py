@@ -9,7 +9,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 
 from common import exceptions
 from common.exit_codes import ExitCodes
-from common.tools import check_config_file, check_single_instance, restart_as_admin
+from common.tools import check_config_file, check_single_instance, is_interactive_authentication, restart_as_admin
 from config.config import Config, ConfigManager, WindowData
 from generated.ui_generated_main import Ui_MainWindow  # type: ignore[attr-defined]
 from handlers.authentication.base import AuthenticationController
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     check_single_instance()
 
     USER_PREFERENCES = UserPreferencesAccessor.get()
-    if USER_PREFERENCES.auth_method.is_admin_rights_required:
+    if USER_PREFERENCES.auth_method.is_admin_rights_required and is_interactive_authentication():
         restart_as_admin()
 
     PBRegistry.register(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))

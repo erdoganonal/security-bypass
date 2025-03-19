@@ -7,7 +7,7 @@ H-acdfd1adbe90f6e3ba7be7d1f86c4410 common\exceptions.py
 H-16fa8172a6e739de31cb40478140d553 common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-ca90d2f8c506a717b49fca888da59f47 common\tools.py
+H-169bb2dd6702d4a4895f95554d577ee9 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-9b8358280aa045887fc6cb94b658c344 communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
@@ -35,7 +35,7 @@ H-bb5bbaecd5d1270e26ae1f6ceae99f06 handlers\authentication\winbio\__main__.py
 H-6a3f932cc98f89d3a10aafe27893dd1e handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
-H-b4b0f9b2fa1fc808e37081a0579df288 handlers\notification\base.py
+H-ce1faa5a33987dc0b312f9ca4185b87a handlers\notification\base.py
 H-4500fa7441b683b302a429b1957d4bab handlers\notification\cli.py
 H-f50cd3e21cf05d34cfda2a0c641438f5 handlers\notification\gui.py
 H-a70acd6813d0eeaedda5436b66310d37 handlers\notification\tray.py
@@ -71,11 +71,11 @@ H-aa005b4236732172033bd67dcd4e9652 LICENSE
 H-10206c0da0ffd2fc98a451bf716ef812 logger.py
 H-d41d8cd98f00b204e9800998ecf8427e package_builder\__init__.py
 H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
-H-db8d85aafc2e959cc7ac92e11a7163c8 password_manager.py
+H-5ec6828b7ebae8f261b9a1bc906201e5 password_manager.py
 H-14fd5334dc46bc3f40319bc0d1331c0e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-9d27c8cebe8891a6667ec927a73638c9 security_bypass.py
-H-c05ed6fe76ae801c8db3ad80737f51a8 security_bypass_tray.py
+H-58333fc947ff43404642a350eaf9278c security_bypass.py
+H-4a781838d5d818adcac04a9126954026 security_bypass_tray.py
 H-61d52c1778056d820f813802f295884e settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui

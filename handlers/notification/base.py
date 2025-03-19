@@ -92,9 +92,11 @@ class NotificationController(NotificationInterface):
         if kind == NotifyType.QUESTION:
             return self.ask_yes_no(message)
 
-        if kind == NotifyType.DEBUG and is_debug_enabled():
-            self.debug(message)
-        else:
-            self.info(message)
+        if kind == NotifyType.ERROR:
+            self.show(message, "", MessageType.ERROR)
+        elif kind == NotifyType.INFO:
+            self.show(message, "", MessageType.INFO)
+        elif kind == NotifyType.DEBUG:
+            self.show(message, "", MessageType.DEBUG)
 
         return True
