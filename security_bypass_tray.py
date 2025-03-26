@@ -24,11 +24,13 @@ from security_bypass import SecurityBypass
 from settings import SECURITY_BYPASS_ICON, USER_PREFERENCES_FILE
 from updater.helpers import check_for_updates
 
-STATE_READY = "Security Bypass [Ready]"
-STATE_STOPPED = "Security Bypass [Stopped]"
-STATE_PENDING = "Security Bypass [Pending]"
-STATE_ERROR = "Security Bypass [Error({code})]"
-STATE_RUNNING = "Security Bypass [Running]"
+TITLE = "Security Bypass"
+
+STATE_READY = f"{TITLE} [Ready]"
+STATE_STOPPED = f"{TITLE} [Stopped]"
+STATE_PENDING = f"{TITLE} [Pending]"
+STATE_ERROR = f"{TITLE} [Error({{code}})]"
+STATE_RUNNING = f"{TITLE} [Running]"
 
 ActionType = Tuple[str, Callable[[], None] | Callable[[bool], None], bool | None]
 
@@ -39,13 +41,17 @@ class SecurityBypassTray:
     def __init__(self) -> None:
         self.app = QtWidgets.QApplication(sys.argv)
         self.app.setStyle("windowsvista")
+        self.app.setApplicationName(TITLE)
+        self.app.setApplicationDisplayName(TITLE)
+        self.app.setOrganizationName(TITLE)
+
         self.tray_icon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(str(SECURITY_BYPASS_ICON)), self.app)
         self.menu = QtWidgets.QMenu()
 
         self._action_manager = ActionManager(self)
 
         self.tray_icon.setContextMenu(self.menu)
-        self.tray_icon.setToolTip("Security Bypass - Stopped")
+        self.tray_icon.setToolTip(f"{TITLE} - Stopped")
         self.tray_icon.show()
 
     def add_actions(self) -> None:
@@ -112,6 +118,15 @@ class ActionManager:
         """Toggle the repeated window protection feature."""
         UserPreferencesAccessor.partial_save(USER_PREFERENCES_FILE, repeated_window_protection=checked)
 
+    def set_status_text(self, text: str) -> None:
+        """Set the status text."""
+
+        try:
+            status_action = next(filter(lambda action: action.text().startswith("Status"), self._tray.menu.actions()))
+            status_action.setText(f"Status: {text}")
+        except StopIteration:
+            pass
+
     def start(self) -> None:
         """Start the instance."""
 
@@ -129,14 +144,11 @@ class ActionManager:
             except exceptions.ToolError as error:
                 notification_controller.error(error.message)
                 self._tray.tray_icon.setToolTip(STATE_ERROR.format(code=error.get_error_code))
+                self.set_status_text(f"Error({error.title})")
             except Exception as error:  # pylint: disable=broad-exception-caught
                 logger.error("Error starting the security bypass: %s", error)
 
-        try:
-            status_action = next(filter(lambda action: action.text().startswith("Status"), self._tray.menu.actions()))
-            status_action.setText("Status: Running")
-        except StopIteration:
-            pass
+        self.set_status_text("Running")
 
         self._tray.tray_icon.setToolTip(STATE_RUNNING)
         threading.Thread(target=_start_wrapper).start()
@@ -148,11 +160,7 @@ class ActionManager:
         if not before_quit:
             self._tray.tray_icon.setToolTip(STATE_STOPPED)
 
-        try:
-            status_action = next(filter(lambda action: action.text().startswith("Status"), self._tray.menu.actions()))
-            status_action.setText("Status: Stopped")
-        except StopIteration:
-            pass
+        self.set_status_text("Stopped")
 
     def check_for_updates(self, auto: bool = False) -> None:
         """Check for updates."""
@@ -162,12 +170,6 @@ class ActionManager:
         if has_updates:
             self.quit_application()
             complete_update()
-        elif not auto:
-            notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
-            if has_updates is None:
-                notification_controller.info("Update skipped")
-            else:
-                notification_controller.info("No updates available")
 
     def open_password_manager(self) -> None:
         """Open the password manager."""

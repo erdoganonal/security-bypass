@@ -120,15 +120,15 @@ class SecurityBypass:
         self.__key = self.__key or PBRegistry.get_typed(PBId.AUTHENTICATION_HANDLER, AuthenticationController).get_master_key()
 
         if not self.__key:
-            raise exceptions.EmptyMasterKeyError("The master key is empty.")
+            raise exceptions.EmptyMasterKeyError()
 
         if not isinstance(self.__key, bytes):
-            raise exceptions.WrongMasterKeyFormat(f"The master key's type invalid. Expected 'bytes' got '{self.__key.__class__.__name__}'.")
+            raise exceptions.WrongMasterKeyFormat(self.__key.__class__.__name__)
 
         try:
             self._window_data.windows = ConfigManager(key=self.__key).get_config().windows
         except ValueError as exc:
-            raise exceptions.WrongMasterKeyError("The master key is incorrect.") from exc
+            raise exceptions.WrongMasterKeyError() from exc
 
         self._credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
         logger.info("Config file has been loaded successfully.")
