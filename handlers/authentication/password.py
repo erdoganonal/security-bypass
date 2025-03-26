@@ -19,7 +19,7 @@ class AuthenticationPassword(AuthenticationInterface):
         key = notification.user_input("Please enter the Master Key", "Enter your master key", hidden_text=True)
 
         if key is None:
-            raise exceptions.EmptyMasterKeyError("Master key is empty")
+            raise exceptions.EmptyMasterKeyError()
         return key.encode()
 
 
@@ -28,5 +28,10 @@ def get_password_result() -> AuthenticationResult:
 
     passwd = PasswordDialog().get()
     if passwd is None:
-        return {"hash": "", "error": "Password entry canceled by user. Please try again", "error_code": PASSWORD_ERROR_USER_CANCELED}
-    return {"hash": passwd, "error": "", "error_code": 0}
+        return {
+            "hash": "",
+            "title": "Password entry canceled by user.",
+            "error": "Password entry canceled by user. Please try again",
+            "error_code": PASSWORD_ERROR_USER_CANCELED,
+        }
+    return {"hash": passwd, "title": "Password got successfully.", "error": "", "error_code": 0}

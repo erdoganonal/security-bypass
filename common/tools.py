@@ -286,7 +286,7 @@ def restart_as_admin(*params: str) -> None:
 def check_config_file() -> None:
     """Check if the config file exists"""
     if not CREDENTIALS_FILE.exists():
-        raise ConfigFileNotFoundError("The credentials file does not exist. Use 'password_manager.py' to create it.")
+        raise ConfigFileNotFoundError()
 
 
 def is_interactive_authentication() -> bool:

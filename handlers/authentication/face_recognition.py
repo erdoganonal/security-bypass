@@ -23,7 +23,7 @@ class AuthenticationFaceRecognition(AuthenticationInterface):
         if result["error_code"] == 0:
             return result["hash"].encode()
 
-        raise WinBioError(result["error"], result["error_code"])
+        raise WinBioError(result["title"], result["error"], result["error_code"])
 
 
 class FaceRecognitionBGAuthenticator(BackgroundAuthenticatorBase):
