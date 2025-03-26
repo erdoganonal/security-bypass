@@ -15,6 +15,7 @@ class AuthenticationResult(typing.TypedDict):
     """Authentication result type."""
 
     hash: str
+    title: str
     error: str
     error_code: int
 
@@ -44,4 +45,4 @@ class AuthenticationController(AuthenticationInterface):
         try:
             return self._authentication_handler.get_master_key()
         except KeyboardInterrupt as exc:
-            raise exceptions.UserCancelledError("\nOperation canceled by user.") from exc
+            raise exceptions.UserCancelledError() from exc

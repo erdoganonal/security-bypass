@@ -26,7 +26,7 @@ class NotificationTray(NotificationInterface):
         self._gui_notification_handler = NotificationGUI()
 
     def show(self, message: str, title: str, msg_type: MessageType) -> None:
-        self._tray_icon.showMessage(title or TITLE, message, _MESSAGE_TYPE_TO_ICON[msg_type])
+        self._tray_icon.showMessage(title or TITLE, message, _MESSAGE_TYPE_TO_ICON[msg_type], msecs=1000)
 
     def ask_yes_no(self, message: str, title: str = "") -> bool:
         return self._gui_notification_handler.ask_yes_no(message, title or TITLE)

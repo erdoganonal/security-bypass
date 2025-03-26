@@ -49,10 +49,7 @@ class Informer:
     def remove_callback(self, name_or_callback: str | Callable[[bytes], None]) -> None:
         """Remove a callback from the list of callbacks"""
 
-        if isinstance(name_or_callback, str):
-            self._callbacks.pop(name_or_callback, None)
-        else:
-            self._callbacks.pop(str(name_or_callback), None)
+        self._callbacks.pop(str(name_or_callback), None)
 
     def start_server(self) -> None:
         """start the server and listen for the incoming data. Call the callbacks with the received data"""

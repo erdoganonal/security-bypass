@@ -78,6 +78,7 @@ class WinBioInterface(abc.ABC):
     @staticmethod
     def get_winbio_result_dict(
         hash_val: str = "",
+        title: str = "Biometric scan canceled by user.",
         error: str = "Biometric scan canceled by user. Please try again.",
         error_code: int = WINBIO_USER_CANCELED,
     ) -> AuthenticationResult:
@@ -88,6 +89,7 @@ class WinBioInterface(abc.ABC):
 
         return {
             "hash": hash_val,
+            "title": title,
             "error": error,
             "error_code": error_code,
         }
@@ -132,7 +134,7 @@ def get_hash(bio_type: SupportedBiometricTypes) -> str:
     )
 
     if result != 0:
-        raise WinBioError(f"Failed to open biometric session: {bio_type}", result)
+        raise WinBioError("Biometric Session Error", f"Failed to open biometric session: {bio_type}", result)
 
     # Capture biometric data
     identity = _WinbioIdentity()
@@ -142,7 +144,7 @@ def get_hash(bio_type: SupportedBiometricTypes) -> str:
     result = winbio.WinBioIdentify(session, byref(unit_id), byref(identity), byref(sub_factor))
     if result != 0:
         winbio.WinBioCloseSession(session)
-        raise WinBioError(f"Biometric scan[{bio_type.name}] failed or not recognized.", result)
+        raise WinBioError("Biometric Scan Error", f"Biometric scan[{bio_type.name}] failed or not recognized.", result)
 
     # Close session
     winbio.WinBioCloseSession(session)
