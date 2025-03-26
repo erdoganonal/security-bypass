@@ -35,7 +35,7 @@ H-bb5bbaecd5d1270e26ae1f6ceae99f06 handlers\authentication\winbio\__main__.py
 H-466cba0ec1c11b444529dbaa09fb5cf0 handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
-H-ce1faa5a33987dc0b312f9ca4185b87a handlers\notification\base.py
+H-deee2366b8a01d513f8cd60208024de3 handlers\notification\base.py
 H-4500fa7441b683b302a429b1957d4bab handlers\notification\cli.py
 H-f50cd3e21cf05d34cfda2a0c641438f5 handlers\notification\gui.py
 H-e8034deb099a1732e9ebd8df4901fd55 handlers\notification\tray.py
@@ -91,4 +91,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-e45c9247e0cb96b72b9e590ed9021cdd updater\handlers\generate_hashes_handler.py
-H-e07c105bc137c2d3cb28762e7fb691d2 updater\helpers.py
+H-f2ae498769552b9f0c3cb36109d08d0e updater\helpers.py
