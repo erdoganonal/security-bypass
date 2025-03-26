@@ -12,18 +12,10 @@ class MessageType(enum.Enum):
 
     DEBUG = enum.auto()
     INFO = enum.auto()
+    QUESTION = enum.auto()
     WARNING = enum.auto()
     ERROR = enum.auto()
     CRITICAL = enum.auto()
-
-
-class NotifyType(enum.Enum):
-    """Notification type."""
-
-    DEBUG = enum.auto()
-    INFO = enum.auto()
-    QUESTION = enum.auto()
-    ERROR = enum.auto()
 
 
 class NotificationInterface(abc.ABC):
@@ -84,19 +76,3 @@ class NotificationController(NotificationInterface):
         """Show an info message to the user"""
         logger.critical("%s: %s", title, message)
         self.show(message=message, title=title, msg_type=MessageType.CRITICAL)
-
-    def updater_callback(self, message: str, kind: NotifyType) -> bool:
-        """Default user notify callback function."""
-        logger.info(message)
-
-        if kind == NotifyType.QUESTION:
-            return self.ask_yes_no(message)
-
-        if kind == NotifyType.ERROR:
-            self.show(message, "", MessageType.ERROR)
-        elif kind == NotifyType.INFO:
-            self.show(message, "", MessageType.INFO)
-        elif kind == NotifyType.DEBUG:
-            self.show(message, "", MessageType.DEBUG)
-
-        return True
