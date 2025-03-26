@@ -9,7 +9,7 @@ from typing import Any, Generic, Protocol, Type, TypeVar
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, invalid-name
 class SupportsSetupUi(Protocol):
     """a protocol class to force the implementation of setupUi method"""
 
@@ -22,7 +22,7 @@ class SupportsSetupUi(Protocol):
 
 
 T = TypeVar("T", bound=Any)
-T1 = TypeVar("T1", bound=SupportsSetupUi)
+U = TypeVar("U", bound=SupportsSetupUi)
 
 
 class _QWidgetWrapper(QtWidgets.QWidget):
@@ -41,7 +41,7 @@ class _QWidgetWrapper(QtWidgets.QWidget):
         self._base.reject()
 
 
-class DialogBase(Generic[T, T1], abc.ABC):
+class DialogBase(Generic[T, U], abc.ABC):
     """base class for all dialogs"""
 
     def __init__(self) -> None:
@@ -55,7 +55,7 @@ class DialogBase(Generic[T, T1], abc.ABC):
 
     @property
     @abc.abstractmethod
-    def skeleton(self) -> Type[T1]:
+    def skeleton(self) -> Type[U]:
         """return the skeleton of the dialog"""
 
     @abc.abstractmethod

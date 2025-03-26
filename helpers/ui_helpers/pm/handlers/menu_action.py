@@ -9,13 +9,11 @@ from PyQt6 import QtCore, QtWidgets
 
 from common.tools import is_user_admin, restart_as_admin
 from config.config import ConfigManager
-from handlers.authentication import face_recognition, fingerprint
 from handlers.authentication.methods import AuthMethod
 from helpers.ui_helpers.constants import TITLE_PASSWORD_MANAGER as TITLE
 from helpers.ui_helpers.notification import Notification
 from helpers.ui_helpers.pm.dialogs.auth_method import AuthMethodDialog
 from helpers.ui_helpers.pm.dialogs.import_config import ImportConfigDialog
-from helpers.ui_helpers.pm.dialogs.password import PasswordDialog
 from helpers.user_preferences import UserPreferencesAccessor
 from logger import logger
 from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, USER_PREFERENCES_FILE, VERSION

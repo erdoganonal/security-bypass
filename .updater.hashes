@@ -52,16 +52,15 @@ H-e1d28980cf209f03703005d48d054736 helpers\ui_helpers\altered.py
 H-38db30f9157b85cf1ad2b8b12d2be3c1 helpers\ui_helpers\background_authenticator.py
 H-b70b8337d67e70a317773b0c5c407c49 helpers\ui_helpers\constants.py
 H-7c6b62850407c9c983b7401d40650252 helpers\ui_helpers\notification.py
-H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\__init__,py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\dialogs\__init__.py
 H-24b475bc9af519a5be57fbf1d248c5bf helpers\ui_helpers\pm\dialogs\add_item.py
 H-2e591f33e11865ed91d8e1170dce4fa5 helpers\ui_helpers\pm\dialogs\auth_method.py
-H-6921e5c7b2b852e0358c6e631c18688c helpers\ui_helpers\pm\dialogs\dialog_base.py
+H-8e555c888e48ffe2574f1b86fa671783 helpers\ui_helpers\pm\dialogs\dialog_base.py
 H-6092ba7d92774755752e7b2caad371ed helpers\ui_helpers\pm\dialogs\import_config.py
 H-14f4a084e7d1f9a5d542ba0212a09e3e helpers\ui_helpers\pm\dialogs\password.py
 H-18b5f2877ea7d39dbe8357696457192c helpers\ui_helpers\pm\focus_map.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\handlers\__init__.py
-H-7b3f8174e82300fbcf41a33af62141d1 helpers\ui_helpers\pm\handlers\menu_action.py
+H-9a2a1a29612d4d160cabe1c80dc0e27d helpers\ui_helpers\pm\handlers\menu_action.py
 H-c3f96bfe491b44f61ab84999df1ac17f helpers\ui_helpers\pm\handlers\signal_handler.py
 H-6305efcfe138ce7c9f69693266ee2211 helpers\user_preferences.py
 H-bbebd2b4906ecd90cf7d9d7412902270 initial_setup.py
@@ -90,5 +89,5 @@ H-fb321681d0384c367ce5ffeaff13e56d updater\__main__.py
 H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
-H-e45c9247e0cb96b72b9e590ed9021cdd updater\handlers\generate_hashes_handler.py
+H-793c582ead66ef5eede2e127e6c52ffc updater\handlers\generate_hashes_handler.py
 H-d39bfc14fea439debc1adcf605e28cb6 updater\helpers.py
