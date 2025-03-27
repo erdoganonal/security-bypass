@@ -23,6 +23,7 @@ from common.tools import (
     extract_text_from_window,
     get_password_length,
     get_window_hwnd,
+    is_interactive_authentication,
     is_windows_locked,
     restart_as_admin,
 )
@@ -54,7 +55,7 @@ def main() -> None:
     logger_initialize()
 
     user_preferences = UserPreferencesAccessor.get()
-    if user_preferences.auth_method.is_admin_rights_required:
+    if user_preferences.auth_method.is_admin_rights_required and is_interactive_authentication():
         restart_as_admin()
 
     PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))
