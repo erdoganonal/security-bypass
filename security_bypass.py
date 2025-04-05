@@ -281,13 +281,14 @@ class SecurityBypass:
             if DEBUG:
                 notification_controller.error(f"Unknown exception:: {traceback.format_exc()}", title="Unknown exception occurred.")
                 raise
+            logger.error("Unknown exception occurred: %s", traceback.format_exc())
             self._exit(ExitCodes.UNKNOWN)
 
-        notification_controller.info("The application has been stopped!")
-
-    def stop(self) -> None:
+    def stop(self, before_quit: bool = False) -> None:
         """stop the window listener"""
         self._is_running = False
+        if not before_quit:
+            PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).info("The application has been stopped!")
 
     @property
     def is_running(self) -> bool:

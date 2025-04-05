@@ -12,6 +12,10 @@ USER_PREFERENCES_FILE = CONFIG_PATH / ".config.json"
 DATA_DIR = CURRENT_DIR / "data"
 
 SECURITY_BYPASS_ICON = DATA_DIR / "security_bypass.ico"
+INFO_ICON = DATA_DIR / "info.ico"
+WARNING_ICON = DATA_DIR / "warning.ico"
+ERROR_ICON = DATA_DIR / "error.ico"
+QUESTION_ICON = DATA_DIR / "question.ico"
 
 VERSION = "1.1.0"
 

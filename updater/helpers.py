@@ -3,6 +3,7 @@
 import enum
 import hashlib
 import shutil
+import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ import requests
 
 from common.tools import check_update_loop_guard_enabled
 from handlers.notification.base import NotificationController
+from logger import logger
 from package_builder.registry import PBId, PBRegistry
 from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE
 
@@ -196,9 +198,30 @@ class UpdateHelper:
             Path(file).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(temp_location, file)
 
-        self._notification_controller.info("Updates downloaded successfully. Restarting the app.")
+        return self._complete_update()
+
+    def _complete_update(self) -> bool:
+        logger.debug("checking for changes in the requirements.txt file")
+
+        for file in self._downloaded_files.values():
+            if file.name == "requirements.txt":
+                logger.info("requirements.txt file changed, going to install the new requirements")
+                return self._install_requirements(file)
 
         return True
+
+    def _install_requirements(self, file: Path) -> bool:
+        try:
+            out = subprocess.check_output(["pip", "install", "-r", str(file)], stderr=subprocess.STDOUT)
+            logger.debug(out.decode("utf-8", errors="ignore"))
+
+            self._notification_controller.info("Updates downloaded successfully. Restarting the app.")
+
+            return True
+        except subprocess.CalledProcessError:
+            logger.exception("Failed to install requirements")
+
+        return False
 
     def _do_rollback(self) -> None:
         try:

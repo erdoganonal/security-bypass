@@ -58,6 +58,7 @@ deps =
     requests
     screeninfo
     tkhelper
+    windows-toasts
     types-cffi
     types-colorama
     types-psutil
