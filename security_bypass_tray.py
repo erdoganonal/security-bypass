@@ -13,7 +13,7 @@ from common import exceptions
 from common.tools import complete_update, is_interactive_authentication, restart_as_admin
 from handlers.authentication.base import AuthenticationController
 from handlers.notification.base import NotificationController
-from handlers.notification.tray import NotificationTray
+from handlers.notification.toast import NotificationToast
 from handlers.window_selector.base import WindowSelectorController
 from handlers.window_selector.pyqt_gui import WindowSelectorPyQtGUI
 from helpers.user_preferences import UserPreferencesAccessor
@@ -80,7 +80,7 @@ class SecurityBypassTray:
         if user_preferences.auto_start:
             self._action_manager.start()
         else:
-            PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).info("Auto start is disabled")
+            logger.info("Auto start is disabled")
             self.tray_icon.setToolTip(STATE_READY)
 
     def add_action(self, action_or_separator: ActionType | None) -> None:
@@ -156,7 +156,7 @@ class ActionManager:
     def stop(self, before_quit: bool = False) -> None:
         """Stop the instance."""
 
-        self._security_bypass.stop()
+        self._security_bypass.stop(before_quit=before_quit)
         if not before_quit:
             self._tray.tray_icon.setToolTip(STATE_STOPPED)
 
@@ -181,7 +181,7 @@ class ActionManager:
 
         self.stop(before_quit=True)
 
-        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).info("Exiting...")
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Exiting...")
         QtWidgets.QApplication.quit()
 
 
@@ -196,7 +196,7 @@ def main() -> None:
     # create the instance here to have the tray icon available
     tray_app = SecurityBypassTray()
 
-    PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationTray(tray_app.tray_icon)))
+    PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationToast()))
     PBRegistry.register_safe(PBId.SELECT_WINDOW, WindowSelectorController(WindowSelectorPyQtGUI()))
     PBRegistry.register_safe(PBId.AUTHENTICATION_HANDLER, AuthenticationController(user_preferences.auth_method))
 
