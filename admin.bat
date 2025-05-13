@@ -1,28 +1,25 @@
 @if (1==1) @if(1==0) @ELSE
-@echo off&SETLOCAL ENABLEEXTENSIONS
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"||(
+REM This construct is used to embed both Batch and JScript code in the same file.
+REM The Batch part runs when executed normally, while the JScript part runs when invoked via cscript.
+
+@echo off
+SETLOCAL ENABLEEXTENSIONS
+
+>nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system" || (
     cscript //E:JScript //nologo "%~f0" %*
     @goto :EOF
 )
-cd %1
-SHIFT
-REM Reconstruct arguments excluding the first one
-SET "ARGS="
-:REBUILD_ARGS
-IF "%1"=="" GOTO START_CMD
-SET "ARGS=%ARGS% %1"
-SHIFT
-GOTO REBUILD_ARGS
 
-:START_CMD
-echo %ARGS%
-start /B %ARGS%
-@goto :EOF
 @end @ELSE
 var ShA = new ActiveXObject("Shell.Application");
-var cmd = "/c \"" + WScript.ScriptFullName + "\"";
-for (var i = 0; i < WScript.Arguments.length; i++) {
+var cmd = "";
+
+for (var i = 2; i < WScript.Arguments.length; i++) {
     cmd += " " + WScript.Arguments(i);
 }
-ShA.ShellExecute("cmd.exe", cmd, "", "runas", 5);
+
+var shell = new ActiveXObject("WScript.Shell");
+shell.CurrentDirectory = WScript.Arguments(0);
+
+ShA.ShellExecute(WScript.Arguments(1), cmd, "", "runas", 5);
 @end
