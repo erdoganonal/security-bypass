@@ -106,6 +106,7 @@ class ActionManager:
     def __init__(self, tray: SecurityBypassTray) -> None:
         self._security_bypass = SecurityBypass()
         self._tray = tray
+        self._exit_in_progress = False
 
     def toggle_auto_start(self, checked: bool) -> None:
         """Toggle the check for updates feature."""
@@ -128,19 +129,28 @@ class ActionManager:
         except StopIteration:
             pass
 
-    def start(self, delay_secs: float = 0.0) -> None:
+    def start(self, delay_secs: int = 0) -> None:
         """Start the instance."""
 
         notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
         notification_controller.debug("Starting...")
-        self._tray.tray_icon.setToolTip(STATE_PENDING)
 
         if self._security_bypass.is_running:
             notification_controller.error("Already running")
             return
 
+        self._tray.tray_icon.setToolTip(STATE_PENDING)
+
         def _start_wrapper() -> None:
-            time.sleep(delay_secs)
+            for _ in range(delay_secs):
+                if self._exit_in_progress:
+                    logger.warning("Exit in progress, not starting the security bypass")
+                    return
+
+                time.sleep(1)
+
+            self.set_status_text("Running")
+            self._tray.tray_icon.setToolTip(STATE_RUNNING)
 
             try:
                 self._security_bypass.start()
@@ -150,10 +160,8 @@ class ActionManager:
                 self.set_status_text(f"Error({error.title})")
             except Exception as error:  # pylint: disable=broad-exception-caught
                 logger.error("Error starting the security bypass: %s", error)
+                self.set_status_text("Unknown Error: Please check the logs")
 
-        self.set_status_text("Running")
-
-        self._tray.tray_icon.setToolTip(STATE_RUNNING)
         threading.Thread(target=_start_wrapper).start()
 
     def stop(self, before_quit: bool = False) -> None:
@@ -182,6 +190,7 @@ class ActionManager:
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""
 
+        self._exit_in_progress = True
         self.stop(before_quit=True)
 
         PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Exiting...")
