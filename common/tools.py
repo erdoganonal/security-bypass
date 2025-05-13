@@ -260,11 +260,8 @@ def restart_as_admin(*params: str) -> None:
         return
 
     exe_path = Path(sys.executable)
-    if is_debug_enabled():
+    if is_debug_enabled():  # do not use pythonw.exe in debug mode
         exe_path = exe_path.parent / "python.exe"
-    else:
-        exe_path = exe_path.parent / "pythonw.exe"
-    exe_path = exe_path.parent / "pythonw.exe"
 
     logger.warning("Restarting as admin: %s", exe_path)
     logger.debug("Command: %s %s %s %s %s", os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0], " ".join(params))
@@ -278,9 +275,9 @@ def restart_as_admin(*params: str) -> None:
         )
     except subprocess.CalledProcessError as e:
         logger.error(e.output)
-        ExitCodes.RESTARTED_AS_ADMIN.exit()
+        ExitCodes.UNKNOWN.exit()
 
-    ExitCodes.SUCCESS.exit()
+    ExitCodes.RESTARTED_AS_ADMIN.exit()
 
 
 def check_config_file() -> None:
