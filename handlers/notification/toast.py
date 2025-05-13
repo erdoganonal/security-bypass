@@ -1,5 +1,6 @@
 """show a toast notification on Windows using the Windows Toaster library"""
 
+import datetime
 import pathlib
 import time
 import winreg
@@ -63,7 +64,11 @@ class NotificationToast(NotificationInterface):
         """Show a toast notification"""
         toaster = InteractableWindowsToaster(self._app_name, notifierAUMID=self._app_id)
 
-        toast = Toast([title, message], duration=ToastDuration.Short)
+        toast = Toast(
+            [title, message],
+            duration=ToastDuration.Short,
+            expiration_time=datetime.datetime.now() + datetime.timedelta(minutes=2),
+        )
 
         if msg_type in (MessageType.DEBUG, MessageType.INFO):
             icon = INFO_ICON
@@ -84,7 +89,13 @@ class NotificationToast(NotificationInterface):
         toaster = InteractableWindowsToaster(self._app_name, notifierAUMID=self._app_id)
 
         toaster_callback = ToasterCallback(
-            Toast([title, message], duration=ToastDuration.Long), action_ok_str="Yes", action_cancel_str="No"
+            Toast(
+                [title, message],
+                duration=ToastDuration.Long,
+                expiration_time=datetime.datetime.now() + datetime.timedelta(minutes=5),
+            ),
+            action_ok_str="Yes",
+            action_cancel_str="No",
         )
         toaster_callback.register()
 
