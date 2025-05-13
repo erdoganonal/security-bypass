@@ -5,6 +5,7 @@
 import subprocess
 import sys
 import threading
+import time
 from typing import Callable, Tuple
 
 from PyQt6 import QtGui, QtWidgets
@@ -78,7 +79,7 @@ class SecurityBypassTray:
             self._action_manager.check_for_updates(auto=True)
 
         if user_preferences.auto_start:
-            self._action_manager.start()
+            self._action_manager.start(delay_secs=30)
         else:
             logger.info("Auto start is disabled")
             self.tray_icon.setToolTip(STATE_READY)
@@ -127,7 +128,7 @@ class ActionManager:
         except StopIteration:
             pass
 
-    def start(self) -> None:
+    def start(self, delay_secs: float = 0.0) -> None:
         """Start the instance."""
 
         notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
@@ -139,6 +140,8 @@ class ActionManager:
             return
 
         def _start_wrapper() -> None:
+            time.sleep(delay_secs)
+
             try:
                 self._security_bypass.start()
             except exceptions.ToolError as error:
