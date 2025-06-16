@@ -44,14 +44,14 @@ deps =
     black==25.1.0
     colorama
     isort
-    mypy==1.15.0
+    mypy==1.16.0
     password_validator
     psutil
     py7zr
     pyautogui
     pywinauto
     pycryptodome
-    pylint==3.2.6
+    pylint==3.3.7
     pyreadline
     pywin32
     pyqt6
