@@ -15,6 +15,7 @@ import requests
 
 from common.tools import check_update_loop_guard_enabled
 from handlers.notification.base import NotificationController
+from initial_setup import adjust_task_scheduler_xml
 from logger import logger
 from package_builder.registry import PBId, PBRegistry
 from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE
@@ -207,6 +208,8 @@ class UpdateHelper:
             if file.name == "requirements.txt":
                 logger.info("requirements.txt file changed, going to install the new requirements")
                 return self._install_requirements(file)
+
+        adjust_task_scheduler_xml()
 
         return True
 

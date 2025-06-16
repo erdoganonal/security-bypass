@@ -7,7 +7,7 @@ from getpass import getpass
 from pathlib import Path
 from typing import NoReturn, overload
 
-from settings import DFT_ENCODING, ENV_NAME_AUTH_KEY
+from settings import DFT_ENCODING, ENV_NAME_AUTH_KEY, ENV_NAME_SKIP_UPDATE
 
 try:
     import win32api
@@ -15,7 +15,7 @@ try:
 
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
-    from common.tools import check_config_file, restart
+    from common.tools import check_config_file
     from config.config import Config, ConfigManager
 except ImportError:
     RESTART = True
@@ -48,11 +48,6 @@ You can easily enter your passwords without touching the keyboard.
 It is one click a way.
 
 Error Codes and reasons:
-{unknown} -> The application faced an unknown issue. Most probably a bug.
-{already_running} -> Another instance of the application is already running. Stop it and run the task again.
-{credential_file_not_exists} -> The credential file does not found. Use the 'password_manager.py' to create it.
-{empty_key} -> The master key that is entered is empty. An empty master key is not allowed.
-{wrong_key} -> The master key that is entered is wrong. Please enter the correct one.
 """
 
 PW_MANAGER_RUNNER_PATH = SCRIPT_DIR / "run_password_manager.bat"
@@ -70,7 +65,7 @@ def main() -> None:
     install_requirements()
 
     if RESTART:
-        restart()
+        _restart()
 
     if is_update():
         print("\nCompleting the update process...")
@@ -92,6 +87,14 @@ def _system(cmd: str, error_message: str = "") -> None:
         if error_message:
             InputOutputHelper.error(error_message, exit_code=exit_code)
         sys.exit(exit_code)
+
+
+def _restart() -> None:
+    try:
+        # pylint: disable=consider-using-with
+        subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {ENV_NAME_SKIP_UPDATE: "1"})
+    except KeyboardInterrupt:
+        pass
 
 
 def check_virtual_environment() -> None:
@@ -139,6 +142,12 @@ def complete_update() -> NoReturn:
     sys.exit(0)
 
 
+def _get_description() -> str:
+    """get the description for the task scheduler"""
+
+    return DESCRIPTION + "\n".join(f"{code.value}: {ExitCodes.get_explanation(code)}" for code in ExitCodes)
+
+
 def adjust_task_scheduler_xml() -> None:
     """open the xml file and replace the content for current user"""
 
@@ -148,13 +157,7 @@ def adjust_task_scheduler_xml() -> None:
     xml_content = xml_content.format(
         username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
         pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
-        description=DESCRIPTION.format(
-            unknown=ExitCodes.UNKNOWN.value,
-            already_running=ExitCodes.ALREADY_RUNNING.value,
-            credential_file_not_exists=ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST,
-            empty_key=ExitCodes.EMPTY_MASTER_KEY.value,
-            wrong_key=ExitCodes.WRONG_MASTER_KEY.value,
-        ),
+        description=_get_description(),
         script_dir=SCRIPT_DIR,
     )
 
@@ -162,6 +165,10 @@ def adjust_task_scheduler_xml() -> None:
         temp_xml_fd.write(xml_content)
 
     try:
+        if os.system('schtasks /query /tn "Security Bypass"') == 0:
+            # delete the old task
+            _system('schtasks /delete /tn "Security Bypass" /F')
+
         _system(f'schtasks /create /xml "{TASK_TEMP_SCHEDULER_XML}" /tn "Security Bypass"')
     finally:
         os.unlink(TASK_TEMP_SCHEDULER_XML)

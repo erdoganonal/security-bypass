@@ -4,7 +4,7 @@ H-c36c1df2700a80f4f8c1bdf0a455de75 admin.bat
 H-d41d8cd98f00b204e9800998ecf8427e common\__init__.py
 H-66c958810cd73fa7a5b95659efe05918 common\auto_key_trigger_manager.py
 H-cdd6abde09328a5bfd264e58709616e3 common\exceptions.py
-H-16fa8172a6e739de31cb40478140d553 common\exit_codes.py
+H-678acd38b77592b59b4ab19e1d09916c common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
 H-f332c772ab0d328c2519c3509bc47c42 common\tools.py
@@ -69,7 +69,7 @@ H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\handlers\__init__.py
 H-9a2a1a29612d4d160cabe1c80dc0e27d helpers\ui_helpers\pm\handlers\menu_action.py
 H-c3f96bfe491b44f61ab84999df1ac17f helpers\ui_helpers\pm\handlers\signal_handler.py
 H-6305efcfe138ce7c9f69693266ee2211 helpers\user_preferences.py
-H-bbebd2b4906ecd90cf7d9d7412902270 initial_setup.py
+H-98143dfbe7cfa931249f5257f0246284 initial_setup.py
 H-2e425fc436413933ed3e4e00a6bc1240 installer\password_manager.ico
 H-2c4b2e01513e947f37eae8e981dbb066 installer.py
 H-aa005b4236732172033bd67dcd4e9652 LICENSE
@@ -96,4 +96,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-793c582ead66ef5eede2e127e6c52ffc updater\handlers\generate_hashes_handler.py
-H-a0f1413c65d4a088fc4052061943c558 updater\helpers.py
+H-b43abb1ae12fb130679130be59dfd4e6 updater\helpers.py
