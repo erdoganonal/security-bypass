@@ -34,7 +34,7 @@ pytweening==1.2.0
 pywin32==306
 pywinauto==0.6.8
 pyzstd==0.16.1
-requests==2.32.3
+requests==2.32.4
 screeninfo==0.8.1
 six==1.16.0
 tendo==0.3.0
