@@ -26,12 +26,12 @@ pyppmd==1.1.0
 PyQt6==6.7.1
 PyQt6-Qt6==6.7.2
 PyQt6_sip==13.8.0
-pyreadline==2.1
+pyreadline3==3.4.1
 PyRect==0.2.0
 pyscreenshot==3.1
 PyScreeze==1.0.1
 pytweening==1.2.0
-pywin32==306
+pywin32>=306
 pywinauto==0.6.8
 pyzstd==0.16.1
 requests==2.32.4
