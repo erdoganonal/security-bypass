@@ -37,7 +37,10 @@ max-line-length = 140
 legacy_tox_ini = """
 [tox]
 envlist =
+    py310
+    py311
     py312
+    py313
 
 [testenv]
 deps =

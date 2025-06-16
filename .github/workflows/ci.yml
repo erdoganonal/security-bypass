@@ -14,7 +14,22 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
+        python-version: '3.10'
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
         python-version: '3.12'
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.13'
 
     - name: Print git status
       run: git status
@@ -26,7 +41,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install tox==4.24.1
+        pip install tox==4.26.0
 
     - name: Run
       run: tox
