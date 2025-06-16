@@ -24,7 +24,6 @@ class ConfigDict(TypedDict):
     name: str
     passkey: str
     auto_key_trigger: str
-    send_enter: bool
     group: str | None
     verify_sent: bool
 
@@ -37,13 +36,12 @@ class WindowData:
     title: str
     name: str
     passkey: str
-    send_enter: bool
     auto_key_trigger: str
     group: str | None = None
     verify_sent: bool = True
 
     def __hash__(self) -> int:
-        return hash((self.title, self.name, self.passkey, self.send_enter, self.auto_key_trigger, self.group))
+        return hash((self.title, self.name, self.passkey, self.auto_key_trigger, self.group))
 
     def __post_init__(self) -> None:
         self.title_pattern: re.Pattern[str] | None = None
@@ -67,7 +65,6 @@ class WindowData:
             "title": self.title,
             "name": self.name,
             "passkey": self.passkey,
-            "send_enter": self.send_enter,
             "auto_key_trigger": self.auto_key_trigger,
             "group": self.group,
             "verify_sent": self.verify_sent,
@@ -81,11 +78,19 @@ class WindowData:
             title=data["title"],
             name=data["name"],
             passkey=data["passkey"],
-            send_enter=data["send_enter"],
             auto_key_trigger=data.get("auto_key_trigger", ""),
             group=data["group"],
             verify_sent=data.get("verify_sent", True),
         )
+
+
+@dataclass
+class SelectedWindowProperties:
+    """Properties of the selected window"""
+
+    passkey: str
+    send_enter: bool
+    verify_sent: bool
 
 
 @dataclass

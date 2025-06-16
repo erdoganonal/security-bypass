@@ -14,7 +14,7 @@ except ImportError:
     pass
 
 from common.tools import focus_window, get_position, get_window_by_hwnd
-from config.config import WindowData
+from config.config import SelectedWindowProperties, WindowData
 from handlers.window_selector.base import WindowSelectorInterface
 from handlers.window_selector.multithread_support import main_execute, thread_execute
 
@@ -29,7 +29,7 @@ class _WindowSelectorGUIHelper:
         self._root: tk.Tk | None = None
         self._root, self._send_enter_checkbox, self._listbox = self.configure_window()
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """show a ui to the user and get the values"""
 
         if self._root is None:
@@ -47,9 +47,15 @@ class _WindowSelectorGUIHelper:
         self._root.mainloop()
 
         try:
-            return window_pin_rel[self._index]
+            w_data = window_pin_rel[self._index]
         except KeyError:
             return None
+
+        return SelectedWindowProperties(
+            send_enter=self._send_enter_checkbox.get(),
+            passkey=w_data.passkey,
+            verify_sent=w_data.verify_sent,
+        )
 
     def configure_window(self) -> tuple[tk.Tk, tk.BooleanVar, MultiColumnListbox]:
         """configure and return the variables"""
@@ -115,7 +121,7 @@ class WindowSelectorGUI(WindowSelectorInterface):
     def supports_thread(self) -> bool:
         return True
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         if not windows_data:
             return None
 
