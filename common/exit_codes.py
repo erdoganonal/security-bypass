@@ -27,13 +27,24 @@ class ExitCodes(enum.IntEnum):
         logger.error("Exiting with code %s", self.name)
         sys.exit(self.value)
 
-    @classmethod
-    def get_name(cls, code: "int | str | None | ExitCodes") -> str:
-        """return the name of the given code"""
-        if isinstance(code, ExitCodes):
-            return code.name
+    @staticmethod
+    def get_explanation(code: "ExitCodes") -> str:
+        """return the explanation of the given code"""
+        try:
+            return _EXIT_CODES_EXPLANATIONS[code]
+        except KeyError:
+            return _EXIT_CODES_EXPLANATIONS[ExitCodes.UNKNOWN]
 
-        if not isinstance(code, int):
-            return cls.UNKNOWN.name
 
-        return cls(code).name
+_EXIT_CODES_EXPLANATIONS = {
+    ExitCodes.SUCCESS: "The operation completed successfully.",
+    ExitCodes.UNKNOWN: "An unknown error occurred. Please check the logs for more details.",
+    ExitCodes.ALREADY_RUNNING: "The application is already running.",
+    ExitCodes.CREDENTIAL_FILE_DOES_NOT_EXIST: "The credential file does not exist. Please create it first.",
+    ExitCodes.EMPTY_MASTER_KEY: "The master key is empty. Please provide a valid master key.",
+    ExitCodes.WRONG_MASTER_KEY: "The provided master key is incorrect. Please try again.",
+    ExitCodes.WRONG_MASTER_KEY_FORMAT: "The master key format is incorrect. Please provide a valid key.",
+    ExitCodes.RESTARTED_AS_ADMIN: "The application has been restarted with administrative privileges.",
+    ExitCodes.WINBIO_ERROR: "An error occurred with the Windows Biometric Framework. Please check your biometric device.",
+    ExitCodes.USER_CANCELLED: "The operation was cancelled by the user.",
+}
