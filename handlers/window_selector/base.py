@@ -6,7 +6,7 @@ from typing import Sequence
 
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
-from config.config import WindowData
+from config.config import SelectedWindowProperties, WindowData
 
 
 @dataclass
@@ -21,7 +21,7 @@ class WindowSelectorInterface(abc.ABC):
     """Interface class for WindowSelector"""
 
     @abc.abstractmethod
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """Let user to pick the password from the list"""
 
     @property
@@ -36,7 +36,7 @@ class WindowSelectorController(WindowSelectorInterface):
     def __init__(self, selector_type: WindowSelectorInterface) -> None:
         self._selector = selector_type
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """Let user to pick the password from the list"""
         return self._selector.select(window_hwnd, windows_data)
 

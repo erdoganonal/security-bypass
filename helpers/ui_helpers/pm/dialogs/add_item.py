@@ -20,7 +20,6 @@ class AddItemDialog(DialogBase["AddItemDialog.Data", Ui_AddItemDialog]):
         group: str | None
         name: str
         title: str
-        send_enter: bool
 
     def __init__(self, groups: List[str], selected: str | None = None) -> None:
         self._groups = groups
@@ -86,6 +85,6 @@ class AddItemDialog(DialogBase["AddItemDialog.Data", Ui_AddItemDialog]):
                 Notification.show_error(self._wrapper_widget, f"The {value_str} cannot left empty", f"Empty {value_str}".title())
                 return
 
-        self._data = AddItemDialog.Data(group=group, name=name, title=title, send_enter=True)
+        self._data = AddItemDialog.Data(group=group, name=name, title=title)
 
         self.close()

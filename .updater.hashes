@@ -11,7 +11,7 @@ H-f332c772ab0d328c2519c3509bc47c42 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ffea1ca96bfa6da5295fc6094dff5fcc communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
-H-e7d418877a5e184587b7baca641f4ec1 config\config.py
+H-4470adfa131c6d07e311cbe14a453709 config\config.py
 H-47e895db3e484af2add7740a7db906d8 data\error.ico
 H-026a260144669a3cc4aad5949d1e4d5f data\info.ico
 H-16769866f523ef1446e7628d0bf2189b data\question.ico
@@ -46,11 +46,11 @@ H-2dff75d07a6db57487051100ec3f9d72 handlers\notification\toast.py
 H-e8034deb099a1732e9ebd8df4901fd55 handlers\notification\tray.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\window_selector\__init__.py
 H-4ccb3ab55bc4f4ee9b881f0e5a111c90 handlers\window_selector\__path_fixer__.py
-H-a15fd76b38728218657705e8393b5163 handlers\window_selector\base.py
-H-f8caf75f13fed986ebbd08dbde6715a4 handlers\window_selector\cli.py
-H-f87fcebf5d43d615e2830460655b7e9b handlers\window_selector\gui.py
-H-9ae10359fac7300febebeb601f30e47f handlers\window_selector\multithread_support.py
-H-a615cf00a2dadd321a7c6bf784efa466 handlers\window_selector\pyqt_gui.py
+H-8a9c1403cce8b63b491c4009b0f50c48 handlers\window_selector\base.py
+H-f3e7b52af8536839db6bf5735267f7ef handlers\window_selector\cli.py
+H-feb9f833a67e6e8ff6a54b322942af5e handlers\window_selector\gui.py
+H-df4d4847c1254d3a42d444f1fffac907 handlers\window_selector\multithread_support.py
+H-04058bd0c73ea3af70d6e7a688d81861 handlers\window_selector\pyqt_gui.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\__init__.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\__init__.py
 H-e1d28980cf209f03703005d48d054736 helpers\ui_helpers\altered.py
@@ -59,7 +59,7 @@ H-b70b8337d67e70a317773b0c5c407c49 helpers\ui_helpers\constants.py
 H-7c6b62850407c9c983b7401d40650252 helpers\ui_helpers\notification.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\__init__.py
 H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\dialogs\__init__.py
-H-24b475bc9af519a5be57fbf1d248c5bf helpers\ui_helpers\pm\dialogs\add_item.py
+H-a9b7648e24a9cf1420dfa6f7d7a9d917 helpers\ui_helpers\pm\dialogs\add_item.py
 H-2e591f33e11865ed91d8e1170dce4fa5 helpers\ui_helpers\pm\dialogs\auth_method.py
 H-8e555c888e48ffe2574f1b86fa671783 helpers\ui_helpers\pm\dialogs\dialog_base.py
 H-6092ba7d92774755752e7b2caad371ed helpers\ui_helpers\pm\dialogs\import_config.py
@@ -79,7 +79,7 @@ H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-5ec6828b7ebae8f261b9a1bc906201e5 password_manager.py
 H-5bfe43d71dbaa86ef9089307e72a5906 requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-626dc18e0a1474cd5b1b6828075d8912 security_bypass.py
+H-cac254b5444df67cacb7bac7f3471819 security_bypass.py
 H-0b373d8438aa830dfa2ba48b2f263447 security_bypass_tray.py
 H-4e092ddaa836a61bcf8d47a784c7ac77 settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui

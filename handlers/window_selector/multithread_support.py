@@ -10,14 +10,14 @@ import subprocess
 import sys
 from typing import Protocol, Sequence
 
-from config.config import WindowData
+from config.config import SelectedWindowProperties, WindowData
 
 
 # pylint: disable=too-few-public-methods
 class SupportsSelect(Protocol):
     """a protocol class to let user to pass a parameter with a function or method named select."""
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """protocol function or method called select"""
 
 
@@ -37,10 +37,15 @@ def main_execute(func_or_method: SupportsSelect) -> None:
     """execute the given function or method with cli arguments"""
 
     hwnd, windows_data = get_params()
-    window_data = func_or_method.select(hwnd, windows_data)
+    selected_window = func_or_method.select(hwnd, windows_data)
     to_dump = None
-    if window_data is not None:
-        to_dump = window_data.to_dict()
+    if selected_window is not None:
+        to_dump = {
+            "passkey": selected_window.passkey,
+            "verify_sent": selected_window.verify_sent,
+            "send_enter": selected_window.send_enter,
+        }
+
     print(json.dumps(to_dump), end="")
 
 
@@ -51,7 +56,7 @@ def dump_params(window_hwnd: int, windows_data: Sequence[WindowData]) -> str:
     return json.dumps(data).replace('"', '\\"')
 
 
-def thread_execute(file: str, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+def thread_execute(file: str, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
     """allow to run this function in the thread and run the actual file with the subprocess"""
 
     dumped = dump_params(window_hwnd, windows_data)
@@ -61,6 +66,10 @@ def thread_execute(file: str, window_hwnd: int, windows_data: Sequence[WindowDat
         loaded = json.loads(data)
         if loaded is None:
             return None
-        return WindowData.from_dict(loaded)
+        return SelectedWindowProperties(
+            passkey=loaded["passkey"],
+            verify_sent=loaded["verify_sent"],
+            send_enter=loaded["send_enter"],
+        )
     except subprocess.CalledProcessError:
         return None

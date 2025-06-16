@@ -14,7 +14,7 @@ except ImportError:
     pass
 
 from common.tools import focus_window, get_position, get_window_by_hwnd
-from config.config import WindowData
+from config.config import SelectedWindowProperties, WindowData
 from generated.ui_generated_get_passkey_dialog import Ui_PasskeyDialog  # type: ignore[attr-defined]
 from handlers.window_selector.base import WindowSelectorInterface
 from handlers.window_selector.multithread_support import main_execute, thread_execute
@@ -47,13 +47,17 @@ class _WindowSelectorPyQtGUIHelper:
 
         self._timer = QtCore.QTimer(self._main_window)
 
-    def get(self, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def get(self, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """return the selected value and the send enter value"""
 
         if self._selected_index is None:
             return None
 
-        return windows_data[self._selected_index]
+        return SelectedWindowProperties(
+            send_enter=self._send_enter,
+            passkey=windows_data[self._selected_index].passkey,
+            verify_sent=windows_data[self._selected_index].verify_sent,
+        )
 
     def add_item(self, item: str) -> None:
         """add a new item into the list"""
@@ -91,7 +95,7 @@ class _WindowSelectorPyQtGUIHelper:
         if window:
             window.moveTo(left, top)
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         """Let user to pick the password from the list"""
 
         for window_data in windows_data:
@@ -126,7 +130,7 @@ class WindowSelectorPyQtGUI(WindowSelectorInterface):
     def supports_thread(self) -> bool:
         return True
 
-    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> WindowData | None:
+    def select(self, window_hwnd: int, windows_data: Sequence[WindowData]) -> SelectedWindowProperties | None:
         if not windows_data:
             return None
 

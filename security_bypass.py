@@ -29,7 +29,7 @@ from common.tools import (
 )
 from communication import data_sharing
 from config import ConfigManager
-from config.config import WindowData
+from config.config import SelectedWindowProperties, WindowData
 from handlers.authentication.base import AuthenticationController
 from handlers.notification.base import NotificationController
 from handlers.notification.gui import NotificationGUI
@@ -180,7 +180,7 @@ class SecurityBypass:
     def _extract_text_from_window_cached(window_hwnd: int) -> str:
         return extract_text_from_window(window_hwnd)
 
-    def _auto_detect_passkey(self, window_hwnd: int, windows: list[WindowData]) -> WindowData | None:
+    def _auto_detect_passkey(self, window_hwnd: int, windows: list[WindowData]) -> SelectedWindowProperties | None:
         text = self._extract_text_from_window_cached(window_hwnd)
         auto_detected = [
             window_data
@@ -214,7 +214,7 @@ class SecurityBypass:
                     return None
             else:
                 self._window_data.auto_key_trigger_manager.add_triggered(auto_detected[0])
-            return auto_detected[0]
+            return SelectedWindowProperties(passkey=auto_detected[0].passkey, send_enter=True, verify_sent=auto_detected[0].verify_sent)
 
         if len(auto_detected) > 1:
             self._set_temp_timeout()
@@ -237,13 +237,13 @@ class SecurityBypass:
             return
 
         self._window_data.window_hwnd_s.add(window_hwnd)
-        if (window_data := self._auto_detect_passkey(window_hwnd, windows)) is None:
-            window_data = PBRegistry.get_typed(PBId.SELECT_WINDOW, WindowSelectorController).select(window_hwnd, windows)
+        if (selected_window := self._auto_detect_passkey(window_hwnd, windows)) is None:
+            selected_window = PBRegistry.get_typed(PBId.SELECT_WINDOW, WindowSelectorController).select(window_hwnd, windows)
 
-        if window_data is None:
+        if selected_window is None:
             self._window_data.ignored_windows_handler.ignore(window)
         else:
-            self.send_keys(window, window_data)
+            self.send_keys(window, selected_window)
             # Do not sleep less than `MIN_SLEEP_SECS_AFTER_KEY_SENT` seconds if a key is sent
             if SLEEP_SECS < MIN_SLEEP_SECS_AFTER_KEY_SENT:
                 self._sleep(MIN_SLEEP_SECS_AFTER_KEY_SENT)
@@ -322,7 +322,7 @@ class SecurityBypass:
         return False
 
     @classmethod
-    def send_keys(cls, window: Win32Window, window_data: WindowData) -> None:
+    def send_keys(cls, window: Win32Window, selected_window: SelectedWindowProperties) -> None:
         """Send given keys to the given window"""
 
         # backup the current clipboard content
@@ -330,12 +330,12 @@ class SecurityBypass:
 
         for _ in range(MAX_KEY_SENT_ATTEMPTS):
             cls.focus_window(window)
-            cls._send_keys(window_data.passkey)
+            cls._send_keys(selected_window.passkey)
 
-            if not window_data.verify_sent:
+            if not selected_window.verify_sent:
                 break
 
-            if cls._check_sent(window, window_data.passkey):
+            if cls._check_sent(window, selected_window.passkey):
                 # break the loop if the keys are sent successfully
                 break
         else:
@@ -344,8 +344,14 @@ class SecurityBypass:
         # restore the clipboard content
         pyperclip.copy(current_clipboard)
 
-        if window_data.send_enter:
+        if selected_window.send_enter:
             pyautogui.press("enter")
+
+        logger.info(
+            "Keys sent successfully to the window '%s' %s.",
+            window.title,
+            "with enter key" if selected_window.send_enter else "without enter key",
+        )
 
     def filter_windows(self) -> tuple[Win32Window | None, list[WindowData]]:
         """Filter the windows by title"""
