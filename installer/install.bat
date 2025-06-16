@@ -1,7 +1,7 @@
 @echo off
 
 @rem check whether python exists or not
-for %%v in (12 11 10) do (
+for %%v in (13 12 11 10) do (
     for /f "delims=" %%i in ('where python ^| findstr /i "python3%%v"') do (
         set "PYTHON_PATH=%%i"
     )
