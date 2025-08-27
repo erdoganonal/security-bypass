@@ -3,8 +3,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-from tkhelper.widgets import update_and_center
-
+from common.tools import update_and_center
 from handlers.notification.base import MessageType, NotificationInterface
 
 _MSG_ACTION_MAP = {

@@ -9,9 +9,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         unknown_auth_method_result_main()
 
-    if sys.argv[1] == SupportedBiometricTypes.FINGERPRINT.name:
+    if sys.argv[1].upper() == SupportedBiometricTypes.FINGERPRINT.name:
         fingerprint.main()
-    elif sys.argv[1] == SupportedBiometricTypes.FACE_ID.name:
+    elif sys.argv[1].upper() == SupportedBiometricTypes.FACE_ID.name:
         face_recognition.main()
     else:
         unknown_auth_method_result_main()

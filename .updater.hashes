@@ -7,7 +7,7 @@ H-cdd6abde09328a5bfd264e58709616e3 common\exceptions.py
 H-678acd38b77592b59b4ab19e1d09916c common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-f332c772ab0d328c2519c3509bc47c42 common\tools.py
+H-dba8883be2c3d97a77a369fc568e8156 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ffea1ca96bfa6da5295fc6094dff5fcc communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
@@ -21,13 +21,13 @@ H-d41d8cd98f00b204e9800998ecf8427e exclusion\__init__.py
 H-d7c86464ae68a4463cd62f849314c5eb exclusion\manager.py
 H-e1e6f013f4b173f5a0219c197ff11336 generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
-H-9436bf442eddbce36060cedecab6ee60 generated\ui_generated_add_item_dialog.py
-H-3e1f9afa56b3b8326534d5991ef14e0d generated\ui_generated_auth_method_dialog.py
-H-51f7af6ac394d3b7b8c00b5638657564 generated\ui_generated_background_authenticator.py
-H-99aef8473cbdefad56724a64d361668e generated\ui_generated_get_passkey_dialog.py
-H-f0e0e5b72f94bf600f316eebf18dce73 generated\ui_generated_get_password_dialog.py
-H-d11b1261b4bd6592005b8351cbc43ebb generated\ui_generated_import_config_dialog.py
-H-73e239ec61fd84a6a07f81ba50bb4c8e generated\ui_generated_main.py
+H-61d7f708d1cc41b7d88aba453518a7bd generated\ui_generated_add_item_dialog.py
+H-5a51b7d9422a377127c38091fc2ca55f generated\ui_generated_auth_method_dialog.py
+H-567c97c6b5556e8b8f6142df6cd270fe generated\ui_generated_background_authenticator.py
+H-c640d56296404fdb022fa3deacf3646c generated\ui_generated_get_passkey_dialog.py
+H-99f251140b46de0428ee27e6b01f5c34 generated\ui_generated_get_password_dialog.py
+H-f3790fb3e4d720f1e56fbd4d88aa8284 generated\ui_generated_import_config_dialog.py
+H-0088ada4603fb8aa6cb88192d3a90df5 generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\__init__.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\authentication\__init__.py
 H-21c58c997b548932521b77ae38a882a1 handlers\authentication\base.py
@@ -35,13 +35,13 @@ H-cf60e66bf31af9955876ddb84065f70e handlers\authentication\face_recognition.py
 H-632f97486cb46c9c00c53e2bf69c3dd4 handlers\authentication\fingerprint.py
 H-8e28857dd7d370c4f1e0d18466c6ec52 handlers\authentication\methods.py
 H-d237692c1bf6ba87bb1fe04c8ae7243e handlers\authentication\password.py
-H-bb5bbaecd5d1270e26ae1f6ceae99f06 handlers\authentication\winbio\__main__.py
-H-466cba0ec1c11b444529dbaa09fb5cf0 handlers\authentication\winbio\winbio_base.py
+H-4829ca2d19129e55bcb2747726c2a7d4 handlers\authentication\winbio\__main__.py
+H-0b9372557e492cb02420ee74b5d75542 handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
 H-deee2366b8a01d513f8cd60208024de3 handlers\notification\base.py
 H-4500fa7441b683b302a429b1957d4bab handlers\notification\cli.py
-H-f50cd3e21cf05d34cfda2a0c641438f5 handlers\notification\gui.py
+H-f94aec884429ee5633d9c87a5e361a52 handlers\notification\gui.py
 H-2dff75d07a6db57487051100ec3f9d72 handlers\notification\toast.py
 H-e8034deb099a1732e9ebd8df4901fd55 handlers\notification\tray.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\window_selector\__init__.py
@@ -77,7 +77,7 @@ H-10206c0da0ffd2fc98a451bf716ef812 logger.py
 H-d41d8cd98f00b204e9800998ecf8427e package_builder\__init__.py
 H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-5ec6828b7ebae8f261b9a1bc906201e5 password_manager.py
-H-18abc18137c7b157750f2ab026140ab0 requirements.txt
+H-154b9099fbc92f59603bfa26ce41b27e requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
 H-cac254b5444df67cacb7bac7f3471819 security_bypass.py
 H-0b373d8438aa830dfa2ba48b2f263447 security_bypass_tray.py
