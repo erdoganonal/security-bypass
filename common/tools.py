@@ -4,6 +4,7 @@ import ctypes
 import os
 import subprocess
 import sys
+import tkinter as tk
 from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Type
@@ -290,3 +291,20 @@ def is_interactive_authentication() -> bool:
     """Check if the key is coming from environment variable or not"""
 
     return os.getenv(ENV_NAME_AUTH_KEY, None) is None
+
+
+def update_and_center(
+    root: tk.Tk | tk.Toplevel, other: tk.Misc | None = None, vertical_taskbar_offset: int = 0, horizontal_taskbar_offset: int = 0
+) -> None:
+    """Update the window and center in the screen"""
+
+    root.update()
+
+    if other:
+        x_pos = other.winfo_rootx() + (other.winfo_width() - root.winfo_width()) // 2
+        y_pos = other.winfo_rooty() + (other.winfo_height() - root.winfo_height()) // 2
+    else:
+        x_pos = (root.winfo_screenwidth() - root.winfo_width() - vertical_taskbar_offset) // 2
+        y_pos = (root.winfo_screenheight() - root.winfo_height() - horizontal_taskbar_offset) // 2
+
+    root.geometry(f"+{x_pos}" f"+{y_pos}")

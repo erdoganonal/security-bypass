@@ -34,46 +34,50 @@ exclude = [".env", "env", "tests", "env.39"]
 max-line-length = 140
 
 [tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist =
-    py310
-    py311
-    py312
+minversion = "4.0"
+env_list = ["py310", "py311", "py312", "py313"]
 
-[testenv]
-deps =
-    black==25.1.0
-    colorama
-    isort
-    mypy==1.16.0
-    password_validator
-    psutil
-    py7zr
-    pyautogui
-    pywinauto
-    pycryptodome
-    pylint==3.3.7
-    pyreadline
-    pywin32
-    pyqt6
-    requests
-    screeninfo
-    tkhelper
-    windows-toasts
-    types-cffi
-    types-colorama
-    types-psutil
-    types-PyAutoGUI
-    types-pywin32
-    types-requests
+[tool.tox.env.py310]
+deps = [
+    "black==25.1.0",
+    "colorama",
+    "isort",
+    "mypy==1.16.0",
+    "password_validator",
+    "psutil",
+    "py7zr",
+    "pyautogui",
+    "pywinauto",
+    "pycryptodome",
+    "pylint==3.3.7",
+    "pyreadline",
+    "pywin32",
+    "pyqt6",
+    "requests",
+    "screeninfo",
+    "tkhelper",
+    "windows-toasts",
+    "types-cffi",
+    "types-colorama",
+    "types-psutil",
+    "types-PyAutoGUI",
+    "types-pywin32",
+    "types-requests"
+]
+commands = [
+    ["python", "generate_all.py"],
+    ["isort", ".", "--line-length", "140", "--extend-skip", "env", "--extend-skip", ".env", "--extend-skip", "env.39", "--profile", "black"],
+    ["mypy", ".", "--install-types", "--non-interactive"],
+    ["black", ".", "--check", "--extend-exclude", "generated"],
+    ["pylint", "common", "communication", "config", "exclusion", "generated", "handlers", "helpers", "updater"],
+]
 
-commands =
-    python generate_all.py
-    isort . --line-length 140 --extend-skip env --extend-skip .env --extend-skip env.39 --profile black
-    mypy . --install-types --non-interactive
-    black . --check --extend-exclude generated
-    python -c "sys=__import__('sys');os=__import__('os');IGNORED_FOLDERS=('.vscode','.git', 'env', '.env', 'env.39', 'env_3.9', 'env_3.13', '__pycache__', '.mypy_cache', '.tox', '.hooks', 'venv_temp', 'SecurityBypass.egg-info', 'tests', '.pytest_cache', 'installer', '.github',);IGNORED_FILES=();ROOT_DIR = '.';pylint_params=[os.path.basename(path_info.path) for path_info in os.scandir(ROOT_DIR) if not ((path_info.is_dir() and any(ignored == path_info.name for ignored in IGNORED_FOLDERS)) or (path_info.is_file() and (any(ignored == path_info.name for ignored in IGNORED_FILES) or not path_info.path.endswith('.py'))))];sys.exit(os.system(f'pylint ' + ' '.join(pylint_params)))"
-    python -m updater generate-hashes
-    # pytest
-"""
+[tool.tox.env.py311]
+inherit = true
+
+[tool.tox.env.py312]
+inherit = true
+commands = [
+    # finally, generate hashes for the updater
+    ["python", "-m", "updater", "generate-hashes"]
+]

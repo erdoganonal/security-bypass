@@ -104,10 +104,12 @@ class WinBioInterface(abc.ABC):
 
         try:
             self._result["hash"] = get_hash(self.winbio_id)
+            self._result["title"] = "Biometric scan completed successfully."
             self._result["error"] = ""
             self._result["error_code"] = 0
         except WinBioError as e:
             self._result["hash"] = ""
+            self._result["title"] = e.message
             self._result["error"] = e.message
             self._result["error_code"] = e.error_code
 
