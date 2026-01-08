@@ -96,4 +96,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-793c582ead66ef5eede2e127e6c52ffc updater\handlers\generate_hashes_handler.py
-H-b43abb1ae12fb130679130be59dfd4e6 updater\helpers.py
+H-bb946c862ecc79aa0e861bd27f3e5b98 updater\helpers.py
