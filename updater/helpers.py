@@ -216,7 +216,7 @@ class UpdateHelper:
 
     def _install_requirements(self, file: Path) -> bool:
         try:
-            out = subprocess.check_output([f'"{sys.executable}"', "-m", "pip", "install", "-r", str(file)], stderr=subprocess.STDOUT)
+            out = subprocess.check_output([sys.executable, "-m", "pip", "install", "-r", str(file)], stderr=subprocess.STDOUT)
             logger.debug(out.decode("utf-8", errors="ignore"))
 
             self._notification_controller.info("Updates downloaded successfully. Restarting the app.")
