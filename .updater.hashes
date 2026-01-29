@@ -36,7 +36,7 @@ H-632f97486cb46c9c00c53e2bf69c3dd4 handlers\authentication\fingerprint.py
 H-8e28857dd7d370c4f1e0d18466c6ec52 handlers\authentication\methods.py
 H-d237692c1bf6ba87bb1fe04c8ae7243e handlers\authentication\password.py
 H-70e014d4c5614f308bd2c65ebc50706d handlers\authentication\winbio\__main__.py
-H-504ca7ff0a8e7b03857aaed8d41aab64 handlers\authentication\winbio\winbio_base.py
+H-d7ff453ff56d7af77851f003f6cf1bb9 handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
 H-deee2366b8a01d513f8cd60208024de3 handlers\notification\base.py
