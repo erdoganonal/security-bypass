@@ -25,9 +25,9 @@ from handlers.authentication.winbio.winbio_types import (
 from helpers.ui_helpers.background_authenticator import BackgroundAuthenticatorBase
 from settings import CURRENT_DIR
 
-WINBIO_USER_CANCELED = -4294967294  # gives 0x1
-WINBIO_ERROR_NOT_ADMIN = -4294967293  # gives 0x2
-WINBIO_ERROR_UNKNOWN_AUTH_METHOD = -4294967292  # gives 0x3
+WINBIO_USER_CANCELED = 1
+WINBIO_ERROR_NOT_ADMIN = 2
+WINBIO_ERROR_UNKNOWN_AUTH_METHOD = 3
 
 # Load Windows Biometric Framework (WBF)
 winbio = windll.Winbio
@@ -49,9 +49,7 @@ class _WinbioIdentity(Structure):  # pylint: disable=too-few-public-methods
 def dump_result(result: AuthenticationResult) -> str:
     """Dump the authentication result as a JSON string."""
 
-    error_code_string = hex(int("0xffffffff", base=16) + result["error_code"])
-
-    return json.dumps(result | {"error_code": error_code_string})
+    return json.dumps(result)
 
 
 class WinBioInterface(abc.ABC):
