@@ -7,7 +7,7 @@ H-cdd6abde09328a5bfd264e58709616e3 common\exceptions.py
 H-678acd38b77592b59b4ab19e1d09916c common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-dba8883be2c3d97a77a369fc568e8156 common\tools.py
+H-861b1ca003607ee1f330cc5312ca8bb5 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ffea1ca96bfa6da5295fc6094dff5fcc communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
@@ -35,8 +35,8 @@ H-cf60e66bf31af9955876ddb84065f70e handlers\authentication\face_recognition.py
 H-632f97486cb46c9c00c53e2bf69c3dd4 handlers\authentication\fingerprint.py
 H-8e28857dd7d370c4f1e0d18466c6ec52 handlers\authentication\methods.py
 H-d237692c1bf6ba87bb1fe04c8ae7243e handlers\authentication\password.py
-H-4829ca2d19129e55bcb2747726c2a7d4 handlers\authentication\winbio\__main__.py
-H-0b9372557e492cb02420ee74b5d75542 handlers\authentication\winbio\winbio_base.py
+H-70e014d4c5614f308bd2c65ebc50706d handlers\authentication\winbio\__main__.py
+H-504ca7ff0a8e7b03857aaed8d41aab64 handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
 H-deee2366b8a01d513f8cd60208024de3 handlers\notification\base.py
@@ -79,7 +79,7 @@ H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-5ec6828b7ebae8f261b9a1bc906201e5 password_manager.py
 H-ac36ac6391b71dce2891e12deb8db708 requirements.txt
 H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
-H-cac254b5444df67cacb7bac7f3471819 security_bypass.py
+H-b1aca6ff7cde3e022b4707ed7396a048 security_bypass.py
 H-0b373d8438aa830dfa2ba48b2f263447 security_bypass_tray.py
 H-4e092ddaa836a61bcf8d47a784c7ac77 settings.py
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui

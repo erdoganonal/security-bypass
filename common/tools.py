@@ -115,11 +115,20 @@ def focus_window(window: Win32Window) -> None:
 
     left, top, width, height = window.left, window.top, window.width, window.height
 
-    window.minimize()
-    window.maximize()
+    try:
+        window.minimize()
+        window.maximize()
 
-    window.resizeTo(width, height)
-    window.moveTo(left, top)
+        window.resizeTo(width, height)
+        window.moveTo(left, top)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        # Handle access denied errors (e.g., elevated windows, system windows)
+        logger.warning("Could not resize/move window: %s. Window may be elevated or protected.", str(e))
+        # Still try to activate the window even if resize fails
+        try:
+            window.activate()
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass  # If even activation fails, give up gracefully
 
 
 def get_position(window: Win32Window) -> tuple[int, int]:
