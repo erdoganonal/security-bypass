@@ -153,6 +153,7 @@ class SecurityBypass:
             time.sleep(1)
 
         PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Windows is locked. Authentication is required.")
+        self.__key = None
         self._load_config()
 
     def _reload_config_in_bg(self) -> None:

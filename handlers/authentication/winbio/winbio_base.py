@@ -25,9 +25,9 @@ from handlers.authentication.winbio.winbio_types import (
 from helpers.ui_helpers.background_authenticator import BackgroundAuthenticatorBase
 from settings import CURRENT_DIR
 
-WINBIO_USER_CANCELED = -1
-WINBIO_ERROR_NOT_ADMIN = -2
-WINBIO_ERROR_UNKNOWN_AUTH_METHOD = -3
+WINBIO_USER_CANCELED = -4294967294  # gives 0x1
+WINBIO_ERROR_NOT_ADMIN = -4294967293  # gives 0x2
+WINBIO_ERROR_UNKNOWN_AUTH_METHOD = -4294967292  # gives 0x3
 
 # Load Windows Biometric Framework (WBF)
 winbio = windll.Winbio
@@ -44,6 +44,14 @@ class _WinbioIdentity(Structure):  # pylint: disable=too-few-public-methods
     """WinbioIdentity structure for biometric identity."""
 
     _fields_ = [("Type", DWORD), ("Value", c_ubyte * 78)]  # Windows stores biometric templates as 78 bytes
+
+
+def dump_result(result: AuthenticationResult) -> str:
+    """Dump the authentication result as a JSON string."""
+
+    error_code_string = hex(int("0xffffffff", base=16) + result["error_code"])
+
+    return json.dumps(result | {"error_code": error_code_string})
 
 
 class WinBioInterface(abc.ABC):
@@ -179,7 +187,7 @@ def unknown_auth_method_result_main() -> None:
         error_code=WINBIO_ERROR_UNKNOWN_AUTH_METHOD,
     )
 
-    print(json.dumps(unknown_auth_method_result))
+    print(dump_result(unknown_auth_method_result))
     sys.exit(WINBIO_ERROR_UNKNOWN_AUTH_METHOD)
 
 
@@ -193,5 +201,5 @@ def main(winbio_scanner: WinBioInterface) -> None:
         winbio_result["error"] = "Please run the application as an administrator."
         winbio_result["error_code"] = WINBIO_ERROR_NOT_ADMIN
 
-    print(json.dumps(winbio_result))
+    print(dump_result(winbio_result))
     sys.exit(winbio_result["error_code"])
