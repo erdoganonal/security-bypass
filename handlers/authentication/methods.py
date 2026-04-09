@@ -40,7 +40,7 @@ class AuthMethod(Enum):
 _METHOD_MAP: dict[AuthMethod, _AuthMethodProperties] = {
     AuthMethod.PASSWORD: {
         "auth_class": AuthenticationPassword,
-        "admin_rights_required": False,
+        "admin_rights_required": True,
         "get_auth_result": get_password_result,
     },
     AuthMethod.FINGERPRINT: {
