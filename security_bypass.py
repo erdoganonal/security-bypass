@@ -55,7 +55,7 @@ def main() -> None:
     logger_initialize()
 
     user_preferences = UserPreferencesAccessor.get()
-    if user_preferences.auth_method.is_admin_rights_required and is_interactive_authentication():
+    if is_interactive_authentication():
         restart_as_admin()
 
     PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))
