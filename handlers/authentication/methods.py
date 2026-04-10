@@ -13,7 +13,6 @@ from handlers.authentication.winbio.winbio_base import SupportedBiometricTypes, 
 class _AuthMethodProperties(TypedDict):
     auth_class: Type[AuthenticationInterface]
     get_auth_result: Callable[[], AuthenticationResult]
-    admin_rights_required: bool
 
 
 class AuthMethod(Enum):
@@ -27,11 +26,6 @@ class AuthMethod(Enum):
         """Get the underlying class name."""
         return _METHOD_MAP[self]["auth_class"]
 
-    @property
-    def is_admin_rights_required(self) -> bool:
-        """Check if admin rights are required."""
-        return _METHOD_MAP[self]["admin_rights_required"]
-
     def get_auth_result(self) -> AuthenticationResult:
         """Get the authentication result."""
         return _METHOD_MAP[self]["get_auth_result"]()
@@ -40,17 +34,14 @@ class AuthMethod(Enum):
 _METHOD_MAP: dict[AuthMethod, _AuthMethodProperties] = {
     AuthMethod.PASSWORD: {
         "auth_class": AuthenticationPassword,
-        "admin_rights_required": True,
         "get_auth_result": get_password_result,
     },
     AuthMethod.FINGERPRINT: {
         "auth_class": AuthenticationFingerprint,
-        "admin_rights_required": True,
         "get_auth_result": lambda: get_auth_result(SupportedBiometricTypes.FINGERPRINT),
     },
     AuthMethod.FACE_RECOGNITION: {
         "auth_class": AuthenticationFaceRecognition,
-        "admin_rights_required": True,
         "get_auth_result": lambda: get_auth_result(SupportedBiometricTypes.FACE_ID),
     },
 }

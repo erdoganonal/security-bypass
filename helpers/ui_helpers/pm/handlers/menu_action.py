@@ -92,24 +92,19 @@ class MenuActionHandler:
 
         auth_method = auth_method or UserPreferencesAccessor.get().auth_method
 
-        password: str | None = None
-        if auth_method is not None:
-            if auth_method.is_admin_rights_required and not is_user_admin():
-                self._handle_admin_request(auth_method)
+        if not is_user_admin():
+            self._handle_admin_request(auth_method)
 
-            result = auth_method.get_auth_result()
-            if result["error_code"] != 0:
-                Notification.show_error(
-                    self._manager.ui.tree,
-                    result["error"],
-                    f"{auth_method.value} Error",
-                    info=f"Error Code: {result['error_code']}",
-                )
-                return
-            password = result["hash"]
-
-        if password is None:
+        result = auth_method.get_auth_result()
+        if result["error_code"] != 0:
+            Notification.show_error(
+                self._manager.ui.tree,
+                result["error"],
+                f"{auth_method.value} Error",
+                info=f"Error Code: {result['error_code']}",
+            )
             return
+        password = result["hash"]
 
         UserPreferencesAccessor.partial_save(USER_PREFERENCES_FILE, auth_method=auth_method)
 

@@ -285,7 +285,7 @@ if __name__ == "__main__":
     check_single_instance()
 
     USER_PREFERENCES = UserPreferencesAccessor.get()
-    if USER_PREFERENCES.auth_method.is_admin_rights_required and is_interactive_authentication():
+    if is_interactive_authentication():
         restart_as_admin()
 
     PBRegistry.register(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationGUI()))
