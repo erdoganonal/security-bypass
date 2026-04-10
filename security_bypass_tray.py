@@ -69,9 +69,11 @@ class SecurityBypassTray:
         self.add_action(("Check updates on startup", self._action_manager.toggle_check_for_updates, user_preferences.auto_update))
         self.add_action(None)
         self.add_action(("Password Manager", self._action_manager.open_password_manager, None))
+        self.add_action(None)
         self.add_action(
             ("Repeated Window Protection", self._action_manager.set_repeated_window_protection, user_preferences.repeated_window_protection)
         )
+        self.add_action(("Ask Password on Lock", self._action_manager.set_ask_password_on_lock, user_preferences.ask_password_on_lock))
         self.add_action(None)
         self.add_action(("Quit", self._action_manager.quit_application, None))
 
@@ -119,6 +121,10 @@ class ActionManager:
     def set_repeated_window_protection(self, checked: bool) -> None:
         """Toggle the repeated window protection feature."""
         UserPreferencesAccessor.partial_save(USER_PREFERENCES_FILE, repeated_window_protection=checked)
+
+    def set_ask_password_on_lock(self, checked: bool) -> None:
+        """Toggle the ask password on lock feature."""
+        UserPreferencesAccessor.partial_save(USER_PREFERENCES_FILE, ask_password_on_lock=checked)
 
     def set_status_text(self, text: str) -> None:
         """Set the status text."""

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from handlers.authentication.methods import AuthMethod
-from settings import USER_PREFERENCES_FILE
+from settings import ASK_PASSWORD_ON_LOCK, USER_PREFERENCES_FILE
 
 
 @dataclass
@@ -17,6 +17,7 @@ class UserPreferences:
     auto_update: bool = True
     repeated_window_protection: bool = True
     auth_method: AuthMethod = AuthMethod.PASSWORD
+    ask_password_on_lock: bool = ASK_PASSWORD_ON_LOCK
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the data to a dictionary."""
@@ -25,6 +26,7 @@ class UserPreferences:
             "auto_update": self.auto_update,
             "repeated_window_protection": self.repeated_window_protection,
             "auth_method": self.auth_method.value,
+            "ask_password_on_lock": self.ask_password_on_lock,
         }
 
     @classmethod
@@ -35,6 +37,7 @@ class UserPreferences:
             auto_update=data["auto_update"],
             repeated_window_protection=data.get("repeated_window_protection", True),
             auth_method=AuthMethod(data.get("auth_method", AuthMethod.PASSWORD.value)),
+            ask_password_on_lock=data.get("ask_password_on_lock", ASK_PASSWORD_ON_LOCK),
         )
 
 
