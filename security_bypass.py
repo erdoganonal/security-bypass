@@ -39,7 +39,7 @@ from helpers.user_preferences import UserPreferencesAccessor
 from logger import initialize as logger_initialize
 from logger import logger
 from package_builder.registry import PBId, PBRegistry
-from settings import ASK_PASSWORD_ON_LOCK, CREDENTIALS_FILE, DEBUG, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT
+from settings import CREDENTIALS_FILE, DEBUG, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT
 from updater.helpers import check_for_updates
 
 SLEEP_SECS = 1
@@ -258,7 +258,7 @@ class SecurityBypass:
         threading.Thread(target=self._reload_config_in_bg, daemon=True).start()
 
         while self._is_running:
-            if ASK_PASSWORD_ON_LOCK:
+            if UserPreferencesAccessor.get().ask_password_on_lock:
                 self._handle_windows_lock()
 
             if PBRegistry.get_typed(PBId.SELECT_WINDOW, WindowSelectorController).supports_thread:
