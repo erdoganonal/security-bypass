@@ -81,7 +81,7 @@ H-b297198b41d80c7824e997eeb0925061 requirements.txt
 H-b8d576b35220ac9314d94dfa1d5abea1 Security Bypass.xml
 H-c7afdf6c37d0904b08720e2ecee2cf0e security_bypass.py
 H-1d35b167166eeed0848a8c9f73ec097d security_bypass_tray.py
-H-4e092ddaa836a61bcf8d47a784c7ac77 settings.py
+H-ae9ce41fb115a0839bc0d998791fbd37 settings.py
 H-e4188cf052a28c80e3e419aeb5ce6fd4 start.bat
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui
@@ -97,4 +97,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-793c582ead66ef5eede2e127e6c52ffc updater\handlers\generate_hashes_handler.py
-H-58b418fed7d9a2aa4b71a388814bfa0b updater\helpers.py
+H-bbb42f2bd761a6dbe4fe070df4421c90 updater\helpers.py

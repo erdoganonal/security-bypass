@@ -45,3 +45,5 @@ and a string to search in the window. The rest is the password that you need to 
 This tool is designed to make managing these inputs easy and efficient.
 Please use responsibly and only for legitimate purposes.
 """
+
+VENV_NAME = "env"

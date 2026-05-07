@@ -60,3 +60,9 @@ jobs:
 
     - name: Create installer
       run: python create_installer.py
+
+    - name: Upload the installer
+      uses: actions/upload-artifact@v6
+      with:
+        name: security-bypass-installer
+        path: windows_security_bypass_installer.exe
