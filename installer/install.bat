@@ -11,7 +11,7 @@ for %%v in (13 12 11 10) do (
     )
 )
 
-echo No Python version has been found. Please intall python 10, 11 or 12 first.
+echo No Python version has been found. Please intall python 10, 11, 12 or 13 first.
 pause
 exit /b 1
 
@@ -32,6 +32,9 @@ echo Files have been extraced.
 echo.
 
 cd %DESTINATION_FOLDER% || goto :error
+
+%PYTHON_PATH% -m venv env || goto :error
+call env\Scripts\activate.bat || goto :error
 
 %PYTHON_PATH% -m pip install --upgrade pip > nul || goto :error
 %PYTHON_PATH% initial_setup.py || goto :error
