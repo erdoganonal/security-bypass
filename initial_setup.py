@@ -60,7 +60,7 @@ start /B {pythonw} password_manager.py
 def main() -> None:
     """starts from here"""
 
-    # check_virtual_environment()
+    check_virtual_environment()
 
     install_requirements()
 
@@ -92,7 +92,7 @@ def _system(cmd: str, error_message: str = "") -> None:
 def _restart() -> None:
     try:
         # pylint: disable=consider-using-with
-        subprocess.Popen(f"{sys.executable} {' '.join(sys.argv)}", env=os.environ | {ENV_NAME_SKIP_UPDATE: "1"})
+        subprocess.Popen(f"python {' '.join(sys.argv)}", env=os.environ | {ENV_NAME_SKIP_UPDATE: "1"})
     except KeyboardInterrupt:
         pass
 
@@ -100,8 +100,8 @@ def _restart() -> None:
 def check_virtual_environment() -> None:
     """check whether the script is running in a virtual environment or not"""
 
-    if os.getenv("VIRTUAL_ENV"):
-        InputOutputHelper.error("Running the installation script in a virtual environment is not allowed.", exit_code=-1)
+    if not os.getenv("VIRTUAL_ENV"):
+        InputOutputHelper.error("Running the installation script in a non virtual environment is not allowed.", exit_code=-1)
 
 
 def install_requirements() -> None:
@@ -110,7 +110,7 @@ def install_requirements() -> None:
     if RESTART:
         InputOutputHelper.info("installing requirements, please wait...")
     _system(
-        f'"{sys.executable}" -m pip install -r {REQUIREMENT_FILE} -q -q -q --exists-action i',
+        f"python -m pip install -r {REQUIREMENT_FILE} -q -q -q --exists-action i",
         "cannot install one or more packages with pip",
     )
     if not RESTART:
@@ -120,7 +120,7 @@ def install_requirements() -> None:
 def is_update() -> bool:
     """check whether the application is updated or not"""
 
-    return os.system('schtasks /query /tn "Security Bypass"') == 0
+    return os.system('schtasks /query /tn "Security Bypass" 2>nul') == 0
 
 
 def complete_update() -> NoReturn:
@@ -156,7 +156,7 @@ def adjust_task_scheduler_xml() -> None:
 
     xml_content = xml_content.format(
         username=win32api.GetUserNameEx(win32api.NameSamCompatible),  # pylint: disable=c-extension-no-member
-        pythonw=next(Path(sys.executable).parent.glob("pythonw.exe")),
+        pythonw=os.path.realpath("pythonw"),
         description=_get_description(),
         script_dir=SCRIPT_DIR,
     )
@@ -165,7 +165,7 @@ def adjust_task_scheduler_xml() -> None:
         temp_xml_fd.write(xml_content)
 
     try:
-        if os.system('schtasks /query /tn "Security Bypass"') == 0:
+        if os.system('schtasks /query /tn "Security Bypass" 2>nul') == 0:
             # delete the old task
             _system('schtasks /delete /tn "Security Bypass" /F')
 
@@ -257,7 +257,7 @@ def create_pw_manager_link() -> None:
     """create a link to the password manager"""
 
     with open(PW_MANAGER_RUNNER_PATH, "w", encoding="utf-8") as runner_fd:
-        runner_fd.write(PW_MANAGER_RUNNER_CONTENT.format(pythonw=next(Path(sys.executable).parent.glob("pythonw.exe"))))
+        runner_fd.write(PW_MANAGER_RUNNER_CONTENT.format(pythonw=os.path.realpath("pythonw")))
 
     shell = win32com.client.Dispatch("WScript.Shell")
     shortcut = shell.CreateShortCut(
@@ -287,7 +287,7 @@ def initial_setup() -> None:
     InputOutputHelper.info("\nan empty configuration file has been created.\n")
 
     create_pw_manager_link()
-    subprocess.check_output(f"{sys.executable} password_manager.py", env=os.environ | {ENV_NAME_AUTH_KEY: key})
+    subprocess.check_output(f"python password_manager.py", env=os.environ | {ENV_NAME_AUTH_KEY: key})
 
 
 def rollback() -> None:

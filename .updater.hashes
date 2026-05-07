@@ -69,7 +69,7 @@ H-d41d8cd98f00b204e9800998ecf8427e helpers\ui_helpers\pm\handlers\__init__.py
 H-1d68d63a62e211c20489a2901625aaa9 helpers\ui_helpers\pm\handlers\menu_action.py
 H-c3f96bfe491b44f61ab84999df1ac17f helpers\ui_helpers\pm\handlers\signal_handler.py
 H-6fdc6cc7d6c39347901049c25e7fac96 helpers\user_preferences.py
-H-98143dfbe7cfa931249f5257f0246284 initial_setup.py
+H-96b666e6867afddd68d48d5317805222 initial_setup.py
 H-2e425fc436413933ed3e4e00a6bc1240 installer\password_manager.ico
 H-2c4b2e01513e947f37eae8e981dbb066 installer.py
 H-aa005b4236732172033bd67dcd4e9652 LICENSE
@@ -78,10 +78,11 @@ H-d41d8cd98f00b204e9800998ecf8427e package_builder\__init__.py
 H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-78158bba4cad94d7d514a35ac4775b4b password_manager.py
 H-b297198b41d80c7824e997eeb0925061 requirements.txt
-H-df1a435e5287ea55d7fa025141d6d804 Security Bypass.xml
+H-b8d576b35220ac9314d94dfa1d5abea1 Security Bypass.xml
 H-c7afdf6c37d0904b08720e2ecee2cf0e security_bypass.py
 H-1d35b167166eeed0848a8c9f73ec097d security_bypass_tray.py
 H-4e092ddaa836a61bcf8d47a784c7ac77 settings.py
+H-e4188cf052a28c80e3e419aeb5ce6fd4 start.bat
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui
 H-c765f6b636a42d7bc276e97fd3de7988 ui\get_auth_method_dialog.ui
