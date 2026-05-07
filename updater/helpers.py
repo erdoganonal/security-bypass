@@ -129,7 +129,7 @@ class UpdateHelper:
             except OSError as e:
                 if report_error:
                     raise e
-                self._notification_controller.error(
+                self._notification_controller.debug(
                     f"Failed to check for updates. Will retry in {_SLEEP_SECS_BETWEEN_RETRIES} secs[{idx+1}/{max_retries}]"
                 )
                 time.sleep(_SLEEP_SECS_BETWEEN_RETRIES)
@@ -138,18 +138,18 @@ class UpdateHelper:
         return False
 
     def _check_for_updates(self) -> bool | None:
-        self._notification_controller.info("Checking for updates...")
+        self._notification_controller.debug("Checking for updates...")
 
         if self._update_list is None:
             self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}")]
 
         if not self._update_list:
-            self._notification_controller.info("No updates available.")
+            self._notification_controller.debug("No updates available.")
             return None
 
         if not self._notification_controller.ask_yes_no("An update available. Do you want to update?"):
             # User does not want to update
-            self._notification_controller.info("Update skipped.")
+            self._notification_controller.debug("Update skipped.")
             return None
 
         try:
