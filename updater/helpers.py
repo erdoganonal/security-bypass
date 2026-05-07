@@ -2,6 +2,7 @@
 
 import enum
 import hashlib
+import os
 import shutil
 import subprocess
 import sys
@@ -19,7 +20,7 @@ from handlers.notification.base import NotificationController
 from initial_setup import adjust_task_scheduler_xml
 from logger import logger
 from package_builder.registry import PBId, PBRegistry
-from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE
+from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE, VENV_NAME
 
 _SLEEP_SECS_BETWEEN_RETRIES = 10
 
@@ -203,12 +204,18 @@ class UpdateHelper:
         return self._complete_update()
 
     def _complete_update(self) -> bool:
-        logger.debug("checking for changes in the requirements.txt file")
+        self._check_for_venv()
 
+        logger.debug("checking for changes in the requirements.txt file")
         for file in self._downloaded_files.values():
             if file.name == "requirements.txt":
                 logger.info("requirements.txt file changed, going to install the new requirements")
-                return self._install_requirements(file)
+                install_lib_result = self._install_requirements(file)
+                if install_lib_result:
+                    break
+                return False
+        else:
+            logger.debug("requirements.txt file did not change, no need to install the requirements")
 
         adjust_task_scheduler_xml()
 
@@ -216,7 +223,9 @@ class UpdateHelper:
 
     def _install_requirements(self, file: Path) -> bool:
         try:
-            out = subprocess.check_output([sys.executable, "-m", "pip", "install", "-r", str(file)], stderr=subprocess.STDOUT)
+            out = subprocess.check_output(
+                [f"{VENV_NAME}/Scripts/python.exe", "-m", "pip", "install", "-r", str(file)], stderr=subprocess.STDOUT
+            )
             logger.debug(out.decode("utf-8", errors="ignore"))
 
             self._notification_controller.info("Updates downloaded successfully. Restarting the app.")
@@ -226,6 +235,15 @@ class UpdateHelper:
             logger.exception("Failed to install requirements")
 
         return False
+
+    def _check_for_venv(self) -> None:
+        if os.getenv("VIRTUAL_ENV"):
+            return
+
+        logger.info("The application is not running in a virtual environment. Creating a virtual environment.")
+        if os.system(f"{sys.executable} -m venv {VENV_NAME}") != 0:
+            raise OSError("Failed to create a virtual environment")
+        logger.info("Virtual environment created.")
 
     def _do_rollback(self) -> None:
         try:
