@@ -7,7 +7,7 @@ import sys
 import tkinter as tk
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Any, Dict, Type
 
 import psutil
 import pyautogui
@@ -23,7 +23,7 @@ from settings import CREDENTIALS_FILE, ENV_NAME_AUTH_KEY, ENV_NAME_DEBUG, ENV_NA
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
 
-_GLOBAL = {}
+_GLOBAL: Dict[str, Any] = {}
 
 
 @cache

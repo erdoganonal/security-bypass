@@ -18,6 +18,16 @@ class MessageType(enum.Enum):
     CRITICAL = enum.auto()
 
 
+_MSG_TYPE_LOG_LEVEL_MAP = {
+    MessageType.DEBUG: logger.debug,
+    MessageType.INFO: logger.info,
+    MessageType.QUESTION: logger.info,
+    MessageType.WARNING: logger.warning,
+    MessageType.ERROR: logger.error,
+    MessageType.CRITICAL: logger.critical,
+}
+
+
 class NotificationInterface(abc.ABC):
     """Interface for notification handling"""
 
@@ -39,8 +49,14 @@ class NotificationController(NotificationInterface):
 
     def __init__(self, handler_type: NotificationInterface) -> None:
         self._notification_handler = handler_type
+        self._has_started = False
+
+    def mark_started(self) -> None:
+        """Mark the tool as started, allowing late info messages to be shown"""
+        self._has_started = True
 
     def show(self, message: str, title: str, msg_type: MessageType) -> None:
+        _MSG_TYPE_LOG_LEVEL_MAP[msg_type]("%s: %s", title, message)
         self._notification_handler.show(message, title, msg_type)
 
     def ask_yes_no(self, message: str, title: str = "") -> bool:
@@ -52,27 +68,30 @@ class NotificationController(NotificationInterface):
         return self._notification_handler.user_input(message, title, hidden_text)
 
     def debug(self, message: str, title: str = "") -> None:
-        """Show an info message to the user"""
-        logger.debug("%s: %s", title, message)
+        """Show a debug message to the user"""
         if is_debug_enabled():
             self.show(message=message, title=title, msg_type=MessageType.DEBUG)
+        else:
+            # special case for debug messages, as they are not shown to the user, but we still want to log them
+            logger.debug("%s: %s", title, message)
 
     def info(self, message: str, title: str = "") -> None:
         """Show an info message to the user"""
-        logger.info("%s: %s", title, message)
         self.show(message=message, title=title, msg_type=MessageType.INFO)
 
+    def late_info(self, message: str, title: str = "") -> None:
+        """Show an info message to the user, but only after the tool has been started"""
+        if self._has_started:
+            self.info(message, title)
+
     def warning(self, message: str, title: str = "") -> None:
-        """Show an info message to the user"""
-        logger.warning("%s: %s", title, message)
+        """Show a warning message to the user"""
         self.show(message=message, title=title, msg_type=MessageType.WARNING)
 
     def error(self, message: str, title: str = "") -> None:
-        """Show an info message to the user"""
-        logger.error("%s: %s", title, message)
+        """Show an error message to the user"""
         self.show(message=message, title=title, msg_type=MessageType.ERROR)
 
     def critical(self, message: str, title: str = "") -> None:
-        """Show an info message to the user"""
-        logger.critical("%s: %s", title, message)
+        """Show a critical message to the user"""
         self.show(message=message, title=title, msg_type=MessageType.CRITICAL)
