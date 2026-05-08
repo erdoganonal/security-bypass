@@ -7,7 +7,7 @@ H-cdd6abde09328a5bfd264e58709616e3 common\exceptions.py
 H-678acd38b77592b59b4ab19e1d09916c common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-861b1ca003607ee1f330cc5312ca8bb5 common\tools.py
+H-ac568e52e7e2e6503ab1e332b94b4dc9 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ffea1ca96bfa6da5295fc6094dff5fcc communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
@@ -21,13 +21,13 @@ H-d41d8cd98f00b204e9800998ecf8427e exclusion\__init__.py
 H-d7c86464ae68a4463cd62f849314c5eb exclusion\manager.py
 H-e1e6f013f4b173f5a0219c197ff11336 generate_all.py
 H-d41d8cd98f00b204e9800998ecf8427e generated\__init__.py
-H-61d7f708d1cc41b7d88aba453518a7bd generated\ui_generated_add_item_dialog.py
-H-5a51b7d9422a377127c38091fc2ca55f generated\ui_generated_auth_method_dialog.py
-H-567c97c6b5556e8b8f6142df6cd270fe generated\ui_generated_background_authenticator.py
-H-c640d56296404fdb022fa3deacf3646c generated\ui_generated_get_passkey_dialog.py
-H-99f251140b46de0428ee27e6b01f5c34 generated\ui_generated_get_password_dialog.py
-H-f3790fb3e4d720f1e56fbd4d88aa8284 generated\ui_generated_import_config_dialog.py
-H-0088ada4603fb8aa6cb88192d3a90df5 generated\ui_generated_main.py
+H-eb270ba7845da494fff361d86a029fce generated\ui_generated_add_item_dialog.py
+H-d7dd2576d4e1fde9293a6be01c27d54a generated\ui_generated_auth_method_dialog.py
+H-7331640f414c27d1583617763615c394 generated\ui_generated_background_authenticator.py
+H-3fecfba2cbaac6181fc948237d0b2b80 generated\ui_generated_get_passkey_dialog.py
+H-e99b17927ed0de1dc23d6def112a1411 generated\ui_generated_get_password_dialog.py
+H-3cf203880d71a6302de37f860d0fb837 generated\ui_generated_import_config_dialog.py
+H-767b9a4c3c7540e246cf0b58cd5b1d5d generated\ui_generated_main.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\__init__.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\authentication\__init__.py
 H-21c58c997b548932521b77ae38a882a1 handlers\authentication\base.py
@@ -39,10 +39,10 @@ H-70e014d4c5614f308bd2c65ebc50706d handlers\authentication\winbio\__main__.py
 H-d7ff453ff56d7af77851f003f6cf1bb9 handlers\authentication\winbio\winbio_base.py
 H-3146f29da4631512f5c0a1d434fa4ac2 handlers\authentication\winbio\winbio_types.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\notification\__init__.py
-H-deee2366b8a01d513f8cd60208024de3 handlers\notification\base.py
+H-d681fe4d8a5a880a165afd317eef7a9e handlers\notification\base.py
 H-4500fa7441b683b302a429b1957d4bab handlers\notification\cli.py
-H-f94aec884429ee5633d9c87a5e361a52 handlers\notification\gui.py
-H-2dff75d07a6db57487051100ec3f9d72 handlers\notification\toast.py
+H-6fdf5bff2f4b89ee586eee199f157ce6 handlers\notification\gui.py
+H-1ede52ca7ad2d567b9ed347ec60d6f7f handlers\notification\toast.py
 H-e8034deb099a1732e9ebd8df4901fd55 handlers\notification\tray.py
 H-d41d8cd98f00b204e9800998ecf8427e handlers\window_selector\__init__.py
 H-4ccb3ab55bc4f4ee9b881f0e5a111c90 handlers\window_selector\__path_fixer__.py
@@ -77,11 +77,11 @@ H-10206c0da0ffd2fc98a451bf716ef812 logger.py
 H-d41d8cd98f00b204e9800998ecf8427e package_builder\__init__.py
 H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-78158bba4cad94d7d514a35ac4775b4b password_manager.py
-H-b297198b41d80c7824e997eeb0925061 requirements.txt
+H-c2b74d096ab603706dd232307188e602 requirements.txt
 H-b8d576b35220ac9314d94dfa1d5abea1 Security Bypass.xml
-H-c7afdf6c37d0904b08720e2ecee2cf0e security_bypass.py
-H-1d35b167166eeed0848a8c9f73ec097d security_bypass_tray.py
-H-ae9ce41fb115a0839bc0d998791fbd37 settings.py
+H-9300b7571cc9a5450e36e560b5da5da0 security_bypass.py
+H-704c7056b060a59ef60cc1076ed8f8cd security_bypass_tray.py
+H-b80952a39f431af9e7142e821afaf577 settings.py
 H-e4188cf052a28c80e3e419aeb5ce6fd4 start.bat
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
 H-b67ac847ededeb81f0ace7e8fef284da ui\background_authenticator.ui
@@ -97,4 +97,4 @@ H-ae34f762aca087d7ced91e059c28a354 updater\constants.py
 H-d41d8cd98f00b204e9800998ecf8427e updater\handlers\__init__.py
 H-a21b6f888bce2d6a14e0630e83856937 updater\handlers\common.py
 H-793c582ead66ef5eede2e127e6c52ffc updater\handlers\generate_hashes_handler.py
-H-7bd255d3e098c9768edb56d09806dac4 updater\helpers.py
+H-2e2cb8692f991cf4d2c15345fda3c414 updater\helpers.py

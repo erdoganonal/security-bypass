@@ -26,6 +26,15 @@ from settings import ERROR_ICON, INFO_ICON, QUESTION_ICON, SECURITY_BYPASS_ICON,
 
 TITLE = "Security Bypass"
 
+_MSG_TYPE_ICON_MAP = {
+    MessageType.DEBUG: INFO_ICON,
+    MessageType.INFO: INFO_ICON,
+    MessageType.QUESTION: QUESTION_ICON,
+    MessageType.WARNING: WARNING_ICON,
+    MessageType.ERROR: ERROR_ICON,
+    MessageType.CRITICAL: ERROR_ICON,
+}
+
 
 class NotificationToast(NotificationInterface):
     """Show messages to the user with tray notifications"""
@@ -70,16 +79,7 @@ class NotificationToast(NotificationInterface):
             expiration_time=datetime.datetime.now() + datetime.timedelta(minutes=2),
         )
 
-        if msg_type in (MessageType.DEBUG, MessageType.INFO):
-            icon = INFO_ICON
-        elif msg_type == MessageType.WARNING:
-            icon = WARNING_ICON
-        elif msg_type in (MessageType.ERROR, MessageType.CRITICAL):
-            icon = ERROR_ICON
-        else:
-            icon = SECURITY_BYPASS_ICON
-
-        toast.images = [ToastDisplayImage.fromPath(icon, position=ToastImagePosition.AppLogo)]
+        toast.images = [ToastDisplayImage.fromPath(_MSG_TYPE_ICON_MAP[msg_type], position=ToastImagePosition.AppLogo)]
 
         toaster.show_toast(toast)
 

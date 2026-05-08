@@ -144,7 +144,7 @@ class UpdateHelper:
             self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}")]
 
         if not self._update_list:
-            self._notification_controller.debug("No updates available.")
+            self._notification_controller.late_info("No updates available.")
             return None
 
         if not self._notification_controller.ask_yes_no("An update available. Do you want to update?"):

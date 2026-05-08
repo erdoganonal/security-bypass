@@ -9,7 +9,7 @@ from functools import cache
 from typing import List, NoReturn, Set
 
 import pyautogui
-import pyperclip  # type: ignore[import-untyped]
+import pyperclip
 from pygetwindow import Win32Window  # type: ignore[import-untyped]
 
 from common import exceptions
@@ -99,6 +99,8 @@ class SecurityBypass:
         key_tracker = data_sharing.Informer(data_sharing.KEY_TRACKER_PORT)
         key_tracker.add_callback(self._on_master_key_change)
         key_tracker.start_server()
+
+        PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).mark_started()
 
     def _on_master_key_change(self, data: bytes) -> None:
         self.__key = data

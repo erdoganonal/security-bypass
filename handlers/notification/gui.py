@@ -42,7 +42,7 @@ class NotificationGUI(NotificationInterface):
         self._temp_timeout_ms = None
 
         try:
-            _MSG_ACTION_MAP[msg_type](title=title or message, message=message, master=root)
+            _MSG_ACTION_MAP[msg_type](title=title or message, message=message, parent=root)
         except tk.TclError:
             pass
 

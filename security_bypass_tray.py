@@ -77,9 +77,6 @@ class SecurityBypassTray:
         self.add_action(None)
         self.add_action(("Quit", self._action_manager.quit_application, None))
 
-        if user_preferences.auto_update:
-            self._action_manager.check_for_updates(auto=True)
-
         if user_preferences.auto_start:
             self._action_manager.start(delay_secs=30)
         else:
@@ -211,16 +208,21 @@ def main() -> None:
     if is_interactive_authentication():
         restart_as_admin()
 
-    # create the instance here to have the tray icon available
-    tray_app = SecurityBypassTray()
-
     PBRegistry.register_safe(PBId.NOTIFICATION_HANDLER, NotificationController(NotificationToast()))
     PBRegistry.register_safe(PBId.SELECT_WINDOW, WindowSelectorController(WindowSelectorPyQtGUI()))
     PBRegistry.register_safe(PBId.AUTHENTICATION_HANDLER, AuthenticationController(user_preferences.auth_method))
 
     PBRegistry.check_all_registered()
 
+    if user_preferences.auto_update:
+        has_updates = check_for_updates(report_error=False, force_check=False)
+
+        if has_updates:
+            complete_update()
+
+    tray_app = SecurityBypassTray()
     tray_app.add_actions()
+
     sys.exit(tray_app.app.exec())
 
 

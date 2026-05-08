@@ -1,7 +1,7 @@
 [project]
 name = "SecurityBypass"
 authors = [{ name = "Erdogan Onal", email = "erdoganonal@windowslive.com" }]
-version = "1.1.0"
+version = "2.0.0"
 description = "Allows you pick a pre-saved password and enters it for you"
 requires-python = ">=3.10"
 classifiers = [
@@ -9,7 +9,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-readme = { file = 'README.md', content-type = 'text/markdown' }
+readme = { file = "README.md", content-type = "text/markdown" }
 dynamic = ["dependencies"]
 
 [tool.setuptools]
@@ -39,36 +39,40 @@ env_list = ["py310", "py311", "py312", "py313"]
 
 [tool.tox.env.py310]
 deps = [
-    "black==25.1.0",
+    "black==26.3.1",
     "colorama",
-    "isort",
-    "mypy==1.16.0",
+    "isort==8.0.1",
+    "mypy==2.0.0",
     "password_validator",
     "psutil",
     "py7zr",
     "pyautogui",
-    "pywinauto",
     "pycryptodome",
-    "pylint==3.3.7",
+    "pylint==4.0.5",
+    "pyqt6",
     "pyreadline",
     "pywin32",
-    "pyqt6",
+    "pywinauto",
     "requests",
     "screeninfo",
     "tkhelper",
-    "windows-toasts",
+    "types-PyAutoGUI",
+    "types-PySocks",
     "types-cffi",
     "types-colorama",
+    "types-defusedxml",
     "types-psutil",
-    "types-PyAutoGUI",
+    "types-pyperclip",
     "types-pywin32",
-    "types-requests"
+    "types-requests",
+    "windows-toasts"
 ]
+
 commands = [
     ["python", "generate_all.py"],
     ["isort", ".", "--line-length", "140", "--extend-skip", "env", "--extend-skip", ".env", "--extend-skip", "env.39", "--profile", "black"],
     ["mypy", ".", "--install-types", "--non-interactive"],
-    ["black", ".", "--check", "--extend-exclude", "generated"],
+    ["black", ".", "--check", "--extend-exclude", "generated", "--target-version", "{envname}"],
     ["pylint", "common", "communication", "config", "exclusion", "generated", "handlers", "helpers", "updater"],
 ]
 
@@ -81,3 +85,6 @@ commands = [
     # finally, generate hashes for the updater
     ["python", "-m", "updater", "generate-hashes"]
 ]
+
+[tool.tox.env.py313]
+inherit = true
