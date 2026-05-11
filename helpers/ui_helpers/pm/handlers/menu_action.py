@@ -13,10 +13,11 @@ from handlers.authentication.methods import AuthMethod
 from helpers.ui_helpers.constants import TITLE_PASSWORD_MANAGER as TITLE
 from helpers.ui_helpers.notification import Notification
 from helpers.ui_helpers.pm.dialogs.auth_method import AuthMethodDialog
+from helpers.ui_helpers.pm.dialogs.export_config import ExportConfigDialog
 from helpers.ui_helpers.pm.dialogs.import_config import ImportConfigDialog
 from helpers.user_preferences import UserPreferencesAccessor
 from logger import logger
-from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, USER_PREFERENCES_FILE, VERSION
+from settings import ABOUT_INFO, ABOUT_MESSAGE, CREDENTIALS_FILE, DFT_ENCODING, USER_PREFERENCES_FILE, VERSION
 
 if TYPE_CHECKING:
     from password_manager import PasswordManagerUI
@@ -46,31 +47,22 @@ class MenuActionHandler:
 
     def export_config(self) -> None:
         """export the configuration to a file"""
-        file, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self._manager.ui.tree,
-            "Export Configuration",
-            "",
-            "Credentials Files (*.credentials)",
-        )
-
-        if not file:
+        result = ExportConfigDialog().get()
+        if result is None:
+            Notification.show_info(self._manager.ui.tree, "The configuration exported successfully", "Export Successful")
             return
 
-        save_encrypted = Notification.ask_yes_no(
-            self._manager.ui.tree,
-            message="Do you want to save the data in encrypted format?",
-            title="Encryption Preference",
-            info="Warning: If you export without encryption, the credentials will be visible easily. "
-            "Otherwise, the master key will be required to import it.",
-        )
-
-        if save_encrypted:
-            with open(CREDENTIALS_FILE, "rb") as credentials_fd:
-                data = credentials_fd.read()
+        if result.need_save_encrypted:
+            if result.use_same_master_key:
+                with open(CREDENTIALS_FILE, "rb") as credentials_fd:
+                    data = credentials_fd.read()
+            else:
+                config = self._manager.get_config()
+                data = ConfigManager(result.master_key.encode(DFT_ENCODING)).encrypt(config.to_json(encode=True))
         else:
             data = self._manager.get_config().to_json(encode=True)
 
-        with open(file, "wb") as out_file_fd:
+        with open(result.path, "wb") as out_file_fd:
             out_file_fd.write(data)
 
         Notification.show_info(self._manager.ui.tree, "The configuration exported successfully", "Export Successful")

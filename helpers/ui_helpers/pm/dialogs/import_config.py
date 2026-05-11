@@ -6,17 +6,13 @@ import json
 from pathlib import Path
 from typing import Tuple, Type
 
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtWidgets
 
-from common.password_validator import PASSWORD_SCHEMA, get_password_hint
 from config.config import Config, ConfigManager
 from generated.ui_generated_import_config_dialog import Ui_ImportConfigDialog  # type: ignore[attr-defined]
 from helpers.ui_helpers.notification import Notification
-from helpers.ui_helpers.pm.dialogs.dialog_base import DialogBase, SupportsSetupUi
+from helpers.ui_helpers.pm.dialogs.dialog_base import QT_STATE_CHECKED, QT_STATE_UNCHECKED, DialogBase, SupportsSetupUi
 from settings import DFT_ENCODING
-
-_QT_STATE_CHECKED: int = QtCore.Qt.CheckState.Checked.value  # type: ignore[assignment]
-_QT_STATE_UNCHECKED: int = QtCore.Qt.CheckState.Unchecked.value  # type: ignore[assignment]
 
 
 class ImportConfigDialog(DialogBase[Tuple[bytes, Config], Ui_ImportConfigDialog]):
@@ -35,21 +31,6 @@ class ImportConfigDialog(DialogBase[Tuple[bytes, Config], Ui_ImportConfigDialog]
             return True
         return False
 
-    def _is_valid_master_key(self, master_key: str, verify: bool) -> bool:
-        if not master_key:
-            Notification.show_error(self._wrapper_widget, "The master key cannot be empty", "Empty Master Key")
-        elif verify and master_key != self._ui.entry_master_key_again.text():
-            Notification.show_error(self._wrapper_widget, "the master keys did not match", "Master Key did not match")
-        elif not PASSWORD_SCHEMA.validate(master_key):
-            Notification.show_error(
-                self._wrapper_widget,
-                "The master key did not met the requirements\n\n" + get_password_hint(70),
-                "Master Key did not met the requirements",
-            )
-        else:
-            return True
-        return False
-
     def accept(self) -> None:
         """this function is called when OK button is pressed"""
         file_master_key = ""
@@ -63,12 +44,14 @@ class ImportConfigDialog(DialogBase[Tuple[bytes, Config], Ui_ImportConfigDialog]
         use_same_master_key = self._ui.checkbox_use_same_master_key.isChecked()
         file_master_key = self._ui.entry_file_master_key.text()
 
+        master_key_again: str | None = self._ui.entry_master_key_again.text()
         if is_encrypted_file and use_same_master_key:
             master_key = file_master_key
+            master_key_again = None
         else:
             master_key = self._ui.entry_master_key.text()
 
-        if not self._is_valid_master_key(master_key, not use_same_master_key):
+        if not self._is_valid_master_key(master_key, master_key_again):
             return
 
         with open(file, "rb") as file_fd:
@@ -107,18 +90,18 @@ class ImportConfigDialog(DialogBase[Tuple[bytes, Config], Ui_ImportConfigDialog]
         self._ui.entry_config_file.setText(file_path)
 
     def _toggle_encryption(self, state: int) -> None:
-        enabled = state == _QT_STATE_CHECKED
+        enabled = state == QT_STATE_CHECKED
 
         self._ui.label_file_master_key.setEnabled(enabled)
         self._ui.entry_file_master_key.setEnabled(enabled)
         self._ui.checkbox_use_same_master_key.setEnabled(enabled)
 
         self._toggle_master_key_entry(
-            _QT_STATE_CHECKED if self._ui.checkbox_use_same_master_key.isChecked() and enabled else _QT_STATE_UNCHECKED
+            QT_STATE_CHECKED if self._ui.checkbox_use_same_master_key.isChecked() and enabled else QT_STATE_UNCHECKED
         )
 
     def _toggle_master_key_entry(self, state: int) -> None:
-        disabled = state != _QT_STATE_CHECKED
+        disabled = state != QT_STATE_CHECKED
 
         self._ui.label_master_key.setEnabled(disabled)
         self._ui.entry_master_key.setEnabled(disabled)

@@ -8,6 +8,12 @@ from typing import Any, Generic, Protocol, Type, TypeVar
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
+from common.password_validator import PASSWORD_SCHEMA, get_password_hint
+from helpers.ui_helpers.notification import Notification
+
+QT_STATE_CHECKED: int = QtCore.Qt.CheckState.Checked.value  # type: ignore[assignment]
+QT_STATE_UNCHECKED: int = QtCore.Qt.CheckState.Unchecked.value  # type: ignore[assignment]
+
 
 # pylint: disable=too-few-public-methods, invalid-name
 class SupportsSetupUi(Protocol):
@@ -99,3 +105,18 @@ class DialogBase(Generic[T, U], abc.ABC):
         self._wrapper_widget.show()
         self._wrapper_widget.destroyed.connect(loop.quit)
         loop.exec()
+
+    def _is_valid_master_key(self, master_key: str, master_key_again: str | None = None) -> bool:
+        if not master_key:
+            Notification.show_error(self._wrapper_widget, "The master key cannot be empty", "Empty Master Key")
+        elif master_key_again is not None and master_key != master_key_again:
+            Notification.show_error(self._wrapper_widget, "The master keys did not match", "Master Key did not match")
+        elif not PASSWORD_SCHEMA.validate(master_key):
+            Notification.show_error(
+                self._wrapper_widget,
+                "The master key did not meet the requirements\n\n" + get_password_hint(70),
+                "Master Key did not meet the requirements",
+            )
+        else:
+            return True
+        return False
