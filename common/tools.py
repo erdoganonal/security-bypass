@@ -37,8 +37,14 @@ def is_windows_locked() -> bool:
     """Return the lock information of the windows"""
 
     for proc in psutil.process_iter():
-        if proc.name() == "LogonUI.exe":
+        try:
+            proc_name = proc.name()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+
+        if proc_name == "LogonUI.exe":
             return True
+
     return False
 
 
