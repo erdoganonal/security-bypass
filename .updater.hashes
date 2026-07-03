@@ -7,7 +7,7 @@ H-cdd6abde09328a5bfd264e58709616e3 common\exceptions.py
 H-678acd38b77592b59b4ab19e1d09916c common\exit_codes.py
 H-e84f9a2e6069a814bf36936e9c03fa7d common\ignored_window_handler.py
 H-99599be56ddf4ac6de22ab1ee75da104 common\password_validator.py
-H-ac568e52e7e2e6503ab1e332b94b4dc9 common\tools.py
+H-3d08dd4060e6f11ec6e390d56e334d62 common\tools.py
 H-d41d8cd98f00b204e9800998ecf8427e communication\__init__.py
 H-ffea1ca96bfa6da5295fc6094dff5fcc communication\data_sharing.py
 H-f9a33375e7f1f2a9163215b3f4875d21 config\__init__.py
