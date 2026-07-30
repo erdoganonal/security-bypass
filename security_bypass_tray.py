@@ -11,7 +11,7 @@ from typing import Callable, Tuple
 from PyQt6 import QtGui, QtWidgets
 
 from common import exceptions
-from common.tools import complete_update, is_interactive_authentication, restart_as_admin
+from common.tools import complete_update, is_interactive_authentication, restart, restart_as_admin
 from handlers.authentication.base import AuthenticationController
 from handlers.notification.base import NotificationController
 from handlers.notification.toast import NotificationToast
@@ -75,6 +75,7 @@ class SecurityBypassTray:
         )
         self.add_action(("Ask Password on Lock", self._action_manager.set_ask_password_on_lock, user_preferences.ask_password_on_lock))
         self.add_action(None)
+        self.add_action(("Restart", self._action_manager.restart, None))
         self.add_action(("Quit", self._action_manager.quit_application, None))
 
         if user_preferences.auto_start:
@@ -167,11 +168,11 @@ class ActionManager:
 
         threading.Thread(target=_start_wrapper).start()
 
-    def stop(self, before_quit: bool = False) -> None:
+    def stop(self, silent: bool = False) -> None:
         """Stop the instance."""
 
-        self._security_bypass.stop(before_quit=before_quit)
-        if not before_quit:
+        self._security_bypass.stop(silent=silent)
+        if not silent:
             self._tray.tray_icon.setToolTip(STATE_STOPPED)
 
         self.set_status_text("Stopped")
@@ -190,11 +191,16 @@ class ActionManager:
         # pylint: disable=consider-using-with
         subprocess.Popen([sys.executable, "password_manager.py"])
 
+    def restart(self) -> None:
+        """Restart the application."""
+        self.quit_application()
+        restart()
+
     def quit_application(self) -> None:
         """Stop the instance and quit the application"""
 
         self._exit_in_progress = True
-        self.stop(before_quit=True)
+        self.stop(silent=True)
 
         PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Exiting...")
         QtWidgets.QApplication.quit()

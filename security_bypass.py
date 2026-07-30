@@ -126,11 +126,13 @@ class SecurityBypass:
             raise exceptions.EmptyMasterKeyError()
 
         if not isinstance(self.__key, bytes):
+            self.__key = None
             raise exceptions.WrongMasterKeyFormat(self.__key.__class__.__name__)
 
         try:
             self._window_data.windows = ConfigManager(key=self.__key).get_config().windows
         except ValueError as exc:
+            self.__key = None
             raise exceptions.WrongMasterKeyError() from exc
 
         self._credential_file_modified_time = CREDENTIALS_FILE.stat().st_mtime
@@ -151,12 +153,22 @@ class SecurityBypass:
         if not is_windows_locked():
             return
 
+        is_running = self._is_running
+        self.stop(silent=True)
+
+        logger.info("Windows is locked. Waiting for the user to unlock the system.")
+
         while is_windows_locked():
             time.sleep(1)
+
+        logger.info("Windows is unlocked. Resuming the application.")
 
         PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).warning("Windows is locked. Authentication is required.")
         self.__key = None
         self._load_config()
+
+        if is_running:
+            self._start()
 
     def _reload_config_in_bg(self) -> None:
         while self._is_running:
@@ -287,10 +299,10 @@ class SecurityBypass:
             logger.error("Unknown exception occurred: %s", traceback.format_exc())
             self._exit(ExitCodes.UNKNOWN)
 
-    def stop(self, before_quit: bool = False) -> None:
+    def stop(self, silent: bool = False) -> None:
         """stop the window listener"""
         self._is_running = False
-        if not before_quit:
+        if not silent:
             PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController).info("The application has been stopped!")
 
     @property
