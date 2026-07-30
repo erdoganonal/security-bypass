@@ -81,8 +81,8 @@ H-84bf61e65eb5b013078df6790b7decad package_builder\registry.py
 H-78158bba4cad94d7d514a35ac4775b4b password_manager.py
 H-c2b74d096ab603706dd232307188e602 requirements.txt
 H-b8d576b35220ac9314d94dfa1d5abea1 Security Bypass.xml
-H-9300b7571cc9a5450e36e560b5da5da0 security_bypass.py
-H-704c7056b060a59ef60cc1076ed8f8cd security_bypass_tray.py
+H-bc4a1ca5a442b307d6e9f561bd38167a security_bypass.py
+H-f5c148d2a13e84cd50bade352b2294fc security_bypass_tray.py
 H-b80952a39f431af9e7142e821afaf577 settings.py
 H-e4188cf052a28c80e3e419aeb5ce6fd4 start.bat
 H-efbe2c6ef0d6148c27632aa1bc3d1b1a ui\add_item_dialog.ui
