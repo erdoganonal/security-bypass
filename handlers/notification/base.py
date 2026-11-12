@@ -3,8 +3,8 @@
 import abc
 import enum
 
-from common.tools import is_debug_enabled
 from logger import logger
+from settings import IS_DEVELOPER_MODE
 
 
 class MessageType(enum.Enum):
@@ -69,7 +69,7 @@ class NotificationController(NotificationInterface):
 
     def debug(self, message: str, title: str = "") -> None:
         """Show a debug message to the user"""
-        if is_debug_enabled():
+        if IS_DEVELOPER_MODE:
             self.show(message=message, title=title, msg_type=MessageType.DEBUG)
         else:
             # special case for debug messages, as they are not shown to the user, but we still want to log them

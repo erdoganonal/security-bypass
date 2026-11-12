@@ -39,7 +39,7 @@ from helpers.user_preferences import UserPreferencesAccessor
 from logger import initialize as logger_initialize
 from logger import logger
 from package_builder.registry import PBId, PBRegistry
-from settings import CREDENTIALS_FILE, DEBUG, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT
+from settings import CREDENTIALS_FILE, IS_DEVELOPER_MODE, MAX_KEY_SENT_ATTEMPTS, MIN_SLEEP_SECS_AFTER_KEY_SENT
 from updater.helpers import check_for_updates
 
 SLEEP_SECS = 1
@@ -210,14 +210,10 @@ class SecurityBypass:
             if self._window_data.auto_key_trigger_manager.is_already_triggered(auto_detected[0]):
                 if UserPreferencesAccessor.get().repeated_window_protection:
                     user_response = notification_controller.ask_yes_no(
-                        "The key has already been automatically sent to the window but either it didn't help.\n"
-                        "This may be due to an incorrect password or a sync problem. "
-                        "Please select the correct key from the list to avoid "
-                        "potential system blockage due to multiple incorrect entries.\n\n"
-                        f"Another reason might be the same window is detected in {AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n"
-                        "If you expect to see multiple windows, with check can be disabled for "
-                        f"{AutoKeyTriggerManager.TIMEOUT_SECS} seconds.\n\n"
-                        "Do you want to disable the check for temporarily?",
+                        "A key was already sent. If it was incorrect or out of sync, "
+                        "select the correct key to avoid a lockout.\n\n"
+                        "If you expect repeated windows, disable this check for "
+                        f"{AutoKeyTriggerManager.TIMEOUT_SECS} seconds?",
                         title="Key Already Sent",
                     )
                 else:
@@ -293,7 +289,7 @@ class SecurityBypass:
         except KeyboardInterrupt:
             notification_controller.warning("An interrupt detected. Terminating the app..")
         except Exception:  # pylint: disable=broad-exception-caught
-            if DEBUG:
+            if IS_DEVELOPER_MODE:
                 notification_controller.error(f"Unknown exception:: {traceback.format_exc()}", title="Unknown exception occurred.")
                 raise
             logger.error("Unknown exception occurred: %s", traceback.format_exc())

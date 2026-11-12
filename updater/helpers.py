@@ -20,9 +20,11 @@ from handlers.notification.base import NotificationController
 from initial_setup import adjust_task_scheduler_xml
 from logger import logger
 from package_builder.registry import PBId, PBRegistry
-from settings import RAW_REMOTE_URL, UPDATER_HASH_FILE, VENV_NAME
+from settings import CURRENT_DIR, DFT_ENCODING, RAW_REMOTE_URL, UPDATER_HASH_FILE, VENV_NAME
 
 _SLEEP_SECS_BETWEEN_RETRIES = 10
+_DOWNLOAD_MAX_ATTEMPTS = 4
+_DOWNLOAD_BASE_DELAY_SECS = 1
 
 
 class ModifyType(enum.Enum):
@@ -45,7 +47,7 @@ class UpdateHelper:
     """Helper class for updating the application."""
 
     def __init__(self) -> None:
-        self._update_list: List[str] | None = None
+        self._update_list: List[ModifiedFile] = []
         self._downloaded_files: Dict[str, Path] = {}
         self._tempdirs: Dict[str, Path] = {}
         self._notification_controller = PBRegistry.get_typed(PBId.NOTIFICATION_HANDLER, NotificationController)
@@ -57,26 +59,52 @@ class UpdateHelper:
         self._cleanup()
 
     @staticmethod
-    def md5(path: Path | str) -> str:
+    def md5(abs_path: Path | str) -> str:
         """Generate the md5 hash of a file."""
 
-        hash_md5 = hashlib.md5()
+        path = os.path.relpath(abs_path, CURRENT_DIR)
+
+        hash_md5 = hashlib.md5(path.encode(DFT_ENCODING))
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk.replace(b"\r", b""))
         return hash_md5.hexdigest()
 
     @staticmethod
-    def download_single_file(url: str, path: Path) -> None:
-        """Download a single file from the given URL."""
+    def _is_transient_error(error: requests.RequestException) -> bool:
+        if isinstance(error, requests.HTTPError):
+            status_code = error.response.status_code if error.response is not None else 0
+            return status_code == 429 or status_code >= 500
+        return isinstance(error, (requests.ConnectionError, requests.Timeout))
 
-        response = requests.get(url, stream=True, timeout=100)
-        response.raise_for_status()  # Ensure we got an OK response
+    @staticmethod
+    def _download_file(url: str, path: Path) -> None:
+        """Download a single file from the given URL, without retrying."""
+
+        with requests.get(url, stream=True, timeout=100) as response:
+            response.raise_for_status()  # Ensure we got an OK response
+
+            with open(path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+    @classmethod
+    def download_single_file(cls, url: str, path: Path) -> None:
+        """Download a single file from the given URL, retrying transient failures."""
 
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+
+        for attempt in range(1, _DOWNLOAD_MAX_ATTEMPTS + 1):
+            try:
+                cls._download_file(url, path)
+            except requests.RequestException as e:
+                path.unlink(missing_ok=True)  # do not leave a partial download behind
+                if attempt == _DOWNLOAD_MAX_ATTEMPTS or not cls._is_transient_error(e):
+                    raise
+
+                delay = _DOWNLOAD_BASE_DELAY_SECS * 2 ** (attempt - 1)
+                logger.warning("Download failed (%s). Retrying in %s secs [%s/%s]", e, delay, attempt, _DOWNLOAD_MAX_ATTEMPTS)
+                time.sleep(delay)
 
     @staticmethod
     def get_remote_hashes(hash_file_url: str) -> Dict[str, str]:
@@ -114,6 +142,19 @@ class UpdateHelper:
             if local_hash != remote_hash:
                 yield ModifiedFile(path, ModifyType.MODIFY)
 
+        with open(UPDATER_HASH_FILE, "r", encoding=DFT_ENCODING) as local_updater_fd:
+            content = local_updater_fd.read()
+        current_file_list = {" ".join(line.split()[1:]) for line in content.splitlines() if line.startswith("H-")}
+        remote_file_list = {path for _, path in remote_hashes.items()}
+
+        # Determine which files have been removed
+        removed_files = current_file_list - remote_file_list
+        for removed_file in removed_files:
+            yield ModifiedFile(removed_file, ModifyType.REMOVE)
+
+        # always yield .updater.hashes
+        yield ModifiedFile(UPDATER_HASH_FILE, ModifyType.MODIFY)
+
     def _cleanup(self) -> None:
         for tempdir in self._tempdirs.values():
             shutil.rmtree(tempdir)
@@ -140,8 +181,8 @@ class UpdateHelper:
     def _check_for_updates(self) -> bool | None:
         self._notification_controller.debug("Checking for updates...")
 
-        if self._update_list is None:
-            self._update_list = [mod_file.path for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}")]
+        for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}"):
+            self._update_list.append(mod_file)
 
         if not self._update_list:
             self._notification_controller.late_info("No updates available.")
@@ -160,7 +201,8 @@ class UpdateHelper:
 
         self._notification_controller.debug("Downloading the new files, please wait...")
 
-        for file in self._update_list[:]:
+        for mod_file in self._update_list[:]:
+            file = mod_file.path
             file_replaced = file.replace("\\", "/")
             self._notification_controller.debug(f"downloading: {RAW_REMOTE_URL}/{file_replaced}")
 
@@ -169,7 +211,7 @@ class UpdateHelper:
 
             self._backup(file)
 
-            self._update_list.remove(file)
+            self._update_list.remove(mod_file)
             self._downloaded_files[file] = temp_location
 
         try:
@@ -177,6 +219,8 @@ class UpdateHelper:
         except OSError:
             self._do_rollback()
             raise
+        finally:
+            self._update_list.clear()
 
     def _backup(self, file: str) -> None:
         try:
@@ -200,6 +244,9 @@ class UpdateHelper:
             self._notification_controller.debug(f"Replacing {file}...")
             Path(file).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(temp_location, file)
+
+        for mod_file in self._update_list:
+            os.remove(mod_file.path)
 
         return self._complete_update()
 

@@ -4,12 +4,12 @@ import socket
 import threading
 from typing import Callable
 
-from common.tools import is_debug_enabled
+from settings import IS_DEVELOPER_MODE
 
 HOST = "127.0.0.1"
 
 # use a different port to not have conflicts with the main application
-KEY_TRACKER_PORT = 27845 + int(is_debug_enabled())
+KEY_TRACKER_PORT = 27845 + int(IS_DEVELOPER_MODE)
 
 
 class Informer:
