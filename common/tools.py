@@ -279,14 +279,22 @@ def restart_as_admin(*params: str) -> None:
     if is_debug_enabled():  # do not use pythonw.exe in debug mode
         exe_path = exe_path.parent / "python.exe"
 
+    command = [
+        os.getcwd() + r"\admin.bat",
+        os.getcwd(),
+        os.getcwd() + r"\start.bat",
+        str(exe_path),
+        sys.argv[0],
+        *params,
+    ]
     logger.warning("Restarting as admin: %s", exe_path)
-    logger.debug("Command: %s %s %s %s %s", os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0], " ".join(params))
+    logger.debug("Command: %s", subprocess.list2cmdline(command))
 
     reset_single_instance()
 
     try:
         subprocess.check_output(
-            [os.getcwd() + r"\admin.bat", os.getcwd(), str(exe_path), sys.argv[0]] + list(params),
+            command,
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
     except subprocess.CalledProcessError as e:
