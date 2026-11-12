@@ -37,6 +37,7 @@ cd %DESTINATION_FOLDER% || goto :error
 call env\Scripts\activate.bat || goto :error
 
 %PYTHON_PATH% -m pip install --upgrade pip > nul || goto :error
+%PYTHON_PATH% -m pip install -r requirements.txt > nul || goto :error
 %PYTHON_PATH% initial_setup.py || goto :error
 
 pause
