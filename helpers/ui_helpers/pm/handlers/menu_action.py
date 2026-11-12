@@ -77,7 +77,7 @@ class MenuActionHandler:
         ):
             if qt_instance := QtWidgets.QApplication.instance():
                 qt_instance.quit()
-            restart_as_admin(f"{CLI_ARG_AUTH_METHOD} {auth_method.value}")
+            restart_as_admin(CLI_ARG_AUTH_METHOD, auth_method.value)
 
     def change_master_key_dialog(self, auth_method: AuthMethod | None = None) -> None:
         """open a dialog window and ask user to enter a new master key"""

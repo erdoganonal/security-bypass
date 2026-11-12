@@ -25,7 +25,7 @@ def main() -> None:
         message_printed = False
         for mod_file in UpdateHelper.get_update_list(args.hash_file_url + "/" + args.hash_file_name):
             if not message_printed:
-                print("The following files either changed or added. It is need to be updated:\n")
+                print("The following files were added, changed, or removed:\n")
                 message_printed = True
             print(mod_file.kind.value, mod_file.path)
         if not message_printed:

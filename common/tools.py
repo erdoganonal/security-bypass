@@ -5,7 +5,6 @@ import os
 import subprocess
 import sys
 import tkinter as tk
-from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Type
 
@@ -18,19 +17,12 @@ from tendo import singleton
 from common.exceptions import ConfigFileNotFoundError
 from common.exit_codes import ExitCodes
 from logger import logger
-from settings import CREDENTIALS_FILE, ENV_NAME_AUTH_KEY, ENV_NAME_DEBUG, ENV_NAME_SKIP_UPDATE, WRAPPER_FILE
+from settings import CREDENTIALS_FILE, ENV_NAME_AUTH_KEY, ENV_NAME_SKIP_UPDATE, IS_DEVELOPER_MODE, WRAPPER_FILE
 
 if TYPE_CHECKING:
     import pywinauto  # type: ignore[import-untyped]
 
 _GLOBAL: Dict[str, Any] = {}
-
-
-@cache
-def is_debug_enabled() -> bool:
-    """Return the debug status"""
-
-    return bool(os.getenv(ENV_NAME_DEBUG, None))
 
 
 def is_windows_locked() -> bool:
@@ -276,13 +268,14 @@ def restart_as_admin(*params: str) -> None:
         return
 
     exe_path = Path(sys.executable)
-    if is_debug_enabled():  # do not use pythonw.exe in debug mode
+    if IS_DEVELOPER_MODE:  # do not use pythonw.exe in developer mode
         exe_path = exe_path.parent / "python.exe"
 
     command = [
-        os.getcwd() + r"\admin.bat",
-        os.getcwd(),
-        os.getcwd() + r"\start.bat",
+        os.path.join(os.environ["SystemRoot"], "System32", "wscript.exe"),
+        "//nologo",
+        os.getcwd() + r"\start.vbs",
+        "--elevate",
         str(exe_path),
         sys.argv[0],
         *params,

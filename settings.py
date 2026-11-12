@@ -2,8 +2,10 @@
 
 from pathlib import Path
 
+IS_DEVELOPER_MODE = False
+
 CURRENT_DIR = Path(__file__).parent
-CONFIG_PATH = Path("~").expanduser() / ".security_bypass_dev"
+CONFIG_PATH = Path("~").expanduser() / (".security_bypass" + ("_dev" if IS_DEVELOPER_MODE else ""))
 CREDENTIALS_FILE = CONFIG_PATH / ".credentials"
 
 WRAPPER_FILE = CURRENT_DIR / "security_bypass_wrapper.py"
@@ -17,19 +19,16 @@ WARNING_ICON = DATA_DIR / "warning.ico"
 ERROR_ICON = DATA_DIR / "error.ico"
 QUESTION_ICON = DATA_DIR / "question.ico"
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 DFT_ENCODING = "utf-8"
 ENV_NAME_AUTH_KEY = "SECURITY_BYPASS_AUTHENTICATION_KEY"
-ENV_NAME_DEBUG = "SECURITY_BYPASS_DEBUG"
 ENV_NAME_SKIP_UPDATE = "SECURITY_BYPASS_SKIP_UPDATE"
 
 MIN_SLEEP_SECS_AFTER_KEY_SENT = 3
 MAX_KEY_SENT_ATTEMPTS = 10
 
 ASK_PASSWORD_ON_LOCK = False
-
-DEBUG = True
 
 RAW_REMOTE_URL = "https://raw.github.com/erdoganonal/security-bypass/main"
 UPDATER_HASH_FILE = ".updater.hashes"

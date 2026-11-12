@@ -5,10 +5,10 @@ from typing import Dict, List, Tuple
 from password_validator import PasswordValidator, lib  # type: ignore[import-untyped]
 
 from common.tools import split_long_string
-from settings import DEBUG
+from settings import IS_DEVELOPER_MODE
 
 PASSWORD_SCHEMA = PasswordValidator()
-if not DEBUG:
+if not IS_DEVELOPER_MODE:
     PASSWORD_SCHEMA.min(8)
     PASSWORD_SCHEMA.max(100)
     PASSWORD_SCHEMA.has().letters()
