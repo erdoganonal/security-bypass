@@ -3,7 +3,7 @@ name = "SecurityBypass"
 authors = [{ name = "Erdogan Onal", email = "erdoganonal@windowslive.com" }]
 version = "2.0.0"
 description = "Allows you pick a pre-saved password and enters it for you"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -35,9 +35,9 @@ max-line-length = 140
 
 [tool.tox]
 minversion = "4.0"
-env_list = ["py310", "py311", "py312", "py313"]
+env_list = ["py311", "py312", "py313"]
 
-[tool.tox.env.py310]
+[tool.tox.env.py311]
 deps = [
     "black==26.3.1",
     "colorama",
@@ -50,7 +50,7 @@ deps = [
     "pycryptodome",
     "pylint==4.0.5",
     "pyqt6",
-    "pyreadline",
+    "pyreadline3",
     "pywin32",
     "pywinauto",
     "requests",
@@ -76,15 +76,9 @@ commands = [
     ["pylint", "common", "communication", "config", "exclusion", "generated", "handlers", "helpers", "updater"],
 ]
 
-[tool.tox.env.py311]
-inherit = true
-
-[tool.tox.env.py312]
+[tool.tox.env.py313]
 inherit = true
 commands = [
     # finally, generate hashes for the updater
     ["python", "-m", "updater", "generate-hashes"]
 ]
-
-[tool.tox.env.py313]
-inherit = true

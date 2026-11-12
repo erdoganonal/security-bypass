@@ -1,7 +1,7 @@
 @echo off
 
 @rem check whether python exists or not
-for %%v in (13 12 11 10) do (
+for %%v in (13 12 11) do (
     for /f "delims=" %%i in ('where python ^| findstr /i "python3%%v"') do (
         set "PYTHON_PATH=%%i"
     )
@@ -11,7 +11,7 @@ for %%v in (13 12 11 10) do (
     )
 )
 
-echo No Python version has been found. Please intall python 10, 11, 12 or 13 first.
+echo No Python version has been found. Please install Python 3.11, 3.12 or 3.13 first.
 pause
 exit /b 1
 
