@@ -13,6 +13,8 @@ try:
     import win32api
     import win32com.client
 
+    import psutil
+
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
     from common.tools import check_config_file
@@ -127,14 +129,13 @@ def complete_update() -> NoReturn:
     """complete the update process by stopping and starting again the task scheduler"""
 
     _system('schtasks /end /tn "Security Bypass"')
-    pid = subprocess.check_output(
-        """wmic process where "commandline like '%security_bypass_wrapper.py%' and not commandline like 'wmic%%'" get processid""",
-        text=True,
-        stderr=subprocess.PIPE,
-    ).splitlines()[2]
 
-    if pid:
-        _system(f"taskkill /f /pid {pid}")
+    for proc in psutil.process_iter(["pid", "cmdline"]):
+        try:
+            if proc.pid != os.getpid() and any("security_bypass_wrapper.py" in arg for arg in proc.info["cmdline"] or []):
+                proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
     _system('schtasks /run /tn "Security Bypass"')
 
