@@ -59,12 +59,12 @@ class UpdateHelper:
         self._cleanup()
 
     @staticmethod
-    def md5(abs_path: Path | str) -> str:
+    def md5(abs_path: Path | str, salt: bool = True) -> str:
         """Generate the md5 hash of a file."""
 
         path = os.path.relpath(abs_path, CURRENT_DIR)
 
-        hash_md5 = hashlib.md5(path.encode(DFT_ENCODING))
+        hash_md5 = hashlib.md5(path.encode(DFT_ENCODING) if salt else b"")
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_md5.update(chunk.replace(b"\r", b""))
@@ -126,6 +126,23 @@ class UpdateHelper:
         return hashes_dict
 
     @classmethod
+    def need_update_updater_hashes(cls) -> bool:
+        """Determine if the updater hashes need to be updated."""
+
+        hash_md5 = hashlib.md5()
+
+        with requests.get(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}", stream=True, timeout=100) as response:
+            response.raise_for_status()  # Ensure we got an OK response
+
+            for chunk in response.iter_content(chunk_size=8192):
+                hash_md5.update(chunk.replace(b"\r", b""))
+
+        remote_hash = hash_md5.hexdigest()
+        local_hash = cls.md5(UPDATER_HASH_FILE, salt=False)
+
+        return local_hash != remote_hash
+
+    @classmethod
     def get_update_list(cls, hash_file_url: str) -> Generator[ModifiedFile, None, None]:
         """Return the list of files that need to be updated."""
 
@@ -152,8 +169,8 @@ class UpdateHelper:
         for removed_file in removed_files:
             yield ModifiedFile(removed_file, ModifyType.REMOVE)
 
-        # always yield .updater.hashes
-        yield ModifiedFile(UPDATER_HASH_FILE, ModifyType.MODIFY)
+        if cls.need_update_updater_hashes():
+            yield ModifiedFile(UPDATER_HASH_FILE, ModifyType.MODIFY)
 
     def _cleanup(self) -> None:
         for tempdir in self._tempdirs.values():
