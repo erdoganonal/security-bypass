@@ -10,10 +10,9 @@ from typing import NoReturn, overload
 from settings import DFT_ENCODING, ENV_NAME_AUTH_KEY, ENV_NAME_SKIP_UPDATE
 
 try:
+    import psutil
     import win32api
     import win32com.client
-
-    import psutil
 
     from common.exit_codes import ExitCodes
     from common.password_validator import PASSWORD_SCHEMA, get_schema_rules
