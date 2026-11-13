@@ -7,6 +7,7 @@ from exclusion.manager import get_files
 from generate_all import main as generate_all
 from installer import Installer, InstallerData
 from settings import CURRENT_DIR, WRAPPER_FILE
+from updater.constants import UPDATER_FILE_NAME
 
 INSTALLER_DIR = CURRENT_DIR / "installer"
 
@@ -22,6 +23,7 @@ _T = TypeVar("_T")
 
 ADDITIONAL = [
     WRAPPER_FILE,
+    CURRENT_DIR / UPDATER_FILE_NAME,
 ]
 
 
