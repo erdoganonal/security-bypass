@@ -70,7 +70,7 @@ H-c4b98b7fcd727e383c5539f6b01aae36 helpers\ui_helpers\pm\handlers\__init__.py
 H-85cf2ec0d76e98527c7f0f5044f4646c helpers\ui_helpers\pm\handlers\menu_action.py
 H-ebd8174ed92c8cbe4eb1b771be6fd932 helpers\ui_helpers\pm\handlers\signal_handler.py
 H-24183598e0825b4c49e2549a784968b4 helpers\user_preferences.py
-H-7aefc5806cdce1f6d3671e1cce91ffa7 initial_setup.py
+H-ff84f45842c2e73899f625b1990f8861 initial_setup.py
 H-f2c5d9b44b8959457adc1c8bf524cd8c installer\password_manager.ico
 H-4e33de644917ce9956d220ed8d104626 installer.py
 H-b621c46846ce11d8df3f705052020f93 LICENSE
@@ -99,4 +99,4 @@ H-bbbd4fb59b4c7914e7391e965fdf95a2 updater\constants.py
 H-cc10a6a1eb10fcf86e8c5c9746cac590 updater\handlers\__init__.py
 H-5258277fc95896720314505f609ef2bb updater\handlers\common.py
 H-689c838a60a9e76ef68f3d90dec7a719 updater\handlers\generate_hashes_handler.py
-H-d5d82aa2b2f623d00692b425f4c5e97c updater\helpers.py
+H-c82637221947722919e6f591155c252e updater\helpers.py

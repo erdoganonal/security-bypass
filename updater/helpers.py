@@ -182,6 +182,7 @@ class UpdateHelper:
         self._notification_controller.debug("Checking for updates...")
 
         for mod_file in self.get_update_list(f"{RAW_REMOTE_URL}/{UPDATER_HASH_FILE}"):
+            self._notification_controller.debug(f"Update available: {mod_file.path} - {mod_file.kind}")
             self._update_list.append(mod_file)
 
         if not self._update_list:
@@ -202,6 +203,9 @@ class UpdateHelper:
         self._notification_controller.debug("Downloading the new files, please wait...")
 
         for mod_file in self._update_list[:]:
+            if mod_file.kind == ModifyType.REMOVE:
+                # remove them later once the download and update process is complete
+                continue
             file = mod_file.path
             file_replaced = file.replace("\\", "/")
             self._notification_controller.debug(f"downloading: {RAW_REMOTE_URL}/{file_replaced}")
@@ -246,6 +250,7 @@ class UpdateHelper:
             shutil.copy2(temp_location, file)
 
         for mod_file in self._update_list:
+            self._notification_controller.debug(f"Removing {mod_file.path}...")
             os.remove(mod_file.path)
 
         return self._complete_update()

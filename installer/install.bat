@@ -27,18 +27,18 @@ if not exist "%TOOLS_FOLDER%" mkdir %TOOLS_FOLDER%
 
 echo Extracting files...
 cd tmp
-powershell -command "Expand-Archive -Force 'windows_security_bypass.zip'" %DESTINATION_FOLDER% || goto :error
+powershell -command "Expand-Archive -Force 'windows_security_bypass.zip'" "%DESTINATION_FOLDER%" || goto :error
 echo Files have been extraced.
 echo.
 
-cd %DESTINATION_FOLDER% || goto :error
+cd "%DESTINATION_FOLDER%" || goto :error
 
-%PYTHON_PATH% -m venv env || goto :error
+"%PYTHON_PATH%" -m venv env || goto :error
 call env\Scripts\activate.bat || goto :error
 
-%PYTHON_PATH% -m pip install --upgrade pip > nul || goto :error
-%PYTHON_PATH% -m pip install -r requirements.txt > nul || goto :error
-%PYTHON_PATH% initial_setup.py || goto :error
+"%PYTHON_PATH%" -m pip install --upgrade pip > nul || goto :error
+"%PYTHON_PATH%" -m pip install -r requirements.txt > nul || goto :error
+"%PYTHON_PATH%" initial_setup.py || goto :error
 
 pause
 exit /b 0
