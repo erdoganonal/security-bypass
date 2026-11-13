@@ -7,7 +7,19 @@ baseDir = fso.GetParentFolderName(WScript.ScriptFullName)
 logPath = fso.BuildPath(baseDir, "security_bypass_batch.log")
 shell.CurrentDirectory = baseDir
 
+' The previous (non-elevated) instance may still hold the log open, so opening it can be denied.
+On Error Resume Next
 Set log = fso.OpenTextFile(logPath, 2, True)
+If Err.Number <> 0 Then
+    Err.Clear
+    Set log = fso.OpenTextFile(logPath, 8, True)
+End If
+If Err.Number <> 0 Then
+    Err.Clear
+    logPath = fso.BuildPath(baseDir, "security_bypass_batch_" & Replace(Replace(CStr(Timer), ".", ""), ",", "") & ".log")
+    Set log = fso.OpenTextFile(logPath, 2, True)
+End If
+On Error GoTo 0
 log.WriteLine "Starting the security bypass application..."
 
 Set args = WScript.Arguments
